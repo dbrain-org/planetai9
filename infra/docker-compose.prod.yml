@@ -141,7 +141,7 @@ services:
       NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
       SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}
       PORT: "3000"
-    # localhost-only — a reverse proxy (Caddy / your own) terminates TLS and forwards here
+    # The host port stays localhost-only; Traefik reaches the container over the external web network.
     ports:
       - "127.0.0.1:${WEB_PORT:-3000}:3000"
     depends_on:
@@ -152,6 +152,18 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.planetai9.rule=Host(`planetai9.com`)"
+      - "traefik.http.routers.planetai9.entrypoints=websecure"
+      - "traefik.http.routers.planetai9.tls=true"
+      - "traefik.http.routers.planetai9.tls.certresolver=le"
+      - "traefik.http.routers.planetai9.priority=10"
+      - "traefik.http.services.planetai9.loadbalancer.server.port=3000"
+    networks:
+      - default
+      - web
 
   # Optional bundled TLS proxy — enable with `--profile caddy`. Needs SITE_DOMAIN.
   caddy:
@@ -176,3 +188,8 @@ volumes:
   redisdata:
   caddy_data:
   caddy_config:
+
+networks:
+  default:
+  web:
+    external: true
