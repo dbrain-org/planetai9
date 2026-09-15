@@ -64,13 +64,12 @@ def test_marketplace_submission_lands_pending(client):
             db.query(models.MarketplaceApp).filter_by(slug=slug).delete()
 
 
-def test_marketplace_queue_hidden_without_token(client, monkeypatch):
+def test_marketplace_queue_requires_auth(client, monkeypatch):
     from planetai_api.routers import marketplace
 
-    # no admin token AND no moderator authors ⇒ the moderation surface must 404
-    monkeypatch.setattr(marketplace._settings, "admin_token", None, raising=False)
-    monkeypatch.setattr(marketplace._settings, "moderator_authors", [], raising=False)
-    assert client.get("/api/v1/marketplace/queue").status_code == 404
+    # With any moderation channel configured, missing token ⇒ 401 (not a public surface).
+    monkeypatch.setattr(marketplace._settings, "admin_token", "test-secret", raising=False)
+    assert client.get("/api/v1/marketplace/queue").status_code == 401
 
 
 def test_marketplace_admin_moderation_flow(client, monkeypatch):
@@ -191,9 +190,10 @@ def test_author_studio_write_flow(client, monkeypatch, author_slug):
         with session_scope() as db:
             other = db.query(models.Author).filter_by(slug="someone-else").first()
             if other is None:
-                other = models.Author(slug="someone-else", name="Other")
+                other = models.Author(slug="someone-else", name="Other", status="active")
                 db.add(other)
             other.api_key_hash = hash_api_key("k2")
+            other.status = "active"
         forbidden = client.patch(
             f"/api/v1/authors/me/columns/{slug}",
             headers={"X-Author-Key": "someone-else:k2"},
@@ -223,10 +223,11 @@ def test_moderator_author_can_work_marketplace_queue(client, monkeypatch, author
         a.is_moderator = True
         other = db.query(models.Author).filter_by(slug="no-mod").first()
         if other is None:
-            other = models.Author(slug="no-mod", name="No Mod")
+            other = models.Author(slug="no-mod", name="No Mod", status="active")
             db.add(other)
         other.api_key_hash = hash_api_key("x")
         other.is_moderator = False
+        other.status = "active"
 
     good = {"X-Author-Key": "ayhan-demirci:mk"}
     # studio payload advertises the capability
@@ -445,29 +446,36 @@ def test_news_submission_approval_creates_event_in_tr_region(client, monkeypatch
 
     assert client.get("/api/v1/news-submissions/queue", headers=hdr).status_code == 200
 
-    # a submission needs a url or a description
+    # body + name required
     bad = client.post(
         "/api/v1/news-submissions",
-        json={"title": "Eksik gönderi başlığı burada", "category": "AI"},
+        json={"category": "AI", "submitter_name": "X"},
     )
     assert bad.status_code == 422
 
-    title = "PyTest okuyucu haberi — LLM Radar yayında"
+    body = (
+        "PyTest okuyucu haberi — LLM Radar yayında. "
+        "Bu metin kırk karakterden uzun olacak şekilde yazıldı."
+    )
     sub = client.post(
         "/api/v1/news-submissions",
         json={
-            "title": title,
-            "url": "https://example.com/llm-radar",
-            "summary": "Kısa özet.",
-            "category": "AI",
+            "title": "PyTest okuyucu haberi",
+            "description": body,
             "submitter_name": "Test Suite",
+            "submitter_phone": "05551234567",
+            "submitter_profession": "Mühendis",
+            "submitter_company": "PlanetAI9",
+            "image_urls": ["/uploads/news/demo/1.jpg"],
         },
     )
     assert sub.status_code == 201
 
     queue = client.get("/api/v1/news-submissions/queue", headers=hdr).json()
-    row = next(s for s in queue if s["title"] == title)
-    assert row["status"] == "pending" and row["event_slug"] is None
+    row = next(s for s in queue if s["submitter_name"] == "Test Suite" and s["status"] == "pending")
+    assert row["event_slug"] is None
+    assert row["image_urls"] == ["/uploads/news/demo/1.jpg"]
+    title = row["title"]
 
     approved = client.post(
         f"/api/v1/news-submissions/{row['id']}/status", headers=hdr, json={"status": "approved"}
@@ -478,12 +486,37 @@ def test_news_submission_approval_creates_event_in_tr_region(client, monkeypatch
 
     try:
         detail = client.get(f"/api/v1/events/{event_slug}")
-        assert detail.status_code == 200 and detail.json()["title"] == title
+        assert detail.status_code == 200
+        assert detail.json()["title"] == title
+        assert detail.json()["image_urls"] == ["/uploads/news/demo/1.jpg"]
 
         tr_slugs = {
             e["slug"] for e in client.get("/api/v1/events?region=TR&limit=50").json()["data"]
         }
         assert event_slug in tr_slugs
+
+        # Reject / pending must unpublish the reader Event
+        rejected = client.post(
+            f"/api/v1/news-submissions/{row['id']}/status",
+            headers=hdr,
+            json={"status": "rejected"},
+        )
+        assert rejected.status_code == 200
+        assert client.get(f"/api/v1/events/{event_slug}").status_code == 404
+        submitted = {
+            e["slug"]
+            for e in client.get("/api/v1/events?origin=submitted&limit=50").json()["data"]
+        }
+        assert event_slug not in submitted
+
+        # Re-approve brings it back
+        again = client.post(
+            f"/api/v1/news-submissions/{row['id']}/status",
+            headers=hdr,
+            json={"status": "approved"},
+        )
+        assert again.status_code == 200
+        assert client.get(f"/api/v1/events/{event_slug}").status_code == 200
     finally:
         from planetai_shared.db import models
         from planetai_shared.db.base import session_scope

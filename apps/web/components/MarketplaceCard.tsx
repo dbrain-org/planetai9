@@ -21,12 +21,6 @@ const CAT_HUE: Record<string, string> = {
   other: "#6B7280",
 };
 
-const PRICING: Record<string, { tr: string; en: string }> = {
-  free: { tr: "Ücretsiz", en: "Free" },
-  freemium: { tr: "Freemium", en: "Freemium" },
-  paid: { tr: "Ücretli", en: "Paid" },
-};
-
 function host(url: string) {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
@@ -80,10 +74,7 @@ export function MarketplaceCard({ app, locale }: { app: MarketplaceApp; locale: 
       </p>
 
       <div className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-[11px] text-ink-2 dark:border-d-line dark:text-d-ink-2">
-        <span className="rounded-full bg-wash px-2 py-0.5 font-semibold dark:bg-d-wash">
-          {PRICING[app.pricing]?.[locale] ?? app.pricing}
-        </span>
-        <span className="truncate">{app.author_name}</span>
+        <span className="truncate font-medium">{app.author_name}</span>
         {app.repo_url && (
           <span className="ml-auto shrink-0 font-semibold text-accent">
             {locale === "tr" ? "kaynak" : "source"} ↗

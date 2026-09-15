@@ -46,5 +46,12 @@ def author_slug() -> str:
     slug = "ayhan-demirci"
     with session_scope() as db:
         if db.query(models.Author).filter_by(slug=slug).first() is None:
-            db.add(models.Author(slug=slug, name="Ayhan Demirci", role="Kurucu · PlanetAI9"))
+            db.add(
+                models.Author(
+                    slug=slug,
+                    name="Ayhan Demirci",
+                    role="Kurucu · PlanetAI9",
+                    status="active",
+                )
+            )
     return slug

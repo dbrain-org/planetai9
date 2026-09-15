@@ -1,11 +1,49 @@
 from __future__ import annotations
 
+import re
+
 from planetai_shared.db import models
 from planetai_shared.enums import PRIMARY_SOURCE_TYPES
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from planetai_api import schemas
+
+_IMAGE_PARA = re.compile(
+    r"^(?:https?://\S+)?(/news/|/uploads/).+\.(?:svg|png|jpe?g|webp|gif|avif|bmp|tiff?|heic|heif)$",
+    re.IGNORECASE,
+)
+_IMAGE_ONLY = re.compile(
+    r"^/?(?:news|uploads)/.+\.(?:svg|png|jpe?g|webp|gif|avif|bmp|tiff?|heic|heif)$",
+    re.IGNORECASE,
+)
+
+
+def _is_image_paragraph(p: str) -> bool:
+    s = p.strip()
+    return bool(_IMAGE_PARA.match(s) or _IMAGE_ONLY.match(s))
+
+
+def split_body_and_gallery(
+    body_text: str | None,
+    image_url: str | None,
+    image_urls: list | None,
+) -> tuple[list[str], list[str]]:
+    """Pull standalone image paths out of body paragraphs into a gallery."""
+    paragraphs = [p.strip() for p in (body_text or "").split("\n\n") if p.strip()]
+    from_body = [p for p in paragraphs if _is_image_paragraph(p)]
+    text = [p for p in paragraphs if not _is_image_paragraph(p)]
+
+    gallery: list[str] = []
+    for u in image_urls or []:
+        if isinstance(u, str) and u.strip() and u.strip() not in gallery:
+            gallery.append(u.strip())
+    for u in from_body:
+        if u not in gallery:
+            gallery.append(u)
+    if image_url and image_url not in gallery:
+        gallery.insert(0, image_url)
+    return text, gallery
 
 
 def entity_ref(ent: models.Entity | None) -> schemas.EntityRef | None:
@@ -136,11 +174,13 @@ def event_detail(db: Session, event: models.Event, lang: str | None = None) -> s
     related = _related_events(db, event)
     related_videos = _related_videos_for_event(db, event)
 
+    body, gallery = split_body_and_gallery(body_text, event.image_url, event.image_urls)
+
     return schemas.EventDetail(
         slug=event.slug,
         title=title,
         summary=summary,
-        body=[p.strip() for p in (body_text or "").split("\n\n") if p.strip()],
+        body=body,
         why_it_matters=event.why_it_matters,
         category=event.category,
         impact=event.impact,
@@ -148,7 +188,8 @@ def event_detail(db: Session, event: models.Event, lang: str | None = None) -> s
         source_count=event.source_count,
         first_seen_at=event.first_seen_at,
         last_activity_at=event.last_activity_at,
-        image_url=event.image_url,
+        image_url=gallery[0] if gallery else event.image_url,
+        image_urls=gallery,
         primary_entity=entity_ref(event.primary_entity),
         topics=[schemas.TopicRef(slug=t.slug, name=t.name) for t in topic_rows],
         entities=[

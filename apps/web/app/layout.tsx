@@ -16,7 +16,7 @@ const SITE = process.env.PLANETAI_SITE_URL ?? "https://planetai9.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "PlanetAI9 — Türkiye Medya Platformu",
+    default: "PlanetAI9 — Türkiye Yapay Zeka Medya Platformu",
     template: "%s · PlanetAI9",
   },
   description:
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     siteName: "PlanetAI9",
     locale: "tr_TR",
     url: SITE,
-    title: "PlanetAI9 — Türkiye Medya Platformu",
+    title: "PlanetAI9 — Türkiye Yapay Zeka Medya Platformu",
     description: "Türkiye'nin yapay zekâ medya platformu.",
   },
   twitter: { card: "summary_large_image", site: "@planetai9" },

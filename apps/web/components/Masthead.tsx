@@ -13,11 +13,11 @@ export async function Masthead() {
     { label: t.nav.news, href: "/" },
     { label: t.nav.world, href: "/news?region=world" },
     { label: t.nav.turkey, href: "/turkiye" },
-    { label: t.nav.submitNews, href: "/haber-giris" },
+    { label: "LLMRadar", href: "https://llmradar.planetai9.com", external: true },
     { label: t.nav.authors, href: "/yazarlar" },
     { label: t.nav.marketplace, href: "/marketplace" },
     { label: t.nav.video, href: "/videos" },
-    { label: "LLMRadar", href: "https://llmradar.planetai9.com", external: true },
+    { label: t.nav.submitNews, href: "/haber-giris" },
   ];
 
   return (

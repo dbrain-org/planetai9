@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import secrets
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from planetai_shared.author_auth import hash_api_key
 from planetai_shared.db import models
 from planetai_shared.settings import get_settings
 from pydantic import BaseModel, Field
@@ -12,9 +14,15 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from planetai_api.db import get_db
+from planetai_api.ratelimit import limiter
+from planetai_api.routers.marketplace import require_admin
 
 router = APIRouter()
 _settings = get_settings()
+
+AUTHOR_STATUSES = {"active", "pending", "rejected"}
+# Test / junk slugs that must never appear on /yazarlar
+_JUNK_AUTHOR_SLUGS = frozenset({"no-mod", "someone-else", "other"})
 
 
 class AuthorRef(BaseModel):
@@ -27,6 +35,36 @@ class AuthorRef(BaseModel):
 class AuthorDetail(AuthorRef):
     bio: str | None
     links: dict
+
+
+class AuthorApplicationOut(BaseModel):
+    slug: str
+    name: str
+    role: str | None
+    bio: str | None
+    email: str | None
+    application_note: str | None
+    status: str
+    has_key: bool
+    created_at: datetime
+
+
+class AuthorApplyIn(BaseModel):
+    name: str = Field(min_length=2, max_length=160)
+    email: str = Field(min_length=5, max_length=200)
+    role: str | None = Field(default=None, max_length=160)
+    bio: str | None = Field(default=None, max_length=4000)
+    note: str | None = Field(default=None, max_length=2000)
+
+
+class AuthorStatusChange(BaseModel):
+    status: str
+
+
+class AuthorKeyIn(BaseModel):
+    """Omit secret to auto-generate a one-time key returned in the response."""
+
+    secret: str | None = Field(default=None, min_length=8, max_length=120)
 
 
 class ColumnCard(BaseModel):
@@ -46,6 +84,20 @@ def _author_ref(a: models.Author) -> AuthorRef:
     return AuthorRef(slug=a.slug, name=a.name, role=a.role, avatar_url=a.avatar_url)
 
 
+def _application_out(a: models.Author) -> AuthorApplicationOut:
+    return AuthorApplicationOut(
+        slug=a.slug,
+        name=a.name,
+        role=a.role,
+        bio=a.bio,
+        email=a.email,
+        application_note=a.application_note,
+        status=a.status,
+        has_key=bool(a.api_key_hash),
+        created_at=a.created_at,
+    )
+
+
 def _card(p: models.OpinionPost) -> ColumnCard:
     return ColumnCard(
         slug=p.slug,
@@ -59,13 +111,118 @@ def _card(p: models.OpinionPost) -> ColumnCard:
 
 @router.get("/authors", response_model=list[AuthorRef])
 def list_authors(db: Session = Depends(get_db)) -> list[AuthorRef]:
-    rows = db.scalars(select(models.Author).order_by(models.Author.name)).all()
-    return [_author_ref(a) for a in rows]
+    rows = db.scalars(
+        select(models.Author)
+        .where(models.Author.status == "active")
+        .order_by(models.Author.name)
+    ).all()
+    return [_author_ref(a) for a in rows if a.slug not in _JUNK_AUTHOR_SLUGS]
+
+
+@router.post("/authors/apply", status_code=201)
+@limiter.limit(_settings.rate_limit_submit)
+def apply_as_author(
+    request: Request, payload: AuthorApplyIn, db: Session = Depends(get_db)
+) -> dict:
+    name = payload.name.strip()
+    email = payload.email.strip().lower()
+    base = slugify(name)[:100] or "yazar"
+    slug = base
+    n = 0
+    while db.scalar(select(models.Author.id).where(models.Author.slug == slug)):
+        n += 1
+        slug = f"{base}-{n}"
+        if n > 50:
+            raise HTTPException(409, "slug alınamadı")
+
+    author = models.Author(
+        slug=slug,
+        name=name,
+        role=(payload.role or "").strip() or None,
+        bio=(payload.bio or "").strip() or None,
+        email=email,
+        application_note=(payload.note or "").strip() or None,
+        status="pending",
+        links={},
+    )
+    db.add(author)
+    db.commit()
+    return {"ok": True, "status": "pending", "slug": slug}
+
+
+@router.get("/authors/queue", response_model=list[AuthorApplicationOut])
+def author_applications_queue(
+    _: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+    status: str | None = Query(None),
+) -> list[AuthorApplicationOut]:
+    stmt = select(models.Author).where(models.Author.slug.notin_(_JUNK_AUTHOR_SLUGS))
+    if status in AUTHOR_STATUSES:
+        stmt = stmt.where(models.Author.status == status)
+    else:
+        # Default queue: pending first, then everyone else except pure junk
+        pass
+    rows = sorted(
+        db.scalars(stmt).all(),
+        key=lambda a: (a.status != "pending", a.name.lower()),
+    )
+    return [_application_out(a) for a in rows]
+
+
+@router.post("/authors/{slug}/status", response_model=AuthorApplicationOut)
+def set_author_status(
+    slug: str,
+    payload: AuthorStatusChange,
+    _: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> AuthorApplicationOut:
+    if payload.status not in AUTHOR_STATUSES:
+        raise HTTPException(422, f"status must be one of {sorted(AUTHOR_STATUSES)}")
+    if slug in _JUNK_AUTHOR_SLUGS:
+        raise HTTPException(404, "yazar bulunamadı")
+    author = db.scalar(select(models.Author).where(models.Author.slug == slug))
+    if author is None:
+        raise HTTPException(404, "yazar bulunamadı")
+    author.status = payload.status
+    db.commit()
+    db.refresh(author)
+    return _application_out(author)
+
+
+@router.post("/authors/{slug}/key")
+def set_author_key(
+    slug: str,
+    payload: AuthorKeyIn,
+    _: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    if slug in _JUNK_AUTHOR_SLUGS:
+        raise HTTPException(404, "yazar bulunamadı")
+    author = db.scalar(select(models.Author).where(models.Author.slug == slug))
+    if author is None:
+        raise HTTPException(404, "yazar bulunamadı")
+    secret = (payload.secret or "").strip() or secrets.token_urlsafe(18)
+    author.api_key_hash = hash_api_key(secret)
+    if author.status == "pending":
+        author.status = "active"
+    db.commit()
+    return {
+        "ok": True,
+        "slug": author.slug,
+        "status": author.status,
+        "key": f"{author.slug}:{secret}",
+    }
 
 
 @router.get("/authors/{slug}")
 def get_author(slug: str, db: Session = Depends(get_db)) -> dict:
-    a = db.scalar(select(models.Author).where(models.Author.slug == slug))
+    if slug in _JUNK_AUTHOR_SLUGS:
+        raise HTTPException(404, "author not found")
+    a = db.scalar(
+        select(models.Author).where(
+            models.Author.slug == slug, models.Author.status == "active"
+        )
+    )
     if a is None:
         raise HTTPException(404, "author not found")
     posts = db.scalars(
@@ -124,7 +281,7 @@ class MyColumn(BaseModel):
 class StudioPayload(BaseModel):
     author: AuthorDetail
     columns: list[MyColumn]
-    is_moderator: bool  # may also moderate the AI Marketplace queue
+    is_moderator: bool  # may also moderate the TAKYAP queue
 
 
 class ColumnInput(BaseModel):

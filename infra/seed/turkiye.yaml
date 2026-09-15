@@ -75,68 +75,28 @@ tr_data:
     note_en: "Turkish OSCAR + mC4 — 50.3M pages / 141.8 GB / 25.33B tokens (VBART). License: CC BY-NC-SA 4.0."
 
 tr_ecosystem:
-  - name: T3 Vakfı — Yapay Zeka (T3 AI)
-    kind: kurum
-    url: https://www.t3vakfi.org
-    note_tr: "T3 Vakfı çatısında Türkçe büyük dil modeli (T3 AI) geliştiren yapı."
-    note_en: "Develops a Turkish large language model (T3 AI) under the T3 Foundation."
-  - name: TÜBİTAK
-    kind: kurum
-    url: https://www.tubitak.gov.tr
-    note_tr: "Ulusal araştırma kurumu — Yapay Zekâ Enstitüsü ve BİLGEM'de model/AR-GE çalışmaları."
-    note_en: "National research council — AI institute and BİLGEM run model / R&D work."
-  - name: KUIS AI Lab (Koç Üniversitesi)
-    kind: lab
-    url: https://ai.ku.edu.tr
-    note_tr: "Koç Üniversitesi İş Bankası Yapay Zekâ Laboratuvarı; NLP ve görü araştırması."
-    note_en: "Koç University's AI lab; NLP and vision research."
-  - name: Trendyol Tech
-    kind: şirket
-    url: https://tech.trendyol.com
-    note_tr: "E-ticaret ölçeğinde öneri, arama ve Türkçe dil modeli çalışmaları."
-    note_en: "Recommendation, search and Turkish LLM work at e-commerce scale."
-  - name: Getir / BiTaksi AI
-    kind: şirket
-    url: https://getir.com
-    note_tr: "Talep tahmini, rota optimizasyonu ve operasyonel yapay zekâ."
-    note_en: "Demand forecasting, routing and operational AI."
-  - name: Insider
-    kind: şirket
-    url: https://useinsider.com
-    note_tr: "Pazarlama için tahmine dayalı yapay zekâ; Türkiye çıkışlı unicorn."
-    note_en: "Predictive AI for marketing; a Türkiye-founded unicorn."
-  - name: ASELSAN
-    kind: şirket
-    url: https://www.aselsan.com
-    note_tr: "Savunma sistemlerinde görü, otonomi ve karar destek yapay zekâsı."
-    note_en: "Vision, autonomy and decision-support AI in defence systems."
-  - name: HAVELSAN
-    kind: şirket
-    url: https://www.havelsan.com.tr
-    note_tr: "Simülasyon, siber güvenlik ve otonom sistemlerde yapay zekâ."
-    note_en: "AI in simulation, cybersecurity and autonomous systems."
-  - name: Codeway
-    kind: şirket
-    url: https://codeway.co
-    note_tr: "Üretken yapay zekâ tabanlı mobil uygulamalar (görsel, ses, metin)."
-    note_en: "Generative-AI mobile apps (image, audio, text)."
-  - name: VNGRS / Hazelcast / Peak
+  - name: VNGRS
     kind: şirket
     url: https://vngrs.com
-    note_tr: "Danışmanlık, gerçek zamanlı veri ve oyun tarafında yapay zekâ uygulamaları."
-    note_en: "AI in consulting, real-time data and gaming."
+    note_tr: "Açık Türkçe web corpus (vngrs-web-corpus) ve sıfırdan pretrain edilmiş Kumru modelleri."
+    note_en: "Open Turkish web corpus (vngrs-web-corpus) and from-scratch Kumru language models."
+  - name: Hugging Face
+    kind: şirket
+    url: "https://huggingface.co/datasets?language=language:tr"
+    note_tr: "Türkçe metin, konuşma ve görüntü veri setlerinin paylaşıldığı açık platform."
+    note_en: "Open platform hosting Turkish text, speech and vision datasets."
+  - name: Turkish Data Depository (TDD)
+    kind: şirket
+    url: https://tdd.ai
+    note_tr: "Türkçe NLP için derlenmiş açık veri setleri ve araçlar yayınlar."
+    note_en: "Publishes curated open datasets and tools for Turkish NLP."
   - name: Kumru (VNGRS)
     kind: model
     url: https://huggingface.co/vngrs-ai/Kumru-2B
-    note_tr: "Sıfırdan Türkçe pretrain — 7,4B + açık Kumru-2B (Apache 2.0). 500 GB corpus / 300B token · 45 gün H100/H200 · ~1M SFT."
-    note_en: "From-scratch Turkish pretrain — 7.4B + open Kumru-2B (Apache 2.0). 500 GB corpus / 300B tokens · 45 days H100/H200 · ~1M SFT."
-  - name: İTÜ Yapay Zekâ ve Veri Bilimi
-    kind: lab
-    url: https://ai.itu.edu.tr
-    note_tr: "İstanbul Teknik Üniversitesi araştırma merkezi ve lisansüstü programı."
-    note_en: "Istanbul Technical University research centre and graduate programme."
-  - name: Boğaziçi Üniversitesi (CmpE, NLP)
-    kind: lab
-    url: https://www.cmpe.boun.edu.tr
-    note_tr: "Türkçe doğal dil işleme ve konuşma teknolojilerinde köklü çalışma."
-    note_en: "Long-standing Turkish NLP and speech technology research."
+    note_tr: "Açık ağırlıklı Türkçe LLM (Apache 2.0) — eğitim corpus’u ve model kartı kamuya açık."
+    note_en: "Open-weight Turkish LLM (Apache 2.0) — training corpus and model card are public."
+  - name: Peak / Hazelcast
+    kind: şirket
+    url: https://hazelcast.com
+    note_tr: "Gerçek zamanlı veri altyapısı; açık kaynak çekirdek ve veri işleme araçları."
+    note_en: "Real-time data infrastructure; open-source core and data processing tools."

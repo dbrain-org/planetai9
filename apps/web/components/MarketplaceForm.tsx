@@ -131,23 +131,9 @@ export function MarketplaceForm({
             <Field label={L("Geliştirici linki", "Developer link")}>
               <input name="author_url" type="url" placeholder="https://" className="field" />
             </Field>
-            <Field label={L("Ücretlendirme", "Pricing")}>
-              <select name="pricing" defaultValue="free" className="field">
-                <option value="free">{L("Ücretsiz", "Free")}</option>
-                <option value="freemium">Freemium</option>
-                <option value="paid">{L("Ücretli", "Paid")}</option>
-              </select>
-            </Field>
-            <Field label={L("E-posta (yayınlanmaz)", "Email (not published)")}>
+            <Field label={L("E-posta (yayınlanmaz)", "Email (not published)")} full>
               <input name="submitter_email" type="email" className="field" />
             </Field>
-            <label className="flex items-center gap-2 text-[13px] text-ink dark:text-d-ink sm:col-span-2">
-              <input name="is_turkish_dev" type="checkbox" className="h-4 w-4" />
-              {L(
-                "Türk geliştirici / ekibim (moderatör onay sırasında görür)",
-                "I'm a Turkish developer / team (shown to the moderator on review)",
-              )}
-            </label>
             <div className="sm:col-span-2">
               <button
                 type="submit"

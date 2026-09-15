@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AuthorApplyForm } from "@/components/AuthorApplyForm";
 import { Page } from "@/components/Page";
 import { apiSafe } from "@/lib/api";
 import { dateLabel } from "@/lib/format";
@@ -57,7 +58,7 @@ export default async function AuthorsPage() {
       {columns.length === 0 ? (
         <p className="text-sm text-muted">{t.authors.soon}</p>
       ) : (
-        <ul className="divide-y divide-line border-t-2 border-ink dark:divide-d-line dark:border-d-ink">
+        <ul className="mb-14 divide-y divide-line border-t-2 border-ink dark:divide-d-line dark:border-d-ink">
           {columns.map((c) => (
             <li key={c.slug} className="py-5">
               <Link href={`/kose/${c.slug}`} className="group block">
@@ -75,6 +76,10 @@ export default async function AuthorsPage() {
           ))}
         </ul>
       )}
+
+      <section className="mt-14">
+        <AuthorApplyForm locale={locale} />
+      </section>
     </Page>
   );
 }

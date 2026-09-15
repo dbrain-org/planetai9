@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { EventRow } from "@/components/EventCard";
 import { VideoCard } from "@/components/VideoCard";
-import { Cover } from "@/components/Cover";
+import { ImageCarousel } from "@/components/ImageCarousel";
 import { isLlmRadarStory, LlmRadarArticle } from "@/components/LlmRadarArticle";
 import { Meta } from "@/components/Meta";
 import { api, apiSafe } from "@/lib/api";
@@ -58,32 +58,27 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           />
         </div>
 
-        {event.image_url && (
-          <Cover
-            src={event.image_url}
+        {(event.image_urls?.length || event.image_url) && (
+          <ImageCarousel
+            images={
+              event.image_urls?.length
+                ? event.image_urls
+                : event.image_url
+                  ? [event.image_url]
+                  : []
+            }
             category={event.category}
             className="mt-6 aspect-[16/9]"
-            rounded="rounded-card"
           />
         )}
 
         {event.body.length > 0 && (
           <div className="mt-8 space-y-5">
-            {event.body.map((p, i) =>
-              /^\/news\/.*\.(svg|png|jpe?g|webp)$/i.test(p.trim()) ? (
-                <Cover
-                  key={i}
-                  src={p.trim()}
-                  category={event.category}
-                  className="aspect-[16/9]"
-                  rounded="rounded-card"
-                />
-              ) : (
-                <p key={i} className="text-[17px] leading-[1.8] text-ink dark:text-d-ink">
-                  {p}
-                </p>
-              ),
-            )}
+            {event.body.map((p, i) => (
+              <p key={i} className="text-[17px] leading-[1.8] text-ink dark:text-d-ink">
+                {p}
+              </p>
+            ))}
             {primary && (
               <p className="pt-1 text-[13px] text-ink-2 dark:text-d-ink-2">
                 {primary.source.source_type === "official_announcement" ? (

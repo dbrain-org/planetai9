@@ -64,6 +64,7 @@ export interface EventDetail {
   first_seen_at: string;
   last_activity_at: string;
   image_url: string | null;
+  image_urls?: string[];
   primary_entity: EntityRef | null;
   topics: TopicRef[];
   entities: { entity: EntityRef; role: string }[];
@@ -159,11 +160,28 @@ export interface QueueSubmission {
   url: string | null;
   description: string | null;
   summary: string | null;
+  image_url?: string | null;
+  image_urls?: string[];
   category: string;
   submitter_name: string | null;
   submitter_email: string | null;
+  submitter_phone?: string | null;
+  submitter_profession?: string | null;
+  submitter_company?: string | null;
   status: "pending" | "approved" | "rejected";
   event_slug: string | null;
+  created_at: string;
+}
+
+export interface AuthorApplication {
+  slug: string;
+  name: string;
+  role: string | null;
+  bio: string | null;
+  email: string | null;
+  application_note: string | null;
+  status: "pending" | "active" | "rejected";
+  has_key: boolean;
   created_at: string;
 }
 

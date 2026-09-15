@@ -15,21 +15,21 @@ export async function getLocale(): Promise<Locale> {
 }
 
 const tr = {
-  tagline: "Türkiye Medya Platformu",
+  tagline: "Türkiye Yapay Zeka Medya Platformu",
   live: "Canlı Yayın",
   searchPlaceholder: "Haberlerde ara…",
   nav: {
     home: "Ana Sayfa",
     news: "Gündem",
     world: "Dünya",
-    turkey: "Türkiye Data",
+    turkey: "VeriVatan",
     analysis: "Analiz",
     robotics: "Robotik",
     coding: "Kodlama",
     safety: "Güvenlik",
     regulation: "Regülasyon",
     video: "PlanetAI9 Kanalı",
-    marketplace: "AI Marketplace",
+    marketplace: "TAKYAP",
     authors: "Yazarlar",
     submitNews: "Haber Gönder",
     about: "Biz Kimiz",
@@ -41,7 +41,7 @@ const tr = {
     fromAuthors: "Yazarlardan",
     breaking: "Son Dakika",
     video: "PlanetAI9 Kanalı",
-    marketplaceStrip: "AI Marketplace — Topluluğun Araçları",
+    marketplaceStrip: "TAKYAP — Topluluğun Araçları",
     related: "İlgili Haberler",
   },
   common: {
@@ -61,7 +61,7 @@ const tr = {
   },
   home: {},
   marketplace: {
-    title: "AI Marketplace",
+    title: "TAKYAP",
     lead: "Türk geliştiricilerin paylaştığı açık kaynak yapay zekâ araçları — MCP sunucuları, modeller, ses ve ajan projeleri. Sen de kendi projeni ekle.",
     suggest: "+ Uygulamanı öner",
     suggestTitle: "Uygulamanı öner",
@@ -115,21 +115,21 @@ const tr = {
 export type DictT = typeof tr;
 
 const en: DictT = {
-  tagline: "Türkiye Media Platform",
+  tagline: "Türkiye AI Media Platform",
   live: "Live",
   searchPlaceholder: "Search the news…",
   nav: {
     home: "Home",
     news: "News",
     world: "World",
-    turkey: "Türkiye Data",
+    turkey: "VeriVatan",
     analysis: "Analysis",
     robotics: "Robotics",
     coding: "Coding",
     safety: "Safety",
     regulation: "Regulation",
     video: "PlanetAI9 Channel",
-    marketplace: "AI Marketplace",
+    marketplace: "TAKYAP",
     authors: "Columnists",
     submitNews: "Submit News",
     about: "About",
@@ -141,7 +141,7 @@ const en: DictT = {
     fromAuthors: "From Our Columnists",
     breaking: "Breaking",
     video: "PlanetAI9 Channel",
-    marketplaceStrip: "AI Marketplace — Community Tools",
+    marketplaceStrip: "TAKYAP — Community Tools",
     related: "Related",
   },
   common: {
@@ -161,7 +161,7 @@ const en: DictT = {
   },
   home: {},
   marketplace: {
-    title: "AI Marketplace",
+    title: "TAKYAP",
     lead: "Open-source AI tools shared by Turkish developers — MCP servers, models, speech and agent projects. Add your own.",
     suggest: "+ Submit your app",
     suggestTitle: "Submit your app",

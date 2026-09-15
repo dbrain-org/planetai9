@@ -118,11 +118,14 @@ def create_event_from_submission(db: Session, submission: models.NewsSubmission)
     """
     now = datetime.now(UTC)
     source = get_or_create_reader_source(db)
+    slug = _unique_slug(db, submission.title)
+    canonical_url = submission.url or f"{_settings.site_url}/news/{slug}"
 
-    # Article.canonical_url is NOT NULL — when the submitter gave no URL
-    # (title + description only), fall back to a same-site anchor rather than
-    # widening that column's nullability for this one code path.
-    canonical_url = submission.url or f"{_settings.site_url}/haber-giris#{submission.id}"
+    gallery = list(submission.image_urls or [])
+    if submission.image_url and submission.image_url not in gallery:
+        gallery.insert(0, submission.image_url)
+    gallery = gallery[:5]
+    cover = gallery[0] if gallery else None
 
     article = models.Article(
         source_id=source.id,
@@ -130,12 +133,12 @@ def create_event_from_submission(db: Session, submission: models.NewsSubmission)
         canonical_url=canonical_url,
         title=submission.title,
         raw_summary=submission.summary,
-        clean_summary=submission.summary,
+        clean_summary=submission.summary or ((submission.description or "")[:280] or None),
         body_text=submission.description or submission.summary,
         lang="tr",
         published_at=now,
         fetched_at=now,
-        image_url=submission.image_url,
+        image_url=cover,
         content_hash=hashlib.sha256(f"{submission.title}|{canonical_url}".encode()).hexdigest(),
     )
     db.add(article)
@@ -144,11 +147,12 @@ def create_event_from_submission(db: Session, submission: models.NewsSubmission)
     category = BUCKET_TO_CATEGORY.get(submission.category, Category.MODELS.value)
     importance = _score(source)
     event = models.Event(
-        slug=_unique_slug(db, submission.title),
+        slug=slug,
         title=submission.title,
         summary=submission.summary or ((submission.description or "")[:280] or None),
         body_text=submission.description,
-        image_url=submission.image_url,
+        image_url=cover,
+        image_urls=gallery,
         category=category,
         impact=importance_band(importance).value,
         importance=importance,

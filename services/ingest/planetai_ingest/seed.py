@@ -120,8 +120,17 @@ def seed_sources(db: Session) -> None:
     db.flush()
 
 
+_JUNK_AUTHOR_SLUGS = ("no-mod", "someone-else", "other")
+
+
 def seed_editorial(db: Session) -> None:
     from planetai_shared.author_auth import hash_api_key
+    from planetai_shared.settings import get_settings
+
+    # Drop leftover test authors so they never show on /yazarlar.
+    db.query(models.Author).filter(models.Author.slug.in_(_JUNK_AUTHOR_SLUGS)).delete(
+        synchronize_session=False
+    )
 
     data = config.editorial()
     for row in data.get("authors", []):
@@ -134,6 +143,7 @@ def seed_editorial(db: Session) -> None:
         author.bio = (row.get("bio") or "").strip() or None
         author.avatar_url = row.get("avatar_url")
         author.links = row.get("links") or {}
+        author.status = row.get("status") or "active"
         if "is_moderator" in row:
             author.is_moderator = bool(row["is_moderator"])
         # Studio secret hash → DB so /yazar works after seed without AUTHOR_KEYS.
@@ -161,6 +171,19 @@ def seed_editorial(db: Session) -> None:
         post.hero_image_url = row.get("hero_image_url")
         post.status = row.get("status", "published")
         post.published_at = row.get("published_at") or datetime.now(UTC)
+    db.flush()
+
+    # Persist admin panel token hash so /yonetim works from DB (env remains fallback).
+    admin_token = (get_settings().admin_token or "").strip()
+    if admin_token:
+        digest = hash_api_key(admin_token)
+        cred = db.scalar(
+            select(models.SiteCredential).where(models.SiteCredential.kind == "admin")
+        )
+        if cred is None:
+            db.add(models.SiteCredential(kind="admin", secret_hash=digest))
+        else:
+            cred.secret_hash = digest
     db.flush()
 
 
@@ -220,28 +243,39 @@ def seed_curated_links(db: Session) -> None:
         "Türkçe Vikipedi",
         "vngrs-web-corpus",
         "Kumru (VNGRS)",
+        "VNGRS",
+        "Hugging Face",
+        "Turkish Data Depository (TDD)",
+        "Peak / Hazelcast",
     }
     data = config.turkiye()
     for collection in ("tr_data", "tr_ecosystem"):
         rows = data.get(collection) or []
+        yaml_names = {row["name"] for row in rows}
         existing = {
             r.name: r
             for r in db.scalars(
                 select(models.CuratedLink).where(models.CuratedLink.collection == collection)
             ).all()
         }
+        # Veri Vatanı şirket listesini YAML ile hizala — eski ekosistem kartlarını kapat
+        if collection == "tr_ecosystem":
+            for name, link in existing.items():
+                if name not in yaml_names:
+                    link.enabled = False
         max_order = max((r.sort_order for r in existing.values()), default=-1)
         next_order = max_order + 1
         for i, row in enumerate(rows):
             name = row["name"]
             if name in existing:
-                if name in managed:
+                if name in managed or collection == "tr_ecosystem":
                     link = existing[name]
                     link.url = row["url"]
                     link.kind = row.get("kind", link.kind)
                     link.note_tr = row.get("note_tr")
                     link.note_en = row.get("note_en")
                     link.enabled = True
+                    link.sort_order = i
                 continue
             db.add(
                 models.CuratedLink(

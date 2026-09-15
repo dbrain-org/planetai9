@@ -1,12 +1,10 @@
-import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { CatBadge, Cover } from "@/components/Cover";
+import { CatBadge } from "@/components/Cover";
 import { EventRow } from "@/components/EventCard";
+import { ImageCarousel } from "@/components/ImageCarousel";
 import { Meta } from "@/components/Meta";
 import type { Locale } from "@/lib/i18n";
 import type { EventCard as EventCardT, EventDetail } from "@/lib/types";
-
-const IMG_RE = /^\/news\/.*\.(svg|png|jpe?g|webp)$/i;
 
 function looksLikeStats(p: string) {
   return /\d([.,]\d)?\s*(bin|K|k)|%\d|\d{2,}/.test(p) && p.length > 80 && p.length < 420;
@@ -47,41 +45,15 @@ export function LlmRadarArticle({
   const tr = locale === "tr";
   const primary = event.sources.find((s) => s.is_primary) ?? event.sources[0];
 
-  const images: string[] = [];
-  const paragraphs: string[] = [];
-  for (const p of event.body) {
-    const t = p.trim();
-    if (IMG_RE.test(t)) images.push(t);
-    else paragraphs.push(p);
-  }
-
-  const hero = event.image_url ?? images[0];
-  const gallery = images.filter((src) => src !== hero).slice(0, 6);
-  const lead = paragraphs.slice(0, 2);
-  const rest = paragraphs.slice(2);
-
-  const CAPS_TR: Record<string, string> = {
-    benchmarks: "Benchmarklar",
-    market: "Pazar grafikleri",
-    popular: "Popüler modeller",
-    intel: "Gelişmeler",
-    radar: "Teknoloji radarı",
-    feedback: "Geri bildirim",
-  };
-  const CAPS_EN: Record<string, string> = {
-    benchmarks: "Benchmarks",
-    market: "Market charts",
-    popular: "Popular models",
-    intel: "Developments",
-    radar: "Technology radar",
-    feedback: "Feedback",
-  };
-
-  function captionFor(src: string) {
-    const key = Object.keys(CAPS_TR).find((k) => src.includes(k));
-    if (!key) return "";
-    return tr ? CAPS_TR[key] : CAPS_EN[key];
-  }
+  const gallery =
+    event.image_urls && event.image_urls.length > 0
+      ? event.image_urls
+      : ([event.image_url, ...event.body.filter((p) => /^\/news\/.*\.(svg|png|jpe?g|webp)$/i.test(p.trim()))].filter(
+          (u): u is string => Boolean(u),
+        ) as string[]);
+  const paragraphs = event.body.filter(
+    (p) => !/^\/news\/.*\.(svg|png|jpe?g|webp)$/i.test(p.trim()),
+  );
 
   return (
     <div className="mx-auto grid max-w-content gap-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
@@ -95,64 +67,22 @@ export function LlmRadarArticle({
         {event.summary && <p className="article-dek mt-4 max-w-[38rem]">{event.summary}</p>}
         <div className="mt-5 border-y border-line py-3 dark:border-d-line">
           <Meta
-            summary={event.body.join(" ") || event.summary}
+            summary={paragraphs.join(" ") || event.summary}
             date={event.last_activity_at}
             source={primary?.source.name}
             locale={locale}
           />
         </div>
 
-        {hero && (
-          <figure className="mt-7">
-            <Cover
-              src={hero}
-              category={event.category}
-              className="aspect-[16/9]"
-              rounded="rounded-card"
-              zoom
-            />
-            <figcaption className="mt-2.5 text-[12px] text-muted">
-              {tr ? "LLM Radar — genel bakış ekranı" : "LLM Radar — overview"}
-            </figcaption>
-          </figure>
+        {gallery.length > 0 && (
+          <ImageCarousel images={gallery} category={event.category} className="mt-7 aspect-[16/9]" />
         )}
 
         <div className="mt-9 space-y-6">
-          {lead.map((p, i) => (
+          {paragraphs.map((p, i) => (
             <Paragraph key={p.slice(0, 48)} text={p} role={roleFor(p, i, paragraphs.length)} />
           ))}
         </div>
-
-        {gallery.length > 0 && (
-          <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {gallery.map((src) => (
-              <figure key={src}>
-                <Cover
-                  src={src}
-                  category={event.category}
-                  className="aspect-[16/10]"
-                  rounded="rounded-xl"
-                  zoom
-                />
-                <figcaption className="mt-2 text-[11px] font-medium uppercase tracking-[0.08em] text-muted">
-                  {captionFor(src)}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        )}
-
-        {rest.length > 0 && (
-          <div className="mt-9 space-y-6">
-            {rest.map((p, i) => (
-              <Paragraph
-                key={p.slice(0, 48)}
-                text={p}
-                role={roleFor(p, i + lead.length, paragraphs.length)}
-              />
-            ))}
-          </div>
-        )}
 
         {primary && (
           <a
@@ -185,14 +115,6 @@ export function LlmRadarArticle({
                 <EventRow key={e.slug} event={e} locale={locale} />
               ))}
             </div>
-            <Link
-              href="https://llmradar.planetai9.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center gap-1 text-[13px] font-semibold text-accent hover:text-accent-ink"
-            >
-              LLMRadar <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
           </div>
         )}
       </aside>
@@ -200,7 +122,9 @@ export function LlmRadarArticle({
   );
 }
 
-export function isLlmRadarStory(slug: string, body: string[]): boolean {
+export function isLlmRadarStory(slug: string, body?: string[] | null): boolean {
   if (slug === "turkiye-nin-ilk-llm-radar-sistemi-yayinda") return true;
-  return body.filter((p) => IMG_RE.test(p.trim())).length >= 2 && body.some((p) => /llmradar/i.test(p));
+  if (slug.includes("llm-radar") || slug.includes("llmradar")) return true;
+  const joined = (body ?? []).join("\n");
+  return /llm.?radar/i.test(joined);
 }

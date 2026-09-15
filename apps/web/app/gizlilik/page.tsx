@@ -33,9 +33,9 @@ const SECTIONS: Section[] = [
     titleTr: "Toplanan Veriler",
     titleEn: "Data We Collect",
     bodyTr:
-      "PlanetAI9, AI Marketplace'e uygulama önerirken paylaştığınız iletişim bilgilerini (e-posta) saklar. Site kullanımına dair anonim istatistikler tutulabilir.",
+      "PlanetAI9, TAKYAP'a uygulama önerirken paylaştığınız iletişim bilgilerini (e-posta) saklar. Site kullanımına dair anonim istatistikler tutulabilir.",
     bodyEn:
-      "PlanetAI9 stores the contact details (email) you share when submitting an app to the AI Marketplace. Anonymous usage statistics may be kept.",
+      "PlanetAI9 stores the contact details (email) you share when submitting an app to TAKYAP. Anonymous usage statistics may be kept.",
   },
   {
     icon: Shield,

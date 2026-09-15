@@ -113,6 +113,7 @@ class Event(Base, TimestampMixin):
         ForeignKey("events.id", ondelete="SET NULL")
     )
     image_url: Mapped[str | None] = mapped_column(Text)
+    image_urls: Mapped[list] = mapped_column(JSONB, default=list)  # gallery paths/URLs
     lang: Mapped[str] = mapped_column(
         String(8), default="en"
     )  # language of title/summary/body_text
@@ -364,9 +365,13 @@ class NewsSubmission(Base, TimestampMixin):
     description: Mapped[str | None] = mapped_column(Text)
     summary: Mapped[str | None] = mapped_column(Text)
     image_url: Mapped[str | None] = mapped_column(Text)
+    image_urls: Mapped[list] = mapped_column(JSONB, default=list)
     category: Mapped[str] = mapped_column(String(20))
     submitter_name: Mapped[str | None] = mapped_column(String(120))
     submitter_email: Mapped[str | None] = mapped_column(String(200))
+    submitter_phone: Mapped[str | None] = mapped_column(String(40))
+    submitter_profession: Mapped[str | None] = mapped_column(String(120))
+    submitter_company: Mapped[str | None] = mapped_column(String(160))
     status: Mapped[str] = mapped_column(
         String(12), default="pending"
     )  # pending | approved | rejected
@@ -387,12 +392,26 @@ class Author(Base, TimestampMixin):
     bio: Mapped[str | None] = mapped_column(Text)
     avatar_url: Mapped[str | None] = mapped_column(Text)
     links: Mapped[dict] = mapped_column(JSONB, default=dict)
+    email: Mapped[str | None] = mapped_column(String(200))
+    application_note: Mapped[str | None] = mapped_column(Text)
+    # active | pending | rejected — only active authors appear on /yazarlar
+    status: Mapped[str] = mapped_column(String(12), default="active")
     # SHA-256 hex of the /yazar studio secret; None ⇒ this author cannot log in via DB key
     api_key_hash: Mapped[str | None] = mapped_column(String(64))
     # may moderate marketplace / news / curated links from the studio
     is_moderator: Mapped[bool] = mapped_column(Boolean, default=False)
 
     posts: Mapped[list[OpinionPost]] = relationship(back_populates="author")
+
+
+class SiteCredential(Base, TimestampMixin):
+    """Shared site secrets stored as SHA-256 hashes (e.g. admin panel token)."""
+
+    __tablename__ = "site_credentials"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    kind: Mapped[str] = mapped_column(String(40), unique=True)  # admin
+    secret_hash: Mapped[str] = mapped_column(String(64))
 
 
 class OpinionPost(Base, TimestampMixin):

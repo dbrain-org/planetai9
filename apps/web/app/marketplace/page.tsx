@@ -36,8 +36,11 @@ export default async function MarketplacePage({
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-[28px] font-extrabold tracking-tight3 text-ink dark:text-d-ink sm:text-[34px]">
-            AI Marketplace
+            {t.marketplace.title}
           </h1>
+          <p className="mt-1 text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">
+            {tr ? "Türkiye Açık Kaynak Yapay Zekâ Projeleri" : "Türkiye Open-Source AI Projects"}
+          </p>
           <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
             {t.marketplace.lead}
           </p>

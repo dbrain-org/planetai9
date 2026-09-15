@@ -25,7 +25,7 @@ def home(
     region: str | None = None,
 ) -> schemas.HomePayload:
     region = region.upper() if region and region.upper() in {"TR", "WORLD"} else None
-    cache_key = f"home:v5:{lang or 'tr'}:{region or 'all'}"
+    cache_key = f"home:v6:{lang or 'tr'}:{region or 'all'}"
     cached = cache.get(cache_key)
     if cached:
         return schemas.HomePayload.model_validate(cached)
@@ -66,7 +66,7 @@ def home(
     ).all()
 
     videos = db.scalars(
-        select(models.Video).order_by(models.Video.published_at.desc()).limit(8)
+        select(models.Video).order_by(models.Video.published_at.desc()).limit(16)
     ).all()
 
     week = datetime.now(UTC) - timedelta(days=7)

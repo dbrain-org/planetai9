@@ -38,11 +38,11 @@ def require_admin(
     Accepts either the /yonetim admin token or a moderator author's /yazar studio key.
     404 when neither channel is configured so the surface stays invisible.
     """
-    from planetai_api.author_auth import moderation_channel_configured
+    from planetai_api.author_auth import admin_token_ok, moderation_channel_configured
 
     if not moderation_channel_configured(db):
         raise HTTPException(404, "not found")
-    if _settings.admin_token and x_admin_token and x_admin_token == _settings.admin_token:
+    if admin_token_ok(db, x_admin_token):
         return
     if _valid_moderator_author(db, x_author_key):
         return
@@ -171,11 +171,11 @@ def submit_app(request: Request, payload: AppSubmission, db: Session = Depends(g
         url=str(payload.url),
         repo_url=str(payload.repo_url),
         category=payload.category,
-        pricing=payload.pricing,
+        pricing="free",
         author_name=payload.author_name.strip(),
         author_url=str(payload.author_url) if payload.author_url else None,
         submitter_email=(payload.submitter_email or "").strip() or None,
-        is_turkish_dev=payload.is_turkish_dev,
+        is_turkish_dev=bool(payload.is_turkish_dev),
         status="pending",
     )
     db.add(app)

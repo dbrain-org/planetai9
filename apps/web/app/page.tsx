@@ -6,9 +6,14 @@ import { TrendsCard } from "@/components/HomeRail";
 import { VideoCard } from "@/components/VideoCard";
 import { apiSafe } from "@/lib/api";
 import { getDict, getLocale } from "@/lib/i18n";
-import type { HomePayload, Page as PageT } from "@/lib/types";
+import type { EventCard as EventCardT, HomePayload, Page as PageT } from "@/lib/types";
 
 export const revalidate = 60;
+
+/** Hero sağ sütun — her zaman bu kadar slot. */
+const SIDE_SLOTS = 5;
+/** Öne Çıkanlar ızgarası — dolunca fazlası yalnızca /news (Gündem)'de kalır. */
+const FEATURED_SLOTS = 6;
 
 const EMPTY: HomePayload = {
   top_signals: [],
@@ -48,7 +53,8 @@ export default async function HomePage() {
       revalidate: 60,
       tags: ["home"],
     }),
-    apiSafe<PageT>("/events?origin=submitted&limit=8&sort=recent", {
+    // Enough headroom for lead + side + featured cascade; older items stay on Gündem.
+    apiSafe<PageT>("/events?origin=submitted&limit=40&sort=recent", {
       data: [],
       next_cursor: null,
       count: 0,
@@ -60,7 +66,7 @@ export default async function HomePage() {
     ...home.top_signals,
     ...home.latest_news.filter((e) => !home.top_signals.some((s) => s.slug === e.slug)),
   ];
-  const score = (e: (typeof pool)[number]) =>
+  const score = (e: EventCardT) =>
     (e.top_source?.source_type === "major_news" || e.top_source?.source_type === "official_announcement"
       ? 4
       : 0) +
@@ -69,21 +75,39 @@ export default async function HomePage() {
     e.importance / 10;
   const ranked = [...pool].sort((a, b) => score(b) - score(a));
 
-  // Prefer a PlanetAI9 (submitted) story as the lead when available.
+  // Cascade (newest → oldest), nothing is deleted — older slots fall through:
+  //   1) lead (büyük)  2) sağ sütun (5)  3) Öne Çıkanlar (6)  4) Gündem (/news)
   const own = submitted.data;
-  const lead = own[0] ?? ranked[0];
+  const lead = own[0] ?? ranked[0] ?? null;
   const used = new Set<string>(lead ? [lead.slug] : []);
 
-  const ownSide = own.filter((e) => !used.has(e.slug)).slice(0, 4);
-  ownSide.forEach((e) => used.add(e.slug));
+  const ownForSide = own.filter((e) => !used.has(e.slug)).slice(0, SIDE_SLOTS);
+  ownForSide.forEach((e) => used.add(e.slug));
 
-  const side: HeroSideEntry[] = ownSide.map((event) => ({ kind: "news" as const, event }));
+  const side: HeroSideEntry[] = ownForSide.map((event) => ({ kind: "news" as const, event }));
+
+  // Sağ sütunu her zaman SIDE_SLOTS'a tamamla: önce videolar, yetmezse diğer haberler.
   for (const video of home.videos) {
-    if (side.length >= 4) break;
+    if (side.length >= SIDE_SLOTS) break;
     side.push({ kind: "video", video });
   }
+  for (const event of ranked) {
+    if (side.length >= SIDE_SLOTS) break;
+    if (used.has(event.slug)) continue;
+    side.push({ kind: "news", event });
+    used.add(event.slug);
+  }
 
-  const featured = ranked.filter((e) => !used.has(e.slug)).slice(0, 6);
+  // Hero'dan taşan PlanetAI9 haberleri → Öne Çıkanlar (kaybolmaz).
+  const ownForFeatured = own.filter((e) => !used.has(e.slug)).slice(0, FEATURED_SLOTS);
+  ownForFeatured.forEach((e) => used.add(e.slug));
+
+  const featured = [
+    ...ownForFeatured,
+    ...ranked.filter((e) => !used.has(e.slug)),
+  ].slice(0, FEATURED_SLOTS);
+  // own[lead+side+featured:] ve kalan ranked → yalnızca Gündem'de (/news)
+
   const seeAll = locale === "tr" ? "Tümünü gör" : "See all";
   const sideVideoIds = new Set(
     side.filter((s): s is Extract<HeroSideEntry, { kind: "video" }> => s.kind === "video").map(
@@ -109,7 +133,7 @@ export default async function HomePage() {
             <div>
               <SectionHead
                 title={locale === "tr" ? "Öne Çıkanlar" : "Featured"}
-                href="/news?region=TR&sort=importance"
+                href="/news?region=TR&sort=recent"
                 seeAll={seeAll}
               />
               <div className="grid gap-x-5 gap-y-7 sm:grid-cols-2 xl:grid-cols-3">

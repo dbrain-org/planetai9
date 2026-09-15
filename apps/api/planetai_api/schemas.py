@@ -76,6 +76,7 @@ class EventDetail(BaseModel):
     first_seen_at: datetime
     last_activity_at: datetime
     image_url: str | None
+    image_urls: list[str] = []
     primary_entity: EntityRef | None
     topics: list[TopicRef]
     entities: list[EventEntityOut]

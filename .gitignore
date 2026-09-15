@@ -16,7 +16,7 @@ apps/web/node_modules/
 apps/web/.next/
 apps/web/.env.local
 apps/web/next-env.d.ts
-apps/web/*.tsbuildinfo
+apps/web/public/uploads/
 
 # infra
 infra/.env.prod
