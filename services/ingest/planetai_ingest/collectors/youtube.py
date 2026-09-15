@@ -1,8 +1,10 @@
 """PlanetAI9 YouTube channel collector.
 
-Prefers the channel's public RSS feed (no API key needed) and falls back to the
-YouTube Data API v3 when a key + channel id are configured (adds durations/views).
-Writes straight into `videos`."""
+Primary source is the channel's public Atom feed (``feeds/videos.xml`` — no API
+key, works from any IP). If ``PLANETAI_YOUTUBE_API_KEY`` is set the Data API v3
+then enriches each video with duration / view count / tags. A full channel-page
+scrape is kept only as a last resort (YouTube often blocks it from datacenter IPs).
+Writes straight into ``videos``."""
 
 from __future__ import annotations
 
@@ -10,7 +12,9 @@ import json
 import logging
 import re
 from datetime import UTC, datetime, timedelta
+from time import mktime
 
+import feedparser
 from dateutil import parser as dtparser
 from planetai_shared.db import models
 from planetai_shared.db.base import session_scope
@@ -72,14 +76,66 @@ class YouTubeCollector:
 
     def fetch(self) -> FetchResult:
         with http_client() as client:
-            handle = (self.source.config or {}).get("handle") or "@planetai9"
-            if self.settings.youtube_api_key:
-                channel_id = self._channel_id(client)
-                if channel_id:
-                    self._fetch_api(client, channel_id)
-            else:
-                self._fetch_scrape(client, handle)
+            cfg = self.source.config or {}
+            handle = cfg.get("handle") or "@planetai9"
+            channel_id = (
+                cfg.get("channel_id")
+                or self.settings.youtube_channel_id
+                or self._channel_id(client)
+            )
+
+            found = 0
+            if channel_id:
+                found = self._fetch_rss(client, channel_id)
+                if self.settings.youtube_api_key:
+                    try:
+                        self._fetch_api(client, channel_id)  # enrich durations / views
+                    except Exception as exc:  # noqa: BLE001
+                        log.warning("youtube: Data API enrich failed: %s", exc)
+
+            if found == 0:  # RSS empty or no channel id — last-resort scrape
+                try:
+                    self._fetch_scrape(client, handle)
+                except Exception as exc:  # noqa: BLE001
+                    log.warning("youtube: channel-page scrape failed: %s", exc)
         return FetchResult([])  # side-effect collector
+
+    # ---- channel Atom feed (no key, IP-agnostic) ------------------------
+
+    def _fetch_rss(self, client, channel_id: str) -> int:
+        url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+        try:
+            resp = client.get(url)
+            resp.raise_for_status()
+        except Exception as exc:  # noqa: BLE001
+            log.warning("youtube: channel feed fetch failed: %s", exc)
+            return 0
+
+        feed = feedparser.parse(resp.content)
+        rows: list[dict] = []
+        for e in feed.entries:
+            vid = e.get("yt_videoid") or e.get("id", "").rsplit(":", 1)[-1]
+            if len(vid) != 11:
+                continue
+            media = e.get("media_thumbnail") or []
+            thumb = media[0].get("url") if media else ""
+            published = None
+            if e.get("published_parsed"):
+                published = datetime.fromtimestamp(mktime(e.published_parsed), tz=UTC)
+            rows.append(
+                {
+                    "id": vid,
+                    "title": e.get("title", ""),
+                    "description": (e.get("summary") or "")[:5000],
+                    "thumbnail": thumb or f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg",
+                    "duration": 0,  # _upsert_scrape keeps any existing value
+                    "published": published,
+                    "views": None,
+                }
+            )
+        _upsert_scrape(rows)
+        log.info("youtube: %d videos from channel feed", len(rows))
+        return len(rows)
 
     # ---- scrape the channel page (no key, no RSS) ------------------------
 

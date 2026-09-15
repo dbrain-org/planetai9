@@ -43,6 +43,36 @@ tr_data:
     url: "https://www.kaggle.com/datasets?search=turkey"
     note_tr: "Türkiye odaklı açık veri setleri ve yarışma verileri."
     note_en: "Türkiye-focused open datasets and competition data."
+  - name: FineWeb2-HQ (Türkçe)
+    kind: nlp
+    url: https://huggingface.co/datasets/epfml/FineWeb2-HQ
+    note_tr: "tur_Latn — 8,58M belge / 100 GB. XLM-RoBERTa kalite filtresi, en yüksek %10. Lisans: ODC-By. Yaygınlık: orta."
+    note_en: "tur_Latn — 8.58M docs / 100 GB. XLM-RoBERTa quality filter, top 10%. License: ODC-By. Prevalence: medium."
+  - name: HPLT 3.0
+    kind: nlp
+    url: https://huggingface.co/datasets/HPLT/HPLT3.0
+    note_tr: "Kaliteye sıralı geniş internet verisi — 149,98B token (Gemma 3). PII etiketli. Lisans: CC0. Yaygınlık: orta."
+    note_en: "Quality-ranked broad web data — 149.98B tokens (Gemma 3). PII labeled. License: CC0. Prevalence: medium."
+  - name: CulturaX
+    kind: nlp
+    url: https://huggingface.co/datasets/uonlp/CulturaX
+    note_tr: "mC4 + OSCAR — Türkçe 64,3B token. Hashing ile benzer kopyalar azaltılmış. Lisans: ODC-By. Yaygınlık: yüksek."
+    note_en: "mC4 + OSCAR — Turkish 64.3B tokens. Near-duplicates reduced via hashing. License: ODC-By. Prevalence: high."
+  - name: Cosmos Turkish
+    kind: nlp
+    url: https://huggingface.co/datasets/alperngll/Cosmos-Turkish-Corpus-v1.0
+    note_tr: "Haber, forum, Vikipedi, genel internet — 9,08M belge / ~15B token. Lisans: CC BY 4.0. Yaygınlık: düşük."
+    note_en: "News, forums, Wikipedia, general web — 9.08M docs / ~15B tokens. License: CC BY 4.0. Prevalence: low."
+  - name: Türkçe Vikipedi
+    kind: nlp
+    url: https://dumps.wikimedia.org/trwiki/
+    note_tr: "Ansiklopedik ve izlenebilir dump’lar. Alan kapsamı sınırlı; ölçek yeniden ölçülmeli. Lisans: CC BY-SA. Yaygınlık: yüksek."
+    note_en: "Encyclopedic, traceable dumps. Limited domain; scale needs re-measurement. License: CC BY-SA. Prevalence: high."
+  - name: vngrs-web-corpus
+    kind: nlp
+    url: https://huggingface.co/datasets/vngrs-ai/vngrs-web-corpus
+    note_tr: "OSCAR + mC4 Türkçe — 50,3M sayfa / 141,8 GB / 25,33B token (VBART). Lisans: CC BY-NC-SA 4.0."
+    note_en: "Turkish OSCAR + mC4 — 50.3M pages / 141.8 GB / 25.33B tokens (VBART). License: CC BY-NC-SA 4.0."
 
 tr_ecosystem:
   - name: T3 Vakfı — Yapay Zeka (T3 AI)
@@ -95,6 +125,11 @@ tr_ecosystem:
     url: https://vngrs.com
     note_tr: "Danışmanlık, gerçek zamanlı veri ve oyun tarafında yapay zekâ uygulamaları."
     note_en: "AI in consulting, real-time data and gaming."
+  - name: Kumru (VNGRS)
+    kind: model
+    url: https://huggingface.co/vngrs-ai/Kumru-2B
+    note_tr: "Sıfırdan Türkçe pretrain — 7,4B + açık Kumru-2B (Apache 2.0). 500 GB corpus / 300B token · 45 gün H100/H200 · ~1M SFT."
+    note_en: "From-scratch Turkish pretrain — 7.4B + open Kumru-2B (Apache 2.0). 500 GB corpus / 300B tokens · 45 days H100/H200 · ~1M SFT."
   - name: İTÜ Yapay Zekâ ve Veri Bilimi
     kind: lab
     url: https://ai.itu.edu.tr

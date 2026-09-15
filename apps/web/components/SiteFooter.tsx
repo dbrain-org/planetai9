@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Linkedin, Youtube } from "lucide-react";
+import { ArrowUpRight, Instagram, Linkedin, Youtube } from "lucide-react";
 import { LogoMark } from "./Logo";
 import { getDict, getLocale } from "@/lib/i18n";
 
@@ -8,63 +8,129 @@ export async function SiteFooter() {
   const t = await getDict();
   const tr = locale === "tr";
 
-  const links = [
-    { label: tr ? "Hakkımızda" : "About", href: "/hakkinda" },
-    { label: tr ? "Gizlilik Politikası" : "Privacy", href: "/gizlilik" },
-    { label: tr ? "İletişim" : "Contact", href: "/hakkinda#iletisim" },
-    { label: tr ? "Kaynaklar" : "Sources", href: "/sources" },
+  const explore = [
+    { label: tr ? "Gündem" : "News", href: "/" },
+    { label: tr ? "Dünya" : "World", href: "/news?region=world" },
+    { label: "Türkiye Data", href: "/turkiye" },
+    { label: "AI Marketplace", href: "/marketplace" },
+    { label: tr ? "Yazarlar" : "Authors", href: "/yazarlar" },
+  ];
+
+  const company = [
+    { label: tr ? "Biz Kimiz" : "About", href: "/hakkinda" },
+    { label: tr ? "Kaynaklar & Güven" : "Sources & Trust", href: "/sources" },
+    { label: tr ? "Gizlilik Politikası" : "Privacy Policy", href: "/gizlilik" },
+    { label: tr ? "Haber Gönder" : "Submit news", href: "/haber-giris" },
   ];
 
   const socials = [
     { icon: Youtube, href: "https://www.youtube.com/@planetai9", label: "YouTube" },
     { icon: Linkedin, href: "https://www.linkedin.com/showcase/planetai9media", label: "LinkedIn" },
+    { icon: Instagram, href: "https://www.instagram.com/planetai9media", label: "Instagram" },
   ];
 
   return (
-    <footer className="mt-16 border-t border-line bg-canvas dark:border-d-line dark:bg-d-canvas">
-      <div className="mx-auto max-w-content px-5 py-12 sm:px-8">
-        <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <LogoMark className="h-7 w-7" />
-              <span className="text-[15px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
-                PlanetAI9
+    <footer className="mt-20 border-t border-line bg-canvas dark:border-d-line dark:bg-d-canvas">
+      <div className="mx-auto max-w-content px-5 pt-14 pb-10 sm:px-8">
+        <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr_1fr_auto]">
+          <div className="max-w-sm">
+            <Link href="/" className="inline-flex items-center gap-2.5">
+              <LogoMark className="h-9 w-9 rounded-lg" />
+              <span className="leading-none">
+                <span className="block text-[17px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
+                  PlanetAI9
+                </span>
+                <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+                  {t.tagline}
+                </span>
               </span>
-            </div>
-            <p className="mt-2 text-[12px] text-ink-2 dark:text-d-ink-2">{t.tagline}</p>
+            </Link>
+            <p className="mt-4 text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+              {tr
+                ? "Türkiye'nin yapay zekâ medya platformu — haberler, modeller ve ekosistem sinyalleri tek yerde."
+                : "Türkiye's AI media platform — news, models and ecosystem signals in one place."}
+            </p>
+            <a
+              href="https://llmradar.planetai9.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent hover:text-accent-ink"
+            >
+              LLMRadar <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
           </div>
 
-          <nav className="flex flex-wrap gap-x-6 gap-y-2 text-[13px]">
-            {links.map((l) => (
-              <Link
-                key={l.label}
-                href={l.href}
-                className="text-ink-2 hover:text-ink dark:text-d-ink-2 dark:hover:text-d-ink"
-              >
-                {l.label}
-              </Link>
-            ))}
-          </nav>
+          <div>
+            <p className="text-[12px] font-bold uppercase tracking-[0.12em] text-muted">
+              {tr ? "Keşfet" : "Explore"}
+            </p>
+            <ul className="mt-4 space-y-2.5">
+              {explore.map((l) => (
+                <li key={l.href}>
+                  <Link
+                    href={l.href}
+                    className="text-[14px] text-ink-2 transition-colors hover:text-ink dark:text-d-ink-2 dark:hover:text-d-ink"
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          <div className="flex gap-2">
-            {socials.map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={s.label}
-                className="grid h-9 w-9 place-items-center rounded-full border border-line text-ink-2 transition-colors hover:text-ink dark:border-d-line dark:text-d-ink-2 dark:hover:text-d-ink"
-              >
-                <s.icon className="h-4 w-4" />
-              </a>
-            ))}
+          <div>
+            <p className="text-[12px] font-bold uppercase tracking-[0.12em] text-muted">
+              {tr ? "Kurumsal" : "Company"}
+            </p>
+            <ul className="mt-4 space-y-2.5">
+              {company.map((l) => (
+                <li key={l.href}>
+                  <Link
+                    href={l.href}
+                    className="text-[14px] text-ink-2 transition-colors hover:text-ink dark:text-d-ink-2 dark:hover:text-d-ink"
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[12px] font-bold uppercase tracking-[0.12em] text-muted">
+              {tr ? "Takip et" : "Follow"}
+            </p>
+            <div className="mt-4 flex gap-2">
+              {socials.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  className="grid h-10 w-10 place-items-center rounded-full border border-line bg-paper text-ink-2 transition-all hover:-translate-y-0.5 hover:border-ink hover:text-ink dark:border-d-line dark:bg-d-wash dark:text-d-ink-2 dark:hover:border-d-ink dark:hover:text-d-ink"
+                >
+                  <s.icon className="h-4 w-4" />
+                </a>
+              ))}
+            </div>
+            <p className="mt-5 max-w-[200px] text-[12px] leading-relaxed text-muted">
+              {tr
+                ? "PlanetAI9 — Tek Gezegen. Her Yapay Zekâ Sinyali."
+                : "PlanetAI9 — One Planet. Every AI Signal."}
+            </p>
           </div>
         </div>
 
-        <p className="mt-10 border-t border-line pt-6 text-[12px] text-muted dark:border-d-line">
-          © {new Date().getFullYear()} PlanetAI9. {tr ? "Tüm hakları saklıdır." : "All rights reserved."}
-        </p>
+        <div className="mt-12 flex flex-col gap-3 border-t border-line pt-6 text-[12px] text-muted dark:border-d-line sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {new Date().getFullYear()} PlanetAI9.{" "}
+            {tr ? "Tüm hakları saklıdır." : "All rights reserved."}
+          </p>
+          <p className="sm:text-right">
+            {tr ? "Konum: Türkiye · Kuruluş: 2026" : "Based in Türkiye · Est. 2026"}
+          </p>
+        </div>
       </div>
     </footer>
   );

@@ -87,6 +87,27 @@ html.dark body {
   .prose-column h2 {
     @apply mb-3 mt-9 text-xl font-extrabold tracking-tight3 text-ink;
   }
+  .article-dek {
+    @apply text-[18px] leading-[1.65] text-ink-2 dark:text-d-ink-2 sm:text-[19px];
+  }
+  .article-lead {
+    @apply text-[18px] font-medium leading-[1.75] tracking-tight2 text-ink dark:text-d-ink sm:text-[19px];
+  }
+  .article-lead::first-letter {
+    @apply float-left mr-2 mt-1 text-[3.1rem] font-extrabold leading-[0.85] text-accent;
+  }
+  .article-body {
+    @apply text-[16.5px] leading-[1.85] text-ink-2 dark:text-d-ink-2;
+  }
+  .article-bridge {
+    @apply text-[15px] font-bold tracking-tight2 text-ink dark:text-d-ink;
+  }
+  .article-callout {
+    @apply border-l-[3px] border-accent bg-accent-soft/60 py-3 pl-4 pr-3 text-[15px] leading-relaxed text-ink-2 dark:bg-accent/10 dark:text-d-ink-2;
+  }
+  .article-close {
+    @apply text-[16.5px] font-medium leading-[1.85] text-ink dark:text-d-ink;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

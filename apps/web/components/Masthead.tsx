@@ -10,13 +10,10 @@ export async function Masthead() {
   const t = await getDict();
 
   const nav: { label: string; href: string; external?: boolean }[] = [
-    { label: t.nav.news, href: "/news" },
+    { label: t.nav.news, href: "/" },
+    { label: t.nav.world, href: "/news?region=world" },
     { label: t.nav.turkey, href: "/turkiye" },
-    { label: locale === "tr" ? "Yapay Zekâ" : "AI", href: "/news?bucket=AI" },
-    { label: t.nav.robotics, href: "/news?bucket=Robotics" },
-    { label: t.nav.coding, href: "/news?bucket=Coding" },
-    { label: t.nav.safety, href: "/news?bucket=Security" },
-    { label: t.nav.regulation, href: "/news?bucket=Regulation" },
+    { label: t.nav.submitNews, href: "/haber-giris" },
     { label: t.nav.authors, href: "/yazarlar" },
     { label: t.nav.marketplace, href: "/marketplace" },
     { label: t.nav.video, href: "/videos" },

@@ -1,22 +1,6 @@
 export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 100 100" className={className} aria-hidden="true">
-      <circle cx="50" cy="50" r="50" fill="#0B0B0C" />
-      {/* PlanetAI9 mark — stylised swoosh / crescent "S" */}
-      <path
-        d="M32 34
-           C 30 20 50 14 66 22
-           C 55 20 44 24 43 34
-           C 42 45 55 49 62 55
-           C 74 64 72 82 50 87
-           C 33 91 20 78 22 63
-           C 26 75 40 80 47 73
-           C 53 67 47 60 39 55
-           C 26 47 22 40 32 34 Z"
-        fill="#fff"
-      />
-    </svg>
-  );
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src="/planetai99_logo.jpeg" alt="PlanetAI9" className={`${className} shrink-0`} />;
 }
 
 export function Wordmark({ className = "" }: { className?: string }) {

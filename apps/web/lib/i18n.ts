@@ -15,21 +15,23 @@ export async function getLocale(): Promise<Locale> {
 }
 
 const tr = {
-  tagline: "Yapay Zekâ Haberleri",
+  tagline: "Türkiye Medya Platformu",
   live: "Canlı Yayın",
   searchPlaceholder: "Haberlerde ara…",
   nav: {
     home: "Ana Sayfa",
     news: "Gündem",
-    turkey: "Türkiye",
+    world: "Dünya",
+    turkey: "Türkiye Data",
     analysis: "Analiz",
     robotics: "Robotik",
     coding: "Kodlama",
     safety: "Güvenlik",
     regulation: "Regülasyon",
-    video: "PlanetAI9 Video",
+    video: "PlanetAI9 Kanalı",
     marketplace: "AI Marketplace",
     authors: "Yazarlar",
+    submitNews: "Haber Gönder",
     about: "Biz Kimiz",
   },
   section: {
@@ -38,7 +40,7 @@ const tr = {
     trends: "Trendler",
     fromAuthors: "Yazarlardan",
     breaking: "Son Dakika",
-    video: "PlanetAI9 Video",
+    video: "PlanetAI9 Kanalı",
     marketplaceStrip: "AI Marketplace — Topluluğun Araçları",
     related: "İlgili Haberler",
   },
@@ -60,7 +62,7 @@ const tr = {
   home: {},
   marketplace: {
     title: "AI Marketplace",
-    lead: "Geliştiricilerin paylaştığı açık yapay zekâ araçları — MCP sunucuları, modeller, ses ve ajan projeleri. Sen de kendi projeni ekle.",
+    lead: "Türk geliştiricilerin paylaştığı açık kaynak yapay zekâ araçları — MCP sunucuları, modeller, ses ve ajan projeleri. Sen de kendi projeni ekle.",
     suggest: "+ Uygulamanı öner",
     suggestTitle: "Uygulamanı öner",
     suggestBody:
@@ -70,6 +72,13 @@ const tr = {
     send: "Gönder",
     sending: "Gönderiliyor…",
     source: "kaynak ↗",
+  },
+  newsSubmission: {
+    title: "Haber Gönder",
+    lead: "Kaçırdığımız bir gelişme mi var? Türkiye'den ya da dünyadan bir yapay zekâ haberini bize ilet — editörlerimiz onayladığında PlanetAI9'da yayınlanır.",
+    submitted: "Teşekkürler! Haberin inceleme kuyruğuna alındı.",
+    send: "Gönder",
+    sending: "Gönderiliyor…",
   },
   authors: {
     title: "Yazarlar",
@@ -106,21 +115,23 @@ const tr = {
 export type DictT = typeof tr;
 
 const en: DictT = {
-  tagline: "AI News",
+  tagline: "Türkiye Media Platform",
   live: "Live",
   searchPlaceholder: "Search the news…",
   nav: {
     home: "Home",
     news: "News",
-    turkey: "Türkiye",
+    world: "World",
+    turkey: "Türkiye Data",
     analysis: "Analysis",
     robotics: "Robotics",
     coding: "Coding",
     safety: "Safety",
     regulation: "Regulation",
-    video: "PlanetAI9 Video",
+    video: "PlanetAI9 Channel",
     marketplace: "AI Marketplace",
     authors: "Columnists",
+    submitNews: "Submit News",
     about: "About",
   },
   section: {
@@ -129,7 +140,7 @@ const en: DictT = {
     trends: "Trends",
     fromAuthors: "From Our Columnists",
     breaking: "Breaking",
-    video: "PlanetAI9 Video",
+    video: "PlanetAI9 Channel",
     marketplaceStrip: "AI Marketplace — Community Tools",
     related: "Related",
   },
@@ -151,7 +162,7 @@ const en: DictT = {
   home: {},
   marketplace: {
     title: "AI Marketplace",
-    lead: "Open AI tools shared by builders — MCP servers, models, speech and agent projects. Add your own.",
+    lead: "Open-source AI tools shared by Turkish developers — MCP servers, models, speech and agent projects. Add your own.",
     suggest: "+ Submit your app",
     suggestTitle: "Submit your app",
     suggestBody:
@@ -161,6 +172,13 @@ const en: DictT = {
     send: "Submit",
     sending: "Sending…",
     source: "source ↗",
+  },
+  newsSubmission: {
+    title: "Submit News",
+    lead: "Spotted something we missed? Send us an AI story from Türkiye or the world — once an editor approves it, it goes live on PlanetAI9.",
+    submitted: "Thanks! Your story is in the review queue.",
+    send: "Submit",
+    sending: "Sending…",
   },
   authors: {
     title: "Columnists",

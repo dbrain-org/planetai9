@@ -7,11 +7,14 @@ cd "$(dirname "$0")"
 
 API_PORT=8077
 WEB_PORT=3010   # 3000 LLM Radar'da kullanılıyor
+API_LOG=/tmp/planetai-api.log
+WEB_LOG=/tmp/planetai-web.log
 
 if [ "${1:-}" = "stop" ]; then
   pkill -f "uvicorn planetai_api" 2>/dev/null || true
   pkill -f "next-server" 2>/dev/null || true
   pkill -f "next start -p $WEB_PORT" 2>/dev/null || true
+  pkill -f "next dev -p 3000 -p $WEB_PORT" 2>/dev/null || true
   docker compose -f infra/docker-compose.yml stop
   echo "durduruldu."
   exit 0
@@ -26,15 +29,27 @@ uv run planetai-ingest seed
 
 echo "▶ API  → http://localhost:$API_PORT"
 pkill -f "uvicorn planetai_api" 2>/dev/null || true
-(uv run uvicorn planetai_api.main:app --port "$API_PORT" --reload >/tmp/planetai-api.log 2>&1 &)
+nohup uv run uvicorn planetai_api.main:app --port "$API_PORT" --reload >"$API_LOG" 2>&1 &
+disown || true
 
 echo "▶ WEB  → http://localhost:$WEB_PORT"
 pkill -f "next-server" 2>/dev/null || true
-( cd apps/web && npm run dev -- -p "$WEB_PORT" >/tmp/planetai-web.log 2>&1 & )
+pkill -f "next dev -p 3000 -p $WEB_PORT" 2>/dev/null || true
+nohup bash -lc "cd apps/web && npm run dev -- -p $WEB_PORT" >"$WEB_LOG" 2>&1 &
+disown || true
 
-sleep 4
+sleep 5
 echo
-echo "  ✅  Site:  http://localhost:$WEB_PORT"
-echo "      API:   http://localhost:$API_PORT/docs"
+if curl -sf "http://127.0.0.1:$API_PORT/api/v1/healthz" >/dev/null \
+  && curl -sf "http://127.0.0.1:$WEB_PORT/" >/dev/null; then
+  echo "  ✅  Site:  http://localhost:$WEB_PORT"
+  echo "      API:   http://localhost:$API_PORT/docs"
+else
+  echo "  ⚠️  Servisler henüz hazır değil — loglar:"
+  echo "      API: $API_LOG"
+  echo "      WEB: $WEB_LOG"
+  echo "      Site: http://localhost:$WEB_PORT"
+  echo "      API:  http://localhost:$API_PORT/docs"
+fi
 echo
 echo "  İlk kez veya güncel haber için:  uv run planetai-ingest collect && uv run planetai-ingest trends"

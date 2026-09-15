@@ -112,6 +112,7 @@ make prod-up-caddy    # SITE_DOMAIN + DNS gerekir; Let's Encrypt sertifikayı ot
 - [ ] `MODERATOR_AUTHORS` = marketplace onaylayacak yazar slug'ları (opsiyonel)
 - [ ] `SENTRY_DSN` (önerilir) — bir test hatası tetikle, Sentry'ye düştüğünü doğrula
 - [ ] `docker compose … ps` → `api`, `ingest`, `web` **healthy**
+- [ ] Deploy sonrası bir kez `planetai-ingest seed` (eksik Türkiye Data kartları + LLM Radar SVG→JPG path fix)
 - [ ] İlk `make prod-backup` başarılı; `pgbackups` volume'ünde dump var
 - [ ] `robots.txt` / `sitemap.xml` doğru host ile çözülüyor; `/yonetim` ve `/yazar` girişi çalışıyor
 

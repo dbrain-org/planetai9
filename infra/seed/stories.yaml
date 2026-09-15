@@ -1,0 +1,57 @@
+stories:
+- slug: turkiye-nin-ilk-llm-radar-sistemi-yayinda
+  image_url: /news/llmradar-launch.jpg
+  body: 'Yapay zekâ ekosistemi her geçen gün daha hızlı büyüyor. Yeni dil modelleri piyasaya çıkarken mevcut modellerin fiyatları, performansları ve yetenekleri de sürekli değişiyor. Bu kadar hızlı hareket eden bir ekosistemde hangi modellerin öne çıktığını ve hangi teknolojilerin önem kazandığını takip etmek giderek zorlaşıyor.
+
+
+    LLM Radar, bu bilgi karmaşasını çözmek için geliştirilen bir Model Intelligence (Model İstihbaratı) platformu. Amacı, yapay zekâ modelleri ve ekosistemine ilişkin dağınık bilgileri tek bir merkezde izlenebilir, karşılaştırılabilir ve anlamlandırılabilir hale getirmek.
+
+
+    Platformun yapısı üç ana başlık altında şekilleniyor: Keşfet, Analiz ve İstihbarat.
+
+
+    Keşfet bölümündeki Benchmarklar, modellerin Arena, kodlama ve akıl yürütme testlerindeki performansını canlı bir sıralamada gösteriyor — kullanıcı bir modelin yalnızca popülerliğine değil, somut test sonuçlarına da bakabiliyor.
+
+
+    /news/llmradar-benchmarks.jpg
+
+
+    Model Kataloğu ve Karşılaştır bölümleri, model seçim sürecini doğrudan destekliyor: farklı sağlayıcıların modelleri fiyat, context window, reasoning ve multimodal yetenekler gibi kriterlerle yan yana karşılaştırılabiliyor. Bu bölümün temel sorusu basit — "Projem için hangi modeli kullanmalıyım?"
+
+
+    Analiz bölümü ekosistemin nasıl değiştiğini görselleştiriyor. Pazar Grafikleri, model sayısı, fiyat hareketleri ve sağlayıcılar arasındaki rekabeti zaman içinde izlerken; Türkiye LLM sekmesi yerli modelleri ve Türkiye''deki çalışmaları ayrı bir başlıkta takip ediyor.
+
+
+    /news/llmradar-market.jpg
+
+
+    Aynı başlık altında Popüler Modeller, kullanıcı ilgisini gösteren bir bakış sunuyor: haftanın modeli, en çok incelenenler, görüntülenme ve karşılaştırma skorları. Bu liste benchmark liderliğini değil, topluluğun o anda neye baktığını yansıtıyor.
+
+
+    /news/llmradar-popular.jpg
+
+
+    İstihbarat bölümündeki Gelişmeler akışı, yeni model duyurularını, fiyat değişikliklerini ve şirket hareketlerini anlık olarak listeliyor.
+
+
+    /news/llmradar-intel.jpg
+
+
+    Teknoloji Radarı ise henüz yaygınlaşmamış ama yükselen alanları erken fark etmeyi hedefliyor — MCP, Agentic AI, reasoning, multimodal ve open weights gibi başlıkları tek bakışta izlenebilir kılıyor.
+
+
+    /news/llmradar-radar.jpg
+
+
+    Platform yalnızca izlemekle kalmıyor: Geri Bildirim sayfasından öneri bırakabiliyor, Türkiye''de LLMaaS olarak sunulmasını istediğiniz modelleri talep olarak kaydedebiliyorsunuz. Böylece kullanıcı sinyali de ekosistem takibinin bir parçası oluyor.
+
+
+    /news/llmradar-feedback.jpg
+
+
+    Platformun ana ekranındaki göstergeler, takip edilen ekosistemin büyüklüğünü de ortaya koyuyor: 2,6 binden fazla model, 233 şirket, yaklaşık 3 bin fiyat gözlemi ve 14,8 binden fazla tespit edilen olay. Sağ üstteki "CANLI" göstergesi, verilerin statik bir katalog değil sürekli güncellenen bir altyapı üzerine kurulduğunu gösteriyor.
+
+
+    Kısacası LLM Radar; yalnızca bir model kataloğu ya da bir benchmark sitesi olmayı değil, bunların hepsinden gelen veriyi birleştirerek yapay zekâ ekosistemini anlamaya yardımcı olan merkezi bir radar olmayı hedefliyor. Yapay zekâ dünyasının nabzını tutmak için: LLM Radar.
+
+    '

@@ -94,6 +94,7 @@ class AppOut(BaseModel):
 class QueueApp(AppOut):
     status: str
     submitter_email: str | None
+    is_turkish_dev: bool
     created_at: datetime
 
 
@@ -106,12 +107,13 @@ class AppSubmission(BaseModel):
     tagline: str = Field(min_length=8, max_length=240)
     description: str | None = Field(default=None, max_length=4000)
     url: HttpUrl
-    repo_url: HttpUrl | None = None
+    repo_url: HttpUrl  # required — marketplace is scoped to open-source projects
     category: str
     pricing: str = "free"
     author_name: str = Field(min_length=2, max_length=120)
     author_url: HttpUrl | None = None
     submitter_email: str | None = Field(default=None, max_length=200)
+    is_turkish_dev: bool = False  # submitter self-declaration, shown to moderators
 
 
 def _to_out(a: models.MarketplaceApp) -> AppOut:
@@ -168,12 +170,13 @@ def submit_app(request: Request, payload: AppSubmission, db: Session = Depends(g
         tagline=payload.tagline.strip(),
         description=(payload.description or "").strip() or None,
         url=str(payload.url),
-        repo_url=str(payload.repo_url) if payload.repo_url else None,
+        repo_url=str(payload.repo_url),
         category=payload.category,
         pricing=payload.pricing,
         author_name=payload.author_name.strip(),
         author_url=str(payload.author_url) if payload.author_url else None,
         submitter_email=(payload.submitter_email or "").strip() or None,
+        is_turkish_dev=payload.is_turkish_dev,
         status="pending",
     )
     db.add(app)
@@ -189,6 +192,7 @@ def _queue_out(a: models.MarketplaceApp) -> QueueApp:
         **_to_out(a).model_dump(),
         status=a.status,
         submitter_email=a.submitter_email,
+        is_turkish_dev=a.is_turkish_dev,
         created_at=a.created_at,
     )
 

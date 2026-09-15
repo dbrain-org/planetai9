@@ -339,6 +339,9 @@ class MarketplaceApp(Base, TimestampMixin):
     author_name: Mapped[str] = mapped_column(String(120))
     author_url: Mapped[str | None] = mapped_column(Text)
     submitter_email: Mapped[str | None] = mapped_column(String(200))
+    is_turkish_dev: Mapped[bool] = mapped_column(
+        Boolean, default=False
+    )  # submitter self-declaration
     status: Mapped[str] = mapped_column(
         String(12), default="pending"
     )  # pending | approved | rejected
@@ -346,6 +349,32 @@ class MarketplaceApp(Base, TimestampMixin):
     featured: Mapped[bool] = mapped_column(Boolean, default=False)
 
     __table_args__ = (Index("ix_marketplace_status", "status", "category"),)
+
+
+class NewsSubmission(Base, TimestampMixin):
+    """A reader-submitted news tip. Approving one creates a real Event (see
+    planetai_api.services.manual_event) so it appears in the normal news feed.
+    """
+
+    __tablename__ = "news_submissions"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    title: Mapped[str] = mapped_column(String(300))
+    url: Mapped[str | None] = mapped_column(Text)
+    description: Mapped[str | None] = mapped_column(Text)
+    summary: Mapped[str | None] = mapped_column(Text)
+    image_url: Mapped[str | None] = mapped_column(Text)
+    category: Mapped[str] = mapped_column(String(20))
+    submitter_name: Mapped[str | None] = mapped_column(String(120))
+    submitter_email: Mapped[str | None] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(
+        String(12), default="pending"
+    )  # pending | approved | rejected
+    event_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("events.id", ondelete="SET NULL"))
+
+    event: Mapped[Event | None] = relationship()
+
+    __table_args__ = (Index("ix_news_submissions_status", "status"),)
 
 
 class Author(Base, TimestampMixin):

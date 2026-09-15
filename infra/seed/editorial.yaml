@@ -11,6 +11,13 @@ authors:
     links:
       youtube: https://www.youtube.com/@planetai9
       site: https://llmradar.planetai9.com
+  - slug: hakan-saribiyik
+    name: Hakan Sarıbıyık
+    role: Yazar · PlanetAI9
+    bio: >
+      Yapay zekâ dünyasındaki gelişmeleri PlanetAI9 için köşesinde
+      değerlendiriyor.
+    links: {}
 
 # Add columns here, then run `uv run planetai-ingest seed` (idempotent by slug).
 columns: []

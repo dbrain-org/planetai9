@@ -21,4 +21,6 @@ apps/web/*.tsbuildinfo
 # infra
 infra/.env.prod
 
+# Keep generated/screenshot PNGs out of the repo, but allow web public assets.
 *.png
+!apps/web/public/**/*.png

@@ -1,57 +1,67 @@
-# Seed AI Marketplace entries (status: approved). Community submissions arrive
-# via the site form as `pending`.
+# Seed AI Marketplace entries (status: approved). Scoped to Turkish developers'
+# open-source AI projects only — see marketplace lead copy / submission form.
+# Community submissions arrive via the site form as `pending`.
 # category: mcp | llm | stt | tts | agent | tool | other
 apps:
-  - slug: whisper
-    name: Whisper
-    tagline: OpenAI'nin açık kaynak konuşma tanıma modeli.
-    url: https://github.com/openai/whisper
-    repo_url: https://github.com/openai/whisper
-    category: stt
-    pricing: free
-    author_name: OpenAI
-
-  - slug: piper-tts
-    name: Piper
-    tagline: Cihaz üzerinde hızlı, gerçekçi metin-konuşma (TTS).
-    url: https://github.com/rhasspy/piper
-    repo_url: https://github.com/rhasspy/piper
-    category: tts
-    pricing: free
-    author_name: Rhasspy
-
-  - slug: ollama
-    name: Ollama
-    tagline: Açık LLM'leri kendi makinende tek komutla çalıştır.
-    url: https://ollama.com
-    repo_url: https://github.com/ollama/ollama
+  - slug: trendyol-llm
+    name: Trendyol LLM
+    tagline: Trendyol'un açık kaynak Türkçe büyük dil modeli ailesi.
+    url: https://huggingface.co/Trendyol
+    repo_url: https://huggingface.co/Trendyol/Trendyol-LLM-7b-chat-v0.1
     category: llm
     pricing: free
-    author_name: Ollama
+    author_name: Trendyol Tech
+    author_url: https://tech.trendyol.com
+    is_turkish_dev: true
 
-  - slug: filesystem-mcp
-    name: Filesystem MCP Server
-    tagline: LLM'lere güvenli dosya sistemi erişimi veren referans MCP sunucusu.
-    url: https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
-    repo_url: https://github.com/modelcontextprotocol/servers
+  - slug: loodos-turkish-language-models
+    name: Loodos Turkish Language Models
+    tagline: Türkçe için açık kaynak BERT ve ELECTRA dil modelleri.
+    url: https://huggingface.co/loodos
+    repo_url: https://github.com/Loodos/turkish-language-models
+    category: llm
+    pricing: free
+    author_name: Loodos
+    author_url: https://loodos.com
+    is_turkish_dev: true
+
+  - slug: vnlp
+    name: VNLP
+    tagline: VNGRS'in geliştirdiği, Türkçe için uçtan uca açık kaynak NLP kütüphanesi.
+    url: https://vnlp.io
+    repo_url: https://github.com/vngrs-ai/vnlp
+    category: tool
+    pricing: free
+    author_name: VNGRS
+    author_url: https://vngrs.com
+    is_turkish_dev: true
+
+  - slug: zemberek-nlp
+    name: Zemberek-NLP
+    tagline: Türkçe için köklü açık kaynak doğal dil işleme kütüphanesi (biçimbilim, yazım denetimi).
+    url: https://github.com/ahmetaa/zemberek-nlp
+    repo_url: https://github.com/ahmetaa/zemberek-nlp
+    category: tool
+    pricing: free
+    author_name: ahmetaa
+    is_turkish_dev: true
+
+  - slug: borsa-mcp
+    name: Borsa MCP
+    tagline: BIST ve Amerikan borsası, fon verilerine erişim sağlayan açık kaynak MCP sunucusu.
+    url: https://github.com/saidsurucu/borsa-mcp
+    repo_url: https://github.com/saidsurucu/borsa-mcp
     category: mcp
     pricing: free
-    author_name: Model Context Protocol
+    author_name: saidsurucu
+    is_turkish_dev: true
 
-  - slug: llamaindex
-    name: LlamaIndex
-    tagline: LLM uygulamaları için veri çerçevesi (RAG, ajanlar).
-    url: https://www.llamaindex.ai
-    repo_url: https://github.com/run-llama/llama_index
-    category: tool
-    pricing: freemium
-    author_name: LlamaIndex
-
-  - slug: open-webui
-    name: Open WebUI
-    tagline: Yerel ve uzak LLM'ler için özdenetimli sohbet arayüzü.
-    url: https://openwebui.com
-    repo_url: https://github.com/open-webui/open-webui
-    category: tool
+  - slug: turkish-text-to-speech
+    name: Turkish Text-to-Speech
+    tagline: FastPitch ve HiFi-GAN ile sıfırdan eğitilmiş açık kaynak Türkçe TTS modeli.
+    url: https://github.com/Rumeysakeskin/Turkish-Text-to-Speech
+    repo_url: https://github.com/Rumeysakeskin/Turkish-Text-to-Speech
+    category: tts
     pricing: free
-    author_name: Open WebUI
+    author_name: Rumeysa Keskin
+    is_turkish_dev: true

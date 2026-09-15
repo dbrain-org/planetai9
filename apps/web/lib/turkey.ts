@@ -48,8 +48,8 @@ export const TR_FACTS: { label: { tr: string; en: string }; value: { tr: string;
   {
     label: label("Türkçe LLM", "Turkish LLM"),
     value: label(
-      "T3 AI, Trendyol ve TÜBİTAK açık Türkçe modeller yayınlıyor",
-      "T3 AI, Trendyol and TÜBİTAK release open Turkish models",
+      "T3 AI, Kumru, Trendyol ve TÜBİTAK açık Türkçe modeller yayınlıyor",
+      "T3 AI, Kumru, Trendyol and TÜBİTAK release open Turkish models",
     ),
   },
   {

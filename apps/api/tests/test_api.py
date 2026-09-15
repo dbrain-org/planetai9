@@ -45,6 +45,7 @@ def test_marketplace_submission_lands_pending(client):
         "category": "tool",
         "tagline": "an app submitted from the test suite for validation",
         "url": "https://example.com/pytest-app",
+        "repo_url": "https://github.com/example/pytest-app",
         "author_name": "Test Suite",
     }
     r = client.post("/api/v1/marketplace", json=payload)
@@ -91,6 +92,7 @@ def test_marketplace_admin_moderation_flow(client, monkeypatch):
             "category": "agent",
             "tagline": "submitted to exercise the moderation endpoints",
             "url": "https://example.com/admin-flow",
+            "repo_url": "https://github.com/example/admin-flow",
             "author_name": "Test Suite",
         },
     )
@@ -220,6 +222,7 @@ def test_moderator_author_can_work_marketplace_queue(client, monkeypatch, author
             "category": "tool",
             "tagline": "exercise the moderator-author approval path",
             "url": "https://example.com/mod-flow",
+            "repo_url": "https://github.com/example/mod-flow",
             "author_name": "Test",
         },
     )
@@ -349,3 +352,117 @@ def test_event_translation_served_by_lang(client):
         with session_scope() as db:
             db.query(models.EventTranslation).filter_by(event_id=ev_id).delete()
             db.query(models.Event).filter_by(id=ev_id).delete()
+
+
+def test_home_region_scopes_top_signals_and_latest(client):
+    assert client.get("/api/v1/home").status_code == 200
+    tr_home = client.get("/api/v1/home?region=TR").json()
+    world_home = client.get("/api/v1/home?region=world").json()
+    tr_slugs = {e["slug"] for e in tr_home["latest_news"]}
+    world_slugs = {e["slug"] for e in world_home["latest_news"]}
+    assert tr_slugs.isdisjoint(world_slugs)
+
+
+def test_marketplace_requires_repo_url_and_records_turkish_dev(client, monkeypatch):
+    from planetai_api.routers import marketplace
+
+    monkeypatch.setattr(marketplace._settings, "admin_token", "test-secret", raising=False)
+
+    # open-source repo link is now required
+    missing_repo = client.post(
+        "/api/v1/marketplace",
+        json={
+            "name": "No Repo App",
+            "category": "tool",
+            "tagline": "should be rejected for missing repo_url",
+            "url": "https://example.com/no-repo",
+            "author_name": "Test Suite",
+        },
+    )
+    assert missing_repo.status_code == 422
+
+    sub = client.post(
+        "/api/v1/marketplace",
+        json={
+            "name": "Turkish Dev App",
+            "category": "tool",
+            "tagline": "exercises the is_turkish_dev self-declaration field",
+            "url": "https://example.com/tr-dev",
+            "repo_url": "https://github.com/example/tr-dev",
+            "author_name": "Test Suite",
+            "is_turkish_dev": True,
+        },
+    )
+    assert sub.status_code == 201
+    slug = sub.json()["slug"]
+    try:
+        hdr = {"X-Admin-Token": "test-secret"}
+        queue = client.get("/api/v1/marketplace/queue", headers=hdr).json()
+        row = next(a for a in queue if a["slug"] == slug)
+        assert row["is_turkish_dev"] is True
+    finally:
+        from planetai_shared.db import models
+        from planetai_shared.db.base import session_scope
+
+        with session_scope() as db:
+            db.query(models.MarketplaceApp).filter_by(slug=slug).delete()
+
+
+def test_news_submission_approval_creates_event_in_tr_region(client, monkeypatch):
+    from planetai_api.routers import marketplace
+
+    monkeypatch.setattr(marketplace._settings, "admin_token", "test-secret", raising=False)
+    hdr = {"X-Admin-Token": "test-secret"}
+
+    assert client.get("/api/v1/news-submissions/queue", headers=hdr).status_code == 200
+
+    # a submission needs a url or a description
+    bad = client.post(
+        "/api/v1/news-submissions",
+        json={"title": "Eksik gönderi başlığı burada", "category": "AI"},
+    )
+    assert bad.status_code == 422
+
+    title = "PyTest okuyucu haberi — LLM Radar yayında"
+    sub = client.post(
+        "/api/v1/news-submissions",
+        json={
+            "title": title,
+            "url": "https://example.com/llm-radar",
+            "summary": "Kısa özet.",
+            "category": "AI",
+            "submitter_name": "Test Suite",
+        },
+    )
+    assert sub.status_code == 201
+
+    queue = client.get("/api/v1/news-submissions/queue", headers=hdr).json()
+    row = next(s for s in queue if s["title"] == title)
+    assert row["status"] == "pending" and row["event_slug"] is None
+
+    approved = client.post(
+        f"/api/v1/news-submissions/{row['id']}/status", headers=hdr, json={"status": "approved"}
+    )
+    assert approved.status_code == 200
+    event_slug = approved.json()["event_slug"]
+    assert event_slug
+
+    try:
+        detail = client.get(f"/api/v1/events/{event_slug}")
+        assert detail.status_code == 200 and detail.json()["title"] == title
+
+        tr_slugs = {
+            e["slug"] for e in client.get("/api/v1/events?region=TR&limit=50").json()["data"]
+        }
+        assert event_slug in tr_slugs
+    finally:
+        from planetai_shared.db import models
+        from planetai_shared.db.base import session_scope
+
+        with session_scope() as db:
+            db.query(models.NewsSubmission).filter_by(id=row["id"]).delete()
+            ev = db.query(models.Event).filter_by(slug=event_slug).first()
+            if ev is not None:
+                db.query(models.Article).filter_by(event_id=ev.id).delete()
+                db.query(models.EventTopic).filter_by(event_id=ev.id).delete()
+                db.delete(ev)

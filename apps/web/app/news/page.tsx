@@ -10,6 +10,7 @@ export const revalidate = 60;
 
 const WINDOWS = ["", "24h", "7d"] as const;
 const REGIONS = ["", "world", "TR"] as const;
+const BUCKETS = ["", "AI", "Robotics", "Coding", "Security", "Regulation"] as const;
 
 export default async function NewsPage({
   searchParams,
@@ -32,7 +33,13 @@ export default async function NewsPage({
   if (region) qs.set("region", region);
   const page = await apiSafe<PageT>(`/events?${qs}`, { data: [], next_cursor: null, count: 0 });
 
-  const title = bucket ? bucketLabel(bucket, locale) : t.nav.news;
+  const title = bucket
+    ? bucketLabel(bucket, locale)
+    : region === "world"
+      ? t.nav.world
+      : region === "TR"
+        ? "Türkiye"
+        : t.nav.news;
 
   // a link that keeps every other filter intact
   const linkWith = (patch: Record<string, string>) => {
@@ -69,15 +76,15 @@ export default async function NewsPage({
 
   const filters = (
     <div className="space-y-6">
-      {bucket && (
-        <Group label={tr ? "Kategori" : "Category"}>
-          <li>
-            <Item href={linkWith({ bucket: "" })} on={false}>
-              ← {bucketLabel(bucket, locale)} · {t.common.all}
+      <Group label={tr ? "Kategori" : "Category"}>
+        {BUCKETS.map((b) => (
+          <li key={b || "all"}>
+            <Item href={linkWith({ bucket: b })} on={bucket === b}>
+              {b ? bucketLabel(b, locale) : t.common.all}
             </Item>
           </li>
-        </Group>
-      )}
+        ))}
+      </Group>
       <Group label={tr ? "Bölge" : "Region"}>
         {(
           [

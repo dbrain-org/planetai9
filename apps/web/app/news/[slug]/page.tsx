@@ -3,12 +3,13 @@ import { notFound } from "next/navigation";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { EventRow } from "@/components/EventCard";
 import { VideoCard } from "@/components/VideoCard";
-import { CatBadge, Cover } from "@/components/Cover";
+import { Cover } from "@/components/Cover";
+import { isLlmRadarStory, LlmRadarArticle } from "@/components/LlmRadarArticle";
 import { Meta } from "@/components/Meta";
-import { api } from "@/lib/api";
+import { api, apiSafe } from "@/lib/api";
 import { relativeTime } from "@/lib/format";
 import { getDict, getLocale } from "@/lib/i18n";
-import type { EventDetail, ImportanceFactors } from "@/lib/types";
+import type { EventDetail, ImportanceFactors, Page as PageT } from "@/lib/types";
 
 export const revalidate = 120;
 
@@ -18,7 +19,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const t = await getDict();
   let event: EventDetail;
   try {
-    event = await api<EventDetail>(`/events/${slug}`, { revalidate: 120 });
+    event = await api<EventDetail>(`/events/${slug}`, { revalidate: 60 });
   } catch {
     notFound();
   }
@@ -26,11 +27,21 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const primary = event.sources.find((s) => s.is_primary) ?? event.sources[0];
   const factorKeys = Object.keys(t.event.factors) as (keyof Omit<ImportanceFactors, "total">)[];
 
+  const submitted = await apiSafe<PageT>("/events?origin=submitted&limit=6&sort=recent", {
+    data: [],
+    next_cursor: null,
+    count: 0,
+  });
+  const ownNews = submitted.data.filter((e) => e.slug !== event.slug).slice(0, 5);
+
+  if (isLlmRadarStory(slug, event.body)) {
+    return <LlmRadarArticle event={event} locale={locale} ownNews={ownNews} />;
+  }
+
   return (
     <div className="mx-auto grid max-w-content gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-16">
       <article className="mx-auto w-full max-w-[680px]">
-        <CatBadge category={event.category} locale={locale} />
-        <h1 className="mt-3 text-[30px] font-extrabold leading-[1.12] tracking-tight3 text-ink dark:text-d-ink sm:text-[40px]">
+        <h1 className="text-[30px] font-extrabold leading-[1.12] tracking-tight3 text-ink dark:text-d-ink sm:text-[40px]">
           {event.title}
         </h1>
         {event.summary && (
@@ -58,23 +69,50 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
         {event.body.length > 0 && (
           <div className="mt-8 space-y-5">
-            {event.body.map((p, i) => (
-              <p key={i} className="text-[17px] leading-[1.8] text-ink dark:text-d-ink">
-                {p}
-              </p>
-            ))}
+            {event.body.map((p, i) =>
+              /^\/news\/.*\.(svg|png|jpe?g|webp)$/i.test(p.trim()) ? (
+                <Cover
+                  key={i}
+                  src={p.trim()}
+                  category={event.category}
+                  className="aspect-[16/9]"
+                  rounded="rounded-card"
+                />
+              ) : (
+                <p key={i} className="text-[17px] leading-[1.8] text-ink dark:text-d-ink">
+                  {p}
+                </p>
+              ),
+            )}
             {primary && (
               <p className="pt-1 text-[13px] text-ink-2 dark:text-d-ink-2">
-                {tr ? "Bu haber " : "This story is based on reporting by "}
-                <a
-                  href={primary.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="link-accent"
-                >
-                  {primary.source.name}
-                </a>
-                {tr ? " kaynağından derlenmiştir." : "."}
+                {primary.source.source_type === "official_announcement" ? (
+                  <>
+                    {tr ? "İncelemek isterseniz " : "If you'd like to take a look, "}
+                    <a
+                      href={primary.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link-accent"
+                    >
+                      {event.primary_entity?.name ?? primary.source.name}
+                    </a>
+                    {tr ? "'ı inceleyebilirsiniz." : "."}
+                  </>
+                ) : (
+                  <>
+                    {tr ? "Bu haber " : "This story is based on reporting by "}
+                    <a
+                      href={primary.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link-accent"
+                    >
+                      {primary.source.name}
+                    </a>
+                    {tr ? " kaynağından derlenmiştir." : "."}
+                  </>
+                )}
               </p>
             )}
           </div>
@@ -100,10 +138,16 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           >
             <span>
               <span className="block text-[11px] font-bold uppercase tracking-[0.1em] text-ink-2 dark:text-d-ink-2">
-                {tr ? "Haberin tamamı" : "Full story"}
+                {primary.source.source_type === "official_announcement"
+                  ? tr
+                    ? "İncelemek isterseniz"
+                    : "Take a look"
+                  : tr
+                    ? "Haberin tamamı"
+                    : "Full story"}
               </span>
               <span className="mt-1 block text-[15px] font-bold text-ink dark:text-d-ink">
-                {primary.source.name}
+                {event.primary_entity?.name ?? primary.source.name}
               </span>
             </span>
             <ArrowUpRight className="h-5 w-5 text-accent" />
@@ -201,13 +245,13 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       </article>
 
       <aside className="lg:pt-1">
-        {event.related_events.length > 0 && (
+        {ownNews.length > 0 && (
           <div className="lg:sticky lg:top-24">
             <h2 className="text-[13px] font-bold uppercase tracking-[0.1em] text-ink-2 dark:text-d-ink-2">
-              {t.section.related}
+              {tr ? "PlanetAI9 Haberleri" : "PlanetAI9 News"}
             </h2>
             <div className="mt-3 border-t border-line dark:border-d-line">
-              {event.related_events.map((e) => (
+              {ownNews.map((e) => (
                 <EventRow key={e.slug} event={e} locale={locale} />
               ))}
             </div>

@@ -11,9 +11,11 @@ export async function POST(req: Request) {
   }
 
   // drop empty optional fields so the API's URL validation doesn't choke
-  const clean = Object.fromEntries(
+  const clean: Record<string, unknown> = Object.fromEntries(
     Object.entries(body as Record<string, unknown>).filter(([, v]) => v !== "" && v != null),
   );
+  // native checkboxes send "on" when checked and are omitted when unchecked
+  clean.is_turkish_dev = clean.is_turkish_dev === "on" || clean.is_turkish_dev === true;
 
   const res = await fetch(`${BASE}/api/v1/marketplace`, {
     method: "POST",

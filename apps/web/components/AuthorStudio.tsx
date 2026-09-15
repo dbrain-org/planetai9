@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { ArrowLeft, Check, ExternalLink, FileText, LogOut, PenLine, Plus, RotateCcw, X } from "lucide-react";
 import type { Studio, StudioColumn } from "@/lib/author";
-import type { QueueApp } from "@/lib/types";
+import type { QueueApp, QueueSubmission } from "@/lib/types";
 
 const SERIF = "'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif";
 
@@ -314,6 +314,11 @@ function QueueRow({ app, onAction }: { app: QueueApp; onAction: (slug: string, s
               {MKT_STATUS_LABEL[app.status]}
             </span>
             <span className="text-[11px] uppercase tracking-wide text-muted">{app.category_label}</span>
+            {app.is_turkish_dev && (
+              <span className="rounded bg-[#EAF7EF] px-1.5 py-0.5 text-[10px] font-bold text-success dark:bg-success/15">
+                🇹🇷 Türk geliştirici (beyan)
+              </span>
+            )}
           </div>
           <h3 className="mt-1.5 text-[15px] font-bold text-ink dark:text-d-ink">{app.name}</h3>
           <p className="mt-0.5 text-[13px] text-ink-2 dark:text-d-ink-2">{app.tagline}</p>
@@ -422,6 +427,156 @@ function MarketplaceQueue({ queue }: { queue: QueueApp[] }) {
   );
 }
 
+/* --------------------------------------------------------- news submissions --- */
+
+const NEWS_STATUS_LABEL: Record<string, string> = {
+  pending: "Beklemede",
+  approved: "Yayında",
+  rejected: "Reddedildi",
+};
+const NEWS_STATUS_STYLE: Record<string, string> = {
+  pending: "bg-accent-soft text-accent dark:bg-accent/15",
+  approved: "bg-[#EAF7EF] text-success dark:bg-success/15",
+  rejected: "bg-wash text-ink-2 dark:bg-d-wash dark:text-d-ink-2",
+};
+
+function NewsRow({
+  s,
+  onAction,
+}: {
+  s: QueueSubmission;
+  onAction: (id: string, status: string) => Promise<void>;
+}) {
+  const [pending, setPending] = useState(false);
+  const act = async (status: string) => {
+    setPending(true);
+    try {
+      await onAction(s.id, status);
+    } finally {
+      setPending(false);
+    }
+  };
+  return (
+    <li className="card p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span
+              className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${NEWS_STATUS_STYLE[s.status]}`}
+            >
+              {NEWS_STATUS_LABEL[s.status]}
+            </span>
+            <span className="text-[11px] uppercase tracking-wide text-muted">{s.category}</span>
+          </div>
+          <h3 className="mt-1.5 text-[15px] font-bold text-ink dark:text-d-ink">{s.title}</h3>
+          {s.summary && <p className="mt-0.5 text-[13px] text-ink-2 dark:text-d-ink-2">{s.summary}</p>}
+        </div>
+        {s.url && (
+          <a
+            href={s.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[12px] text-ink-2 hover:text-accent dark:text-d-ink-2"
+          >
+            link <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </div>
+
+      {s.description && (
+        <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-[12.5px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+          {s.description}
+        </p>
+      )}
+
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-muted">
+        {s.submitter_name && <span>Gönderen: {s.submitter_name}</span>}
+        {s.submitter_email && <span>{s.submitter_email}</span>}
+        <span>{fmtDate(s.created_at)}</span>
+        {s.event_slug && (
+          <a href={`/news/${s.event_slug}`} target="_blank" rel="noopener noreferrer" className="hover:text-accent">
+            Yayındaki haber ↗
+          </a>
+        )}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {s.status !== "approved" && (
+          <button
+            onClick={() => act("approved")}
+            disabled={pending}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-success px-3 py-1.5 text-[12px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
+          >
+            <Check className="h-3.5 w-3.5" /> Onayla
+          </button>
+        )}
+        {s.status !== "rejected" && (
+          <button
+            onClick={() => act("rejected")}
+            disabled={pending}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold text-ink-2 hover:border-live hover:text-live disabled:opacity-50 dark:border-d-line dark:text-d-ink-2"
+          >
+            <X className="h-3.5 w-3.5" /> Reddet
+          </button>
+        )}
+        {s.status !== "pending" && (
+          <button
+            onClick={() => act("pending")}
+            disabled={pending}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold text-ink-2 hover:text-ink disabled:opacity-50 dark:border-d-line dark:text-d-ink-2"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> Beklemeye al
+          </button>
+        )}
+      </div>
+    </li>
+  );
+}
+
+function NewsQueue({ queue }: { queue: QueueSubmission[] }) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+
+  async function onAction(id: string, status: string) {
+    const res = await fetch("/api/yazar/news-submissions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    if (res.ok) startTransition(() => router.refresh());
+  }
+
+  const pending = queue.filter((s) => s.status === "pending");
+  const decided = queue.filter((s) => s.status !== "pending");
+
+  return (
+    <div className="space-y-8">
+      <section>
+        <h2 className="sec-title mb-4">Bekleyen haberler</h2>
+        {pending.length === 0 ? (
+          <p className="text-[13px] text-muted">Bekleyen haber gönderisi yok.</p>
+        ) : (
+          <ul className="space-y-3">
+            {pending.map((s) => (
+              <NewsRow key={s.id} s={s} onAction={onAction} />
+            ))}
+          </ul>
+        )}
+      </section>
+      {decided.length > 0 && (
+        <section>
+          <h2 className="sec-title mb-4">Karar verilenler</h2>
+          <ul className="space-y-3">
+            {decided.map((s) => (
+              <NewsRow key={s.id} s={s} onAction={onAction} />
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+}
+
 /* ------------------------------------------------------ Türkiye link cards --- */
 
 type Curated = {
@@ -435,13 +590,20 @@ type Curated = {
   enabled: boolean;
 };
 
-const CURATED_KINDS: Record<string, string[]> = {
+type CuratedCollection = "tr_data" | "tr_ecosystem";
+
+const CURATED_KINDS: Record<CuratedCollection, string[]> = {
   tr_data: ["portal", "istatistik", "nlp", "akademik", "yerel"],
   tr_ecosystem: ["kurum", "lab", "şirket", "model", "girişim", "topluluk"],
 };
 
+const COLLECTION_LABEL: Record<CuratedCollection, string> = {
+  tr_data: "Açık Veri Kaynakları",
+  tr_ecosystem: "Ekosistem",
+};
+
 function TurkiyeLinks() {
-  const [collection, setCollection] = useState<"tr_data" | "tr_ecosystem">("tr_data");
+  const [collection, setCollection] = useState<CuratedCollection>("tr_data");
   const [items, setItems] = useState<Curated[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<Curated> | null>(null);
@@ -510,12 +672,7 @@ function TurkiyeLinks() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex rounded-lg border border-line bg-wash p-0.5 dark:border-d-line dark:bg-d-wash">
-          {(
-            [
-              ["tr_data", "Açık Veri Kaynakları"],
-              ["tr_ecosystem", "Ekosistem"],
-            ] as const
-          ).map(([c, label]) => (
+          {(Object.keys(COLLECTION_LABEL) as CuratedCollection[]).map((c) => (
             <button
               key={c}
               onClick={() => setCollection(c)}
@@ -525,7 +682,7 @@ function TurkiyeLinks() {
                   : "text-ink-2 dark:text-d-ink-2"
               }`}
             >
-              {label}
+              {COLLECTION_LABEL[c]}
             </button>
           ))}
         </div>
@@ -534,8 +691,8 @@ function TurkiyeLinks() {
         </button>
       </div>
       <p className="text-[12px] text-muted">
-        Bu kartlar Türkiye sayfasında “{collection === "tr_data" ? "Açık Veri Kaynakları" : "Ekosistem"}”
-        bölümünde görünür. Sıra numarası küçük olan önce gelir.
+        Bu kartlar Türkiye sayfasında "{COLLECTION_LABEL[collection]}" bölümünde görünür. Sıra
+        numarası küçük olan önce gelir.
       </p>
 
       {loading ? (
@@ -597,7 +754,7 @@ function CuratedEditor({
   onCancel,
   onSave,
 }: {
-  collection: "tr_data" | "tr_ecosystem";
+  collection: CuratedCollection;
   initial: Partial<Curated>;
   busy: boolean;
   err: string;
@@ -708,14 +865,16 @@ export function AuthorStudio({
   authed,
   studio,
   queue = [],
+  newsQueue = [],
 }: {
   authed: boolean;
   studio: Studio | null;
   queue?: QueueApp[];
+  newsQueue?: QueueSubmission[];
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState<Partial<StudioColumn> | null>(null);
-  const [tab, setTab] = useState<"columns" | "marketplace" | "turkiye">("columns");
+  const [tab, setTab] = useState<"columns" | "marketplace" | "news" | "turkiye">("columns");
 
   if (!authed || !studio) return <LoginForm />;
 
@@ -735,6 +894,7 @@ export function AuthorStudio({
   const published = columns.filter((c) => c.status === "published").length;
   const drafts = columns.length - published;
   const pendingApps = queue.filter((a) => a.status === "pending").length;
+  const pendingNews = newsQueue.filter((s) => s.status === "pending").length;
 
   return (
     <div className="space-y-7">
@@ -770,6 +930,7 @@ export function AuthorStudio({
             [
               ["columns", "Köşe Yazıları", null],
               ["marketplace", "Marketplace Başvuruları", pendingApps || null],
+              ["news", "Haber Başvuruları", pendingNews || null],
               ["turkiye", "Türkiye", null],
             ] as const
           ).map(([id, label, badge]) => (
@@ -795,6 +956,8 @@ export function AuthorStudio({
 
       {is_moderator && tab === "marketplace" ? (
         <MarketplaceQueue queue={queue} />
+      ) : is_moderator && tab === "news" ? (
+        <NewsQueue queue={newsQueue} />
       ) : is_moderator && tab === "turkiye" ? (
         <TurkiyeLinks />
       ) : (

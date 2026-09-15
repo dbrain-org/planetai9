@@ -149,6 +149,21 @@ export interface MarketplaceApp {
 export interface QueueApp extends MarketplaceApp {
   status: "pending" | "approved" | "rejected";
   submitter_email: string | null;
+  is_turkish_dev: boolean;
+  created_at: string;
+}
+
+export interface QueueSubmission {
+  id: string;
+  title: string;
+  url: string | null;
+  description: string | null;
+  summary: string | null;
+  category: string;
+  submitter_name: string | null;
+  submitter_email: string | null;
+  status: "pending" | "approved" | "rejected";
+  event_slug: string | null;
   created_at: string;
 }
 

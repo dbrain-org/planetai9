@@ -1,6 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
-import type { QueueApp } from "@/lib/types";
+import type { QueueApp, QueueSubmission } from "@/lib/types";
 
 export const AUTHOR_COOKIE = "planetai_author";
 const BASE = process.env.PLANETAI_API_URL ?? "http://localhost:8077";
@@ -73,6 +73,18 @@ export async function loadQueue(key: string | null): Promise<QueueApp[]> {
     const res = await authorFetch("/marketplace/queue", key);
     if (!res.ok) return [];
     return (await res.json()) as QueueApp[];
+  } catch {
+    return [];
+  }
+}
+
+/** Reader news-submission moderation queue — only for moderator authors. */
+export async function loadNewsQueue(key: string | null): Promise<QueueSubmission[]> {
+  if (!key) return [];
+  try {
+    const res = await authorFetch("/news-submissions/queue", key);
+    if (!res.ok) return [];
+    return (await res.json()) as QueueSubmission[];
   } catch {
     return [];
   }

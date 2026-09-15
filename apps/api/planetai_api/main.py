@@ -19,6 +19,7 @@ from planetai_api.routers import (
     home,
     marketplace,
     meta,
+    news_submissions,
     search,
     trends,
     videos,
@@ -77,6 +78,7 @@ app.include_router(entities.router, prefix=API_V1, tags=["entities"])
 app.include_router(marketplace.router, prefix=API_V1, tags=["marketplace"])
 app.include_router(authors.router, prefix=API_V1, tags=["authors"])
 app.include_router(curated.router, prefix=API_V1, tags=["curated"])
+app.include_router(news_submissions.router, prefix=API_V1, tags=["news_submissions"])
 app.include_router(meta.router, prefix=API_V1, tags=["meta"])
 
 

@@ -562,3 +562,4 @@
   poll_interval_sec: 3600
   config:
     handle: "@planetai9"
+    channel_id: UCBHcG_XhgqWhHKalN4bd76A

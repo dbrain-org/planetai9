@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Meta } from "@/components/Meta";
-import { CatBadge, Cover } from "@/components/Cover";
+import { Cover } from "@/components/Cover";
 import type { Locale } from "@/lib/i18n";
 import type { EventCard as EventCardT } from "@/lib/types";
 
@@ -9,12 +9,7 @@ export function EventCard({ event, locale = "tr" }: { event: EventCardT; locale?
   return (
     <article className="group">
       <Link href={`/news/${event.slug}`} className="block">
-        <div className="relative">
-          <Cover src={event.image_url} category={event.category} className="aspect-[16/10]" zoom />
-          <span className="absolute left-3 top-3">
-            <CatBadge category={event.category} locale={locale} className="bg-white/95 shadow-soft" />
-          </span>
-        </div>
+        <Cover src={event.image_url} category={event.category} className="aspect-[16/10]" zoom />
         <h3 className="mt-3.5 text-[16px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
           {event.title}
         </h3>
@@ -42,8 +37,7 @@ export function NewsListItem({ event, locale = "tr" }: { event: EventCardT; loca
           zoom
         />
         <div className="min-w-0 flex-1">
-          <CatBadge category={event.category} locale={locale} />
-          <h3 className="mt-2 text-[18px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
+          <h3 className="text-[18px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
             {event.title}
           </h3>
           {event.summary && (
@@ -102,8 +96,7 @@ export function HeroSideItem({ event, locale = "tr" }: { event: EventCardT; loca
         zoom
       />
       <div className="min-w-0 flex-1">
-        <CatBadge category={event.category} locale={locale} />
-        <h4 className="mt-1.5 line-clamp-2 text-[14px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
+        <h4 className="line-clamp-2 text-[14px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
           {event.title}
         </h4>
         <Meta

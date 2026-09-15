@@ -113,8 +113,14 @@ export function MarketplaceForm({
             <Field label={L("Web sitesi / uygulama linki", "Website / app link")}>
               <input name="url" type="url" required placeholder="https://" className="field" />
             </Field>
-            <Field label={L("Kaynak kod (GitHub)", "Source code (GitHub)")}>
-              <input name="repo_url" type="url" placeholder="https://github.com/" className="field" />
+            <Field label={L("Kaynak kod (GitHub) — zorunlu, açık kaynak", "Source code (GitHub) — required, open source")}>
+              <input
+                name="repo_url"
+                type="url"
+                required
+                placeholder="https://github.com/"
+                className="field"
+              />
             </Field>
             <Field label={L("Detaylı açıklama", "Detailed description")} full>
               <textarea name="description" rows={3} maxLength={4000} className="field resize-y" />
@@ -135,6 +141,13 @@ export function MarketplaceForm({
             <Field label={L("E-posta (yayınlanmaz)", "Email (not published)")}>
               <input name="submitter_email" type="email" className="field" />
             </Field>
+            <label className="flex items-center gap-2 text-[13px] text-ink dark:text-d-ink sm:col-span-2">
+              <input name="is_turkish_dev" type="checkbox" className="h-4 w-4" />
+              {L(
+                "Türk geliştirici / ekibim (moderatör onay sırasında görür)",
+                "I'm a Turkish developer / team (shown to the moderator on review)",
+              )}
+            </label>
             <div className="sm:col-span-2">
               <button
                 type="submit"

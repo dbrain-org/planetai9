@@ -68,3 +68,11 @@ def marketplace() -> dict:
 @lru_cache
 def turkiye() -> dict:
     return _load("turkiye.yaml")
+
+
+@lru_cache
+def stories() -> dict:
+    path = SEED_DIR / "stories.yaml"
+    if not path.exists():
+        return {"stories": []}
+    return _load("stories.yaml") or {"stories": []}

@@ -1,38 +1,22 @@
-import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { EventCard, NewsListItem } from "@/components/EventCard";
 import { SectionHeader } from "@/components/SectionHeader";
 import { apiSafe } from "@/lib/api";
 import { getLocale } from "@/lib/i18n";
 import { DATA_KIND_LABEL, KIND_LABEL, TR_FACTS, kindLabel } from "@/lib/turkey";
-import type { CuratedLink, Page as PageT, VideoCard } from "@/lib/types";
+import type { CuratedLink } from "@/lib/types";
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 export default async function TurkiyePage() {
   const locale = await getLocale();
   const tr = locale === "tr";
 
-  const [news, videos, dataNews, trData, trEcosystem] = await Promise.all([
-    apiSafe<PageT>("/events?region=TR&limit=24&sort=recent", {
-      data: [],
-      next_cursor: null,
-      count: 0,
-    }),
-    apiSafe<VideoCard[]>("/videos?limit=36", []),
-    apiSafe<PageT>("/events?topic=data-veri&limit=5&sort=recent", {
-      data: [],
-      next_cursor: null,
-      count: 0,
-    }),
+  const [trData, trEcosystem] = await Promise.all([
     apiSafe<CuratedLink[]>("/curated/tr_data", []),
     apiSafe<CuratedLink[]>("/curated/tr_ecosystem", []),
   ]);
 
   const note = (l: CuratedLink) => (tr ? l.note_tr : l.note_en) ?? "";
-
-  const trVideos = videos.filter((v) => /t[üu]rk|t[üu]rkiye/i.test(v.title)).slice(0, 4);
-  const [lead, ...rest] = news.data;
 
   return (
     <div className="space-y-16">
@@ -53,8 +37,8 @@ export default async function TurkiyePage() {
         </h1>
         <p className="relative mt-4 max-w-2xl text-[15px] leading-relaxed text-white/65">
           {tr
-            ? "Ulusal strateji, Türkçe dil modelleri ve üniversite laboratuvarları etrafında hızla şekillenen ekosistem — gündem, kilit kurumlar ve PlanetAI9'un Türkiye içerikleri tek sayfada."
-            : "An ecosystem taking shape fast around a national strategy, Turkish language models and university labs — the news, the key institutions and PlanetAI9's Türkiye coverage on one page."}
+            ? "Ulusal strateji, Türkçe dil modelleri ve üniversite laboratuvarları etrafında hızla şekillenen ekosistem — açık veri kaynakları ve kilit kurumlar tek sayfada."
+            : "An ecosystem taking shape fast around a national strategy, Turkish language models and university labs — open-data resources and the key institutions on one page."}
         </p>
 
         <dl className="relative mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -74,91 +58,18 @@ export default async function TurkiyePage() {
         </dl>
       </header>
 
-      {/* Gündem */}
-      <section className="grid gap-10 lg:grid-cols-[1fr_300px] lg:gap-14">
-        <div>
-          <SectionHeader
-            index="01"
-            kicker={tr ? "Gündem" : "News"}
-            title={tr ? "Türkiye Gündemi" : "Türkiye News"}
-            action={
-              news.data.length > 0 ? (
-                <Link href="/news?region=TR" className="hover:text-accent">
-                  {tr ? "Tümü →" : "All →"}
-                </Link>
-              ) : undefined
-            }
-          />
-          {news.data.length === 0 ? (
-            <p className="text-sm text-ink-2 dark:text-d-ink-2">
-              {tr
-                ? "Türkiye etiketli haber henüz yok — kaynaklar tarandıkça burada görünecek."
-                : "No Türkiye-tagged news yet."}
-            </p>
-          ) : (
-            <>
-              {lead && (
-                <div className="mb-2">
-                  <EventCard event={lead} locale={locale} />
-                </div>
-              )}
-              <div>
-                {rest.slice(0, 6).map((e) => (
-                  <NewsListItem key={e.slug} event={e} locale={locale} />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
-        <aside className="space-y-6">
-          {trVideos.length > 0 && (
-            <div className="card overflow-hidden">
-              <h3 className="border-b border-line px-5 py-3 text-[13px] font-bold uppercase tracking-[0.08em] text-ink-2 dark:border-d-line dark:text-d-ink-2">
-                {tr ? "Türkiye Videoları" : "Türkiye Videos"}
-              </h3>
-              <ul className="divide-y divide-line dark:divide-d-line">
-                {trVideos.map((v) => (
-                  <li key={v.youtube_id}>
-                    <Link href={`/videos/${v.youtube_id}`} className="group flex gap-3 p-4">
-                      <span className="h-12 w-20 shrink-0 overflow-hidden rounded-md bg-wash dark:bg-d-wash">
-                        {v.thumbnail_url && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={v.thumbnail_url} alt="" className="h-full w-full object-cover" />
-                        )}
-                      </span>
-                      <span className="line-clamp-3 text-[13px] font-bold leading-snug text-ink group-hover:text-accent dark:text-d-ink">
-                        {v.title}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </aside>
-      </section>
-
       {/* Türkiye Data */}
       <section className="rounded-[22px] border border-line bg-canvas p-6 sm:p-8 dark:border-d-line dark:bg-d-canvas">
         <SectionHeader
-          index="02"
+          index="01"
           kicker={tr ? "Veri" : "Data"}
           title="Türkiye Data"
         />
         <p className="-mt-3 mb-7 max-w-2xl text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
           {tr
-            ? "Veri konusundaki gelişmeler ve Türkiye'den açık veri kaynakları — kamu portalları, istatistik servisleri ve Türkçe veri setleri."
-            : "Data developments and open-data resources from Türkiye — public portals, statistics services and Turkish datasets."}
+            ? "Türkiye'den açık veri kaynakları — kamu portalları, istatistik servisleri ve Türkçe pre-training veri setleri."
+            : "Open-data resources from Türkiye — public portals, statistics services and Turkish pre-training datasets."}
         </p>
-
-        {dataNews.data.length > 0 && (
-          <div className="mb-8 rounded-xl bg-paper px-4 dark:bg-d-paper">
-            {dataNews.data.slice(0, 4).map((e) => (
-              <NewsListItem key={e.slug} event={e} locale={locale} />
-            ))}
-          </div>
-        )}
 
         {trData.length > 0 && (
           <>
@@ -197,7 +108,7 @@ export default async function TurkiyePage() {
       {/* Ekosistem */}
       <section>
         <SectionHeader
-          index="03"
+          index="02"
           kicker={tr ? "Kurumlar" : "Institutions"}
           title={tr ? "Ekosistem" : "The Ecosystem"}
         />

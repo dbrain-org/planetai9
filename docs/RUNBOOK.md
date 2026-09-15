@@ -70,8 +70,8 @@ token da yapar. İkisinden biri tanımlıysa `/marketplace/queue` erişilebilir 
 
 **Türkiye sayfası kartları** — moderatör yazarlar `/yazar` → "Türkiye" sekmesinden
 "Açık Veri Kaynakları" ve "Ekosistem" kartlarını ekler/düzenler/siler/sıralar (DB tablosu
-`curated_links`). İlk içerik `infra/seed/turkiye.yaml`'dan **yalnızca boş bir koleksiyona**
-yüklenir; sonrasında panel tek doğru kaynaktır (seed dokunmaz).
+`curated_links`). `planetai-ingest seed` eksik YAML kartlarını **ekler**; mevcut kartların
+içeriğine dokunmaz (panel kaynak olmaya devam eder).
 
 **Alternatif — seed** — `infra/seed/editorial.yaml` içindeki `columns:` listesine ekle, sonra `uv run planetai-ingest seed`:
 ```yaml

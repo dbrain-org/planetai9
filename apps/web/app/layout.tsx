@@ -16,18 +16,18 @@ const SITE = process.env.PLANETAI_SITE_URL ?? "https://planetai9.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "PlanetAI9 — Yapay Zekâ Haberleri",
+    default: "PlanetAI9 — Türkiye Medya Platformu",
     template: "%s · PlanetAI9",
   },
   description:
-    "Yapay zekâ dünyasındaki gelişmeleri, model duyurularını, araçları ve regülasyonları Türkçe takip et.",
+    "Türkiye'den ve dünyadan yapay zekâ haberlerini, model duyurularını ve regülasyonları Türkçe takip et.",
   applicationName: "PlanetAI9",
   openGraph: {
     type: "website",
     siteName: "PlanetAI9",
     locale: "tr_TR",
     url: SITE,
-    title: "PlanetAI9 — Yapay Zekâ Haberleri",
+    title: "PlanetAI9 — Türkiye Medya Platformu",
     description: "Türkiye'nin yapay zekâ medya platformu.",
   },
   twitter: { card: "summary_large_image", site: "@planetai9" },

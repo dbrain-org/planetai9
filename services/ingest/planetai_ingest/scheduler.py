@@ -30,7 +30,7 @@ def _top_signals_job():
 
 def run_scheduler() -> None:
     seed_run()
-    run_all(only_kinds={"rss", "html_blog"})  # warm start
+    run_all(only_kinds={"rss", "html_blog", "youtube"})  # warm start
 
     sched = BlockingScheduler(timezone="UTC")
     sched.add_job(_collect({"rss", "html_blog"}), "interval", minutes=10, id="collect-news")

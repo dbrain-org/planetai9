@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from planetai_api import cache, schemas, serializers
 from planetai_api.db import get_db, get_lang
+from planetai_api.regions import tr_event_ids_subquery
 from planetai_api.routers.trends import build_trends
 
 router = APIRouter()
@@ -21,15 +22,28 @@ _settings = get_settings()
 def home(
     db: Session = Depends(get_db),
     lang: str | None = Depends(get_lang),
+    region: str | None = None,
 ) -> schemas.HomePayload:
-    cache_key = f"home:v4:{lang or 'tr'}"
+    region = region.upper() if region and region.upper() in {"TR", "WORLD"} else None
+    cache_key = f"home:v5:{lang or 'tr'}:{region or 'all'}"
     cached = cache.get(cache_key)
     if cached:
         return schemas.HomePayload.model_validate(cached)
 
+    def region_filter(stmt):
+        if region is None:
+            return stmt
+        tr_ids = tr_event_ids_subquery()
+        return stmt.where(
+            models.Event.id.in_(tr_ids) if region == "TR" else models.Event.id.not_in(tr_ids)
+        )
+
     top_signals = db.scalars(
-        select(models.Event)
-        .where(models.Event.is_top_signal.is_(True), models.Event.status == "active")
+        region_filter(
+            select(models.Event).where(
+                models.Event.is_top_signal.is_(True), models.Event.status == "active"
+            )
+        )
         .order_by(models.Event.importance.desc())
         .limit(5)
     ).all()
@@ -40,11 +54,12 @@ def home(
         .where(models.Source.kind == "arxiv", models.Article.event_id.isnot(None))
     )
     latest = db.scalars(
-        select(models.Event)
-        .where(
-            models.Event.status == "active",
-            models.Event.category != Category.RESEARCH.value,
-            models.Event.id.not_in(research_event_ids),
+        region_filter(
+            select(models.Event).where(
+                models.Event.status == "active",
+                models.Event.category != Category.RESEARCH.value,
+                models.Event.id.not_in(research_event_ids),
+            )
         )
         .order_by(models.Event.last_activity_at.desc())
         .limit(20)
@@ -56,12 +71,13 @@ def home(
 
     week = datetime.now(UTC) - timedelta(days=7)
     popular = db.scalars(
-        select(models.Event)
-        .where(
-            models.Event.status == "active",
-            models.Event.category != Category.RESEARCH.value,
-            models.Event.id.not_in(research_event_ids),
-            models.Event.last_activity_at >= week,
+        region_filter(
+            select(models.Event).where(
+                models.Event.status == "active",
+                models.Event.category != Category.RESEARCH.value,
+                models.Event.id.not_in(research_event_ids),
+                models.Event.last_activity_at >= week,
+            )
         )
         .order_by(models.Event.source_count.desc(), models.Event.importance.desc())
         .limit(6)
@@ -77,11 +93,12 @@ def home(
 
     def section(cat: str, limit: int = 4) -> list:
         return db.scalars(
-            select(models.Event)
-            .where(
-                models.Event.status == "active",
-                models.Event.category == cat,
-                models.Event.id.not_in(research_event_ids),
+            region_filter(
+                select(models.Event).where(
+                    models.Event.status == "active",
+                    models.Event.category == cat,
+                    models.Event.id.not_in(research_event_ids),
+                )
             )
             .order_by(models.Event.last_activity_at.desc())
             .limit(limit)
@@ -96,11 +113,12 @@ def home(
 
     since = datetime.now(UTC) - timedelta(hours=24)
     timeline_events = db.scalars(
-        select(models.Event)
-        .where(
-            models.Event.last_activity_at >= since,
-            models.Event.status == "active",
-            models.Event.id.not_in(research_event_ids),
+        region_filter(
+            select(models.Event).where(
+                models.Event.last_activity_at >= since,
+                models.Event.status == "active",
+                models.Event.id.not_in(research_event_ids),
+            )
         )
         .order_by(models.Event.last_activity_at.desc())
         .limit(25)

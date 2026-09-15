@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from planetai_api import schemas, serializers
 from planetai_api.db import get_db, get_lang
+from planetai_api.regions import tr_event_ids_subquery
 
 router = APIRouter()
 
@@ -59,6 +60,7 @@ def list_events(
     window: str | None = None,
     entity: str | None = None,
     source: str | None = None,
+    origin: str | None = None,
     importance_min: float | None = None,
     impact: str | None = None,
     sort: str = Query("recent", pattern="^(recent|importance)$"),
@@ -95,21 +97,19 @@ def list_events(
             models.EventTopic.topic_id == tp.id
         )
     if region and region.upper() in {"TR", "WORLD"}:
-        tr_source_events = (
-            select(models.Article.event_id)
-            .join(models.Source, models.Source.id == models.Article.source_id)
-            .where(models.Source.lang == "tr", models.Article.event_id.isnot(None))
-        )
-        tr_topic_events = (
-            select(models.EventTopic.event_id)
-            .join(models.Topic, models.Topic.id == models.EventTopic.topic_id)
-            .where(models.Topic.slug == "turkiye")
-        )
-        tr_ids = select(tr_source_events.union(tr_topic_events).subquery().c.event_id)
+        tr_ids = tr_event_ids_subquery()
         if region.upper() == "TR":
             stmt = stmt.where(models.Event.id.in_(tr_ids))
         else:  # WORLD — AI news that isn't Türkiye-sourced
             stmt = stmt.where(models.Event.id.not_in(tr_ids))
+    if origin == "submitted":
+        # Events created from an approved /haber-giris submission (see
+        # planetai_api.services.manual_event) — used for the "PlanetAI9 Haberleri"
+        # rail on the event detail page, regardless of who's shown as the source.
+        submitted_events = select(models.Article.event_id).where(
+            models.Article.external_id.like("reader:%"), models.Article.event_id.isnot(None)
+        )
+        stmt = stmt.where(models.Event.id.in_(submitted_events))
     if window in WINDOW_HOURS:
         cutoff = datetime.now(UTC) - timedelta(hours=WINDOW_HOURS[window])
         stmt = stmt.where(models.Event.last_activity_at >= cutoff)
