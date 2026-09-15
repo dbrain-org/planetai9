@@ -140,16 +140,20 @@ def require_author(
     db: Session = Depends(get_db),
 ) -> models.Author:
     """Guard for the writer studio. 404 when unconfigured so the surface stays invisible."""
-    if not _settings.author_keys:
+    from planetai_api.author_auth import resolve_author_from_key, studio_auth_configured
+
+    if not studio_auth_configured(db):
         raise HTTPException(404, "not found")
     if not x_author_key or ":" not in x_author_key:
         raise HTTPException(401, "geçersiz yazar anahtarı")
-    slug, secret = x_author_key.split(":", 1)
-    if not secret or _settings.author_keys.get(slug) != secret:
-        raise HTTPException(401, "geçersiz yazar anahtarı")
-    author = db.scalar(select(models.Author).where(models.Author.slug == slug))
+    author = resolve_author_from_key(db, x_author_key)
     if author is None:
-        raise HTTPException(404, "yazar bulunamadı")
+        # wrong secret vs unknown slug: keep the same 401 for secrets; missing row → 404
+        slug = x_author_key.split(":", 1)[0].strip()
+        exists = db.scalar(select(models.Author.id).where(models.Author.slug == slug))
+        if exists is None:
+            raise HTTPException(404, "yazar bulunamadı")
+        raise HTTPException(401, "geçersiz yazar anahtarı")
     return author
 
 
@@ -199,10 +203,12 @@ def my_studio(
         .where(models.OpinionPost.author_id == author.id)
         .order_by(models.OpinionPost.published_at.desc())
     ).all()
+    from planetai_api.author_auth import author_is_moderator
+
     return StudioPayload(
         author=_author_detail(author),
         columns=[_my_column(p) for p in posts],
-        is_moderator=author.slug in _settings.moderator_authors,
+        is_moderator=author_is_moderator(author),
     )
 
 

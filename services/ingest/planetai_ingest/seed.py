@@ -121,6 +121,8 @@ def seed_sources(db: Session) -> None:
 
 
 def seed_editorial(db: Session) -> None:
+    from planetai_shared.author_auth import hash_api_key
+
     data = config.editorial()
     for row in data.get("authors", []):
         author = db.scalar(select(models.Author).where(models.Author.slug == row["slug"]))
@@ -132,6 +134,17 @@ def seed_editorial(db: Session) -> None:
         author.bio = (row.get("bio") or "").strip() or None
         author.avatar_url = row.get("avatar_url")
         author.links = row.get("links") or {}
+        if "is_moderator" in row:
+            author.is_moderator = bool(row["is_moderator"])
+        # Studio secret hash → DB so /yazar works after seed without AUTHOR_KEYS.
+        # Prefer api_key_hash (committed); api_key accepted for one-off local seeds.
+        # Omit both to leave an existing hash untouched.
+        raw_hash = (row.get("api_key_hash") or "").strip().lower()
+        raw_key = (row.get("api_key") or "").strip()
+        if raw_hash:
+            author.api_key_hash = raw_hash
+        elif raw_key:
+            author.api_key_hash = hash_api_key(raw_key)
     db.flush()
     for row in data.get("columns", []) or []:
         post = db.scalar(select(models.OpinionPost).where(models.OpinionPost.slug == row["slug"]))

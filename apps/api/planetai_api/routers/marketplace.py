@@ -20,32 +20,31 @@ _settings = get_settings()
 STATUSES = {"pending", "approved", "rejected"}
 
 
-def _valid_moderator_author(x_author_key: str | None) -> bool:
-    """A studio key '<slug>:<secret>' belonging to an author listed in moderator_authors."""
-    if not x_author_key or ":" not in x_author_key:
-        return False
-    slug, secret = x_author_key.split(":", 1)
-    return (
-        bool(secret)
-        and _settings.author_keys.get(slug) == secret
-        and slug in _settings.moderator_authors
-    )
+def _valid_moderator_author(db: Session, x_author_key: str | None) -> bool:
+    """A studio key '<slug>:<secret>' for an author marked moderator (DB or env list)."""
+    from planetai_api.author_auth import author_is_moderator, resolve_author_from_key
+
+    author = resolve_author_from_key(db, x_author_key)
+    return author is not None and author_is_moderator(author)
 
 
 def require_admin(
     x_admin_token: str | None = Header(default=None),
     x_author_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
 ) -> None:
     """Guard for the moderation queue.
 
     Accepts either the /yonetim admin token or a moderator author's /yazar studio key.
     404 when neither channel is configured so the surface stays invisible.
     """
-    if not _settings.admin_token and not _settings.moderator_authors:
+    from planetai_api.author_auth import moderation_channel_configured
+
+    if not moderation_channel_configured(db):
         raise HTTPException(404, "not found")
     if _settings.admin_token and x_admin_token and x_admin_token == _settings.admin_token:
         return
-    if _valid_moderator_author(x_author_key):
+    if _valid_moderator_author(db, x_author_key):
         return
     raise HTTPException(401, "geçersiz yönetim anahtarı")
 

@@ -52,7 +52,7 @@ filtreleyen, kategorize eden ve ilişkilendiren AI haber/intelligence platformu.
 | `/videos`, `/videos/[id]` | PlanetAI9 YouTube içerikleri | herkes |
 | `/trends`, `/entities/…`, `/search` | Trend konular, entity sayfaları, arama | herkes |
 | `/rss.xml` | RSS akışı (tarayıcıda okunabilir XSL'li) | herkes |
-| **`/yazar`** | **Yazar stüdyosu** — köşe yazısı editörü + (yetkiliyse) marketplace moderasyonu + Türkiye kartları | `PLANETAI_AUTHOR_KEYS` |
+| **`/yazar`** | **Yazar stüdyosu** — köşe yazısı editörü + (yetkiliyse) marketplace moderasyonu + Türkiye kartları | `authors.api_key_hash` (seed) |
 | **`/yonetim`** | **Marketplace moderasyon paneli** | `PLANETAI_ADMIN_TOKEN` |
 
 `/yazar` ve `/yonetim` ilgili secret tanımlı değilse **404** döner (gizli kalır) ve `robots.txt`'de disallow'dur.
@@ -128,7 +128,7 @@ Gerçek `.env` dosyalarını **asla commit etme**.
 | `PLANETAI_SITE_URL` | `SITE_URL` | evet (prod) | Public URL — CORS, canonical, sitemap, RSS |
 | — | `POSTGRES_PASSWORD` | evet (prod) | Postgres parolası |
 | `PLANETAI_ADMIN_TOKEN` | `ADMIN_TOKEN` | hayır | `/yonetim` paneli; boşsa panel 404 |
-| `PLANETAI_AUTHOR_KEYS` | `AUTHOR_KEYS` | hayır | `/yazar` stüdyosu — `slug:secret,slug2:secret2`; boşsa 404 |
+| `PLANETAI_AUTHOR_KEYS` | `AUTHOR_KEYS` | hayır | legacy `/yazar` fallback — `slug:secret,...`; asıl kaynak seed `api_key_hash` |
 | `PLANETAI_MODERATOR_AUTHORS` | `MODERATOR_AUTHORS` | hayır | Marketplace onaylayabilen yazar slug'ları — `slug,slug2` |
 | `PLANETAI_SENTRY_DSN` | `SENTRY_DSN` | hayır | Hata izleme (api + ingest); boşsa kapalı |
 | — | `NEXT_PUBLIC_SENTRY_DSN` | hayır | Web istemci hata izleme |
@@ -159,11 +159,11 @@ Prod'da `ingest` konteyneri sürekli çalışır; haberler ~10 dk'da bir güncel
 
 ### Köşe yazısı ekleme
 1. **`/yazar` stüdyosu** (önerilen) — yazar slug + anahtarıyla girer, editörden yazar/yayınlar.
-   Anahtarları `AUTHOR_KEYS` env'inde tanımla.
+   Anahtar hash'leri `infra/seed/editorial.yaml` → `api_key_hash` (seed ile DB'ye yazılır).
 2. **Seed** — `infra/seed/editorial.yaml` içindeki `columns:` listesine ekle, `planetai-ingest seed`.
 
 ### Marketplace başvurusu onaylama
-`/yonetim` (admin token) veya `MODERATOR_AUTHORS` listesindeki yazar `/yazar` → "Marketplace
+`/yonetim` (admin token) veya `is_moderator: true` yazar `/yazar` → "Marketplace
 Başvuruları" sekmesi → Onayla / Reddet.
 
 ### Kaynak ekleme

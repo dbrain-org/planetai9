@@ -59,12 +59,16 @@ then `uv run planetai-ingest collect --kinds youtube`.
 ## Köşe yazısı ekleme
 
 **Yazar stüdyosu (`/yazar`)** — yazarın kendisi tarayıcıdan yazar, taslak saklar, yayınlar.
-`.env` içine `PLANETAI_AUTHOR_KEYS=<slug>:<secret>[,<slug2>:<secret2>]` ekle (prod: `AUTHOR_KEYS`).
-Yazar `/yazar` adresinden slug + secret ile girer; yalnızca kendi yazılarını görür/düzenler.
-Anahtar tanımlı değilse `/yazar` 404 döner.
+Anahtarlar `authors.api_key_hash` sütununda (SHA-256). Seed ile basılır:
+`infra/seed/editorial.yaml` → `api_key_hash` + isteğe bağlı `is_moderator`, sonra
+`uv run planetai-ingest seed`. Yazar `/yazar` adresinden slug + plaintext secret ile girer.
+Hiçbir yazarda hash yoksa (ve legacy `AUTHOR_KEYS` de boşsa) `/yazar` 404 döner.
 
-**Marketplace moderasyonu yazar stüdyosundan** — `PLANETAI_MODERATOR_AUTHORS=<slug>,<slug2>`
-(prod: `MODERATOR_AUTHORS`) listesindeki yazarlar `/yazar` içinde "Marketplace Başvuruları"
+Legacy: `PLANETAI_AUTHOR_KEYS` / `AUTHOR_KEYS` hâlâ fallback olarak çalışır; yeni kurulumda
+gerekmez.
+
+**Marketplace moderasyonu yazar stüdyosundan** — `is_moderator: true` olan yazarlar
+(veya legacy `MODERATOR_AUTHORS` listesi) `/yazar` içinde "Marketplace Başvuruları"
 sekmesini görür; topluluk başvurularını oradan onaylar/reddeder. Aynı işi `/yonetim` + admin
 token da yapar. İkisinden biri tanımlıysa `/marketplace/queue` erişilebilir olur.
 

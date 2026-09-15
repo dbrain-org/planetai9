@@ -47,9 +47,9 @@ class Settings(BaseSettings):
     docs_enabled: bool = True
     # shared secret for the /yonetim moderation panel; unset ⇒ panel disabled
     admin_token: str | None = None
-    # per-author keys for the /yazar studio: "slug:secret,slug2:secret2"; empty ⇒ studio disabled
+    # per-author keys for the /yazar studio (legacy env fallback; prefer authors.api_key_hash)
     author_keys: dict[str, str] = {}
-    # author slugs allowed to moderate the AI Marketplace queue from their studio: "slug,slug2"
+    # author slugs allowed to moderate (legacy; prefer authors.is_moderator)
     moderator_authors: list[str] = []
 
     # observability — error monitoring; unset ⇒ Sentry disabled

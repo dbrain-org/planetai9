@@ -387,6 +387,10 @@ class Author(Base, TimestampMixin):
     bio: Mapped[str | None] = mapped_column(Text)
     avatar_url: Mapped[str | None] = mapped_column(Text)
     links: Mapped[dict] = mapped_column(JSONB, default=dict)
+    # SHA-256 hex of the /yazar studio secret; None ⇒ this author cannot log in via DB key
+    api_key_hash: Mapped[str | None] = mapped_column(String(64))
+    # may moderate marketplace / news / curated links from the studio
+    is_moderator: Mapped[bool] = mapped_column(Boolean, default=False)
 
     posts: Mapped[list[OpinionPost]] = relationship(back_populates="author")
 

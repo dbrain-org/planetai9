@@ -1,9 +1,15 @@
 # Authors for köşe yazıları. Columns are written directly into the DB
 # (opinion_posts) or via the `columns:` list below; seed only bootstraps.
+#
+# Studio login: set api_key_hash (SHA-256 hex of the plaintext key) here.
+# Seed writes it to authors.api_key_hash — /yazar then works without AUTHOR_KEYS env.
+# Generate:  python -c "from planetai_shared.author_auth import hash_api_key; print(hash_api_key('SECRET'))"
 authors:
   - slug: ayhan-demirci
     name: Ayhan Demirci
     role: Kurucu · PlanetAI9
+    is_moderator: true
+    api_key_hash: 9c72191d2a6c8b90d8321aff7e9eae99599d4e53fdac10ece61625ed26f43533
     bio: >
       Yapay zekâ dünyasındaki gelişmeleri takip ediyor, PlanetAI9 ve LLMRadar
       projelerini yürütüyor. Köşesinde sektördeki kırılma noktalarını ve
@@ -14,6 +20,8 @@ authors:
   - slug: hakan-saribiyik
     name: Hakan Sarıbıyık
     role: Yazar · PlanetAI9
+    is_moderator: false
+    api_key_hash: ecb4db9b655ea47fa63017c9727aa8098a3f068891fda78607a0e1bd79926c8f
     bio: >
       Yapay zekâ dünyasındaki gelişmeleri PlanetAI9 için köşesinde
       değerlendiriyor.

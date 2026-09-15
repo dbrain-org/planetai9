@@ -130,9 +130,14 @@ def test_marketplace_rejects_bad_category(client):
 
 def test_author_studio_hidden_without_keys(client, monkeypatch):
     from planetai_api.routers import authors
+    from planetai_shared.db import models
+    from planetai_shared.db.base import session_scope
 
-    # no author keys configured ⇒ the studio surface must 404 (stay invisible)
+    # no env keys and no DB hashes ⇒ the studio surface must 404 (stay invisible)
     monkeypatch.setattr(authors._settings, "author_keys", {}, raising=False)
+    with session_scope() as db:
+        for a in db.query(models.Author).all():
+            a.api_key_hash = None
     assert client.get("/api/v1/authors/me/studio").status_code == 404
     assert (
         client.get(
@@ -144,8 +149,14 @@ def test_author_studio_hidden_without_keys(client, monkeypatch):
 
 def test_author_studio_write_flow(client, monkeypatch, author_slug):
     from planetai_api.routers import authors
+    from planetai_shared.author_auth import hash_api_key
+    from planetai_shared.db import models
+    from planetai_shared.db.base import session_scope
 
-    monkeypatch.setitem(authors._settings.author_keys, "ayhan-demirci", "test-key")
+    monkeypatch.setattr(authors._settings, "author_keys", {}, raising=False)
+    with session_scope() as db:
+        a = db.query(models.Author).filter_by(slug="ayhan-demirci").one()
+        a.api_key_hash = hash_api_key("test-key")
     hdr = {"X-Author-Key": "ayhan-demirci:test-key"}
 
     assert client.get("/api/v1/authors/me/studio").status_code == 401
@@ -177,7 +188,12 @@ def test_author_studio_write_flow(client, monkeypatch, author_slug):
         assert any(c["slug"] == slug for c in client.get("/api/v1/columns").json())
 
         # another author's key cannot touch it
-        monkeypatch.setitem(authors._settings.author_keys, "someone-else", "k2")
+        with session_scope() as db:
+            other = db.query(models.Author).filter_by(slug="someone-else").first()
+            if other is None:
+                other = models.Author(slug="someone-else", name="Other")
+                db.add(other)
+            other.api_key_hash = hash_api_key("k2")
         forbidden = client.patch(
             f"/api/v1/authors/me/columns/{slug}",
             headers={"X-Author-Key": "someone-else:k2"},
@@ -194,20 +210,28 @@ def test_author_studio_write_flow(client, monkeypatch, author_slug):
 
 def test_moderator_author_can_work_marketplace_queue(client, monkeypatch, author_slug):
     from planetai_api.routers import authors, marketplace
+    from planetai_shared.author_auth import hash_api_key
+    from planetai_shared.db import models
+    from planetai_shared.db.base import session_scope
 
-    monkeypatch.setitem(authors._settings.author_keys, "ayhan-demirci", "mk")
-    monkeypatch.setattr(
-        marketplace._settings, "author_keys", authors._settings.author_keys, raising=False
-    )
-    monkeypatch.setattr(
-        marketplace._settings, "moderator_authors", ["ayhan-demirci"], raising=False
-    )
+    monkeypatch.setattr(authors._settings, "author_keys", {}, raising=False)
+    monkeypatch.setattr(marketplace._settings, "author_keys", {}, raising=False)
+    monkeypatch.setattr(marketplace._settings, "moderator_authors", [], raising=False)
+    with session_scope() as db:
+        a = db.query(models.Author).filter_by(slug="ayhan-demirci").one()
+        a.api_key_hash = hash_api_key("mk")
+        a.is_moderator = True
+        other = db.query(models.Author).filter_by(slug="no-mod").first()
+        if other is None:
+            other = models.Author(slug="no-mod", name="No Mod")
+            db.add(other)
+        other.api_key_hash = hash_api_key("x")
+        other.is_moderator = False
 
     good = {"X-Author-Key": "ayhan-demirci:mk"}
     # studio payload advertises the capability
     assert client.get("/api/v1/authors/me/studio", headers=good).json()["is_moderator"] is True
     # a non-moderator author key is rejected from the queue
-    monkeypatch.setitem(authors._settings.author_keys, "no-mod", "x")
     assert (
         client.get("/api/v1/marketplace/queue", headers={"X-Author-Key": "no-mod:x"}).status_code
         == 401
@@ -243,12 +267,17 @@ def test_moderator_author_can_work_marketplace_queue(client, monkeypatch, author
 
 def test_curated_links_public_and_moderation(client, monkeypatch, author_slug):
     from planetai_api.routers import authors, marketplace
+    from planetai_shared.author_auth import hash_api_key
+    from planetai_shared.db import models
+    from planetai_shared.db.base import session_scope
 
-    monkeypatch.setitem(authors._settings.author_keys, author_slug, "ck")
-    monkeypatch.setattr(
-        marketplace._settings, "author_keys", authors._settings.author_keys, raising=False
-    )
-    monkeypatch.setattr(marketplace._settings, "moderator_authors", [author_slug], raising=False)
+    monkeypatch.setattr(authors._settings, "author_keys", {}, raising=False)
+    monkeypatch.setattr(marketplace._settings, "author_keys", {}, raising=False)
+    monkeypatch.setattr(marketplace._settings, "moderator_authors", [], raising=False)
+    with session_scope() as db:
+        a = db.query(models.Author).filter_by(slug=author_slug).one()
+        a.api_key_hash = hash_api_key("ck")
+        a.is_moderator = True
     hdr = {"X-Author-Key": f"{author_slug}:ck"}
 
     assert client.get("/api/v1/curated/nope").status_code == 404
