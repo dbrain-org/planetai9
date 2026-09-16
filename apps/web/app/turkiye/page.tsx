@@ -30,8 +30,8 @@ export default async function TurkiyePage() {
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
           {tr
-            ? "Türkiye'de açık veri kaynakları ve topluluğun paylaştığı Türkçe veri setleri — tek sayfada."
-            : "Open-data sources in Türkiye and community-shared Turkish datasets — on one page."}
+            ? "Türkiye'deki açık veri kaynakları ve Türkçe veri setleri."
+            : "Open data sources and Turkish datasets from Türkiye."}
         </p>
       </header>
 
@@ -83,11 +83,11 @@ export default async function TurkiyePage() {
         />
         <p className="-mt-3 mb-7 max-w-2xl text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
           {tr
-            ? "Onayladığımız Türkçe veri seti ve corpus paylaşımları. Sen de öner — editörlerimiz inceledikten sonra burada yayınlanır."
-            : "Approved Turkish datasets and corpora. Suggest one — it goes live here after editorial review."}
+            ? "Türkçe veri seti ve corpus paylaşımlarını sen de öner — editörlerimiz inceledikten sonra burada yayınlanır."
+            : "Suggest Turkish datasets and corpora — they appear here after our editors review them."}
         </p>
 
-        {trShare.length > 0 ? (
+        {trShare.length > 0 && (
           <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {trShare.map((o) => (
               <a
@@ -112,10 +112,6 @@ export default async function TurkiyePage() {
               </a>
             ))}
           </div>
-        ) : (
-          <p className="mb-10 text-[13px] text-muted">
-            {tr ? "Henüz onaylı paylaşım yok — ilk sen ol." : "No approved shares yet — be the first."}
-          </p>
         )}
 
         <DataShareForm locale={locale} />

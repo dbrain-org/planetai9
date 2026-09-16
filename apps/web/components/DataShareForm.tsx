@@ -80,7 +80,10 @@ export function DataShareForm({ locale }: { locale: Locale }) {
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[16px] font-extrabold tracking-tight3 text-ink dark:text-d-ink sm:text-[18px]">
-            {L("Siz de veri setinizle katkıda bulunmak ister misiniz?", "Want to contribute your dataset too?")}
+            {L(
+              "Türkçe veri seti veya corpus önermek ister misiniz?",
+              "Want to suggest a Turkish dataset or corpus?",
+            )}
           </span>
           <span className="mt-0.5 block text-[13px] text-ink-2 dark:text-d-ink-2">
             {open ? L("Formu kapat", "Close form") : L("Paylaşım formunu aç", "Open submission form")}

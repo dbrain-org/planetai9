@@ -62,11 +62,11 @@ const tr = {
   home: {},
   marketplace: {
     title: "TAKYAP",
-    lead: "Türk geliştiricilerin paylaştığı açık kaynak yapay zekâ araçları — MCP sunucuları, modeller, ses ve ajan projeleri. Sen de kendi projeni ekle.",
+    lead: "Türkiye'den açık kaynak yapay zekâ projeleri ve araçları. Topluluğun ürettiği çalışmaları keşfedin; kendi projenizi de önerin.",
     suggest: "+ Uygulamanı öner",
     suggestTitle: "Uygulamanı öner",
     suggestBody:
-      "Yaptığın yapay zekâ uygulamasını PlanetAI9 topluluğuyla paylaş. Gönderiler incelendikten sonra yayınlanır.",
+      "Açık kaynak yapay zekâ projenizi PlanetAI9 topluluğuyla paylaşın. Gönderiler incelendikten sonra yayınlanır.",
     empty: "Bu kategoride henüz uygulama yok.",
     submitted: "Teşekkürler! Uygulaman inceleme kuyruğuna alındı.",
     send: "Gönder",
@@ -75,14 +75,14 @@ const tr = {
   },
   newsSubmission: {
     title: "Haber Gönder",
-    lead: "Kaçırdığımız bir gelişme mi var? Türkiye'den ya da dünyadan bir yapay zekâ haberini bize ilet — editörlerimiz onayladığında PlanetAI9'da yayınlanır.",
+    lead: "Yapay zekâ haberinizi bize iletin. Editör onayından sonra yayınlanır.",
     submitted: "Teşekkürler! Haberin inceleme kuyruğuna alındı.",
     send: "Gönder",
     sending: "Gönderiliyor…",
   },
   authors: {
     title: "Yazarlar",
-    lead: "PlanetAI9 köşe yazıları — sektörün kırılma noktaları ve Türkiye'nin yapay zekâ ekosistemi.",
+    lead: "Yazarlarımızın yapay zekâ üzerine köşe yazıları.",
     soon: "Köşe yazıları çok yakında yayında.",
     listLabel: "Yazarlar",
     noPosts: "Henüz köşe yazısı yok.",
@@ -162,11 +162,11 @@ const en: DictT = {
   home: {},
   marketplace: {
     title: "TAKYAP",
-    lead: "Open-source AI tools shared by Turkish developers — MCP servers, models, speech and agent projects. Add your own.",
+    lead: "Open-source AI projects and tools from Türkiye. Explore what the community builds — and submit your own.",
     suggest: "+ Submit your app",
     suggestTitle: "Submit your app",
     suggestBody:
-      "Share the AI app you built with the PlanetAI9 community. Submissions are published after review.",
+      "Share your open-source AI project with the PlanetAI9 community. Submissions go live after review.",
     empty: "No apps in this category yet.",
     submitted: "Thanks! Your app is in the review queue.",
     send: "Submit",
@@ -175,14 +175,14 @@ const en: DictT = {
   },
   newsSubmission: {
     title: "Submit News",
-    lead: "Spotted something we missed? Send us an AI story from Türkiye or the world — once an editor approves it, it goes live on PlanetAI9.",
+    lead: "Send us an AI news tip. It goes live after editorial review.",
     submitted: "Thanks! Your story is in the review queue.",
     send: "Submit",
     sending: "Sending…",
   },
   authors: {
     title: "Columnists",
-    lead: "PlanetAI9 columns — inflection points in the industry and the AI ecosystem.",
+    lead: "Columns on artificial intelligence from our writers.",
     soon: "Columns coming very soon.",
     listLabel: "Columnists",
     noPosts: "No columns yet.",

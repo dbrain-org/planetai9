@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Send } from "lucide-react";
+import { CheckCircle2, ChevronDown, Package, Send } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
 const CATEGORIES: Record<string, { tr: string; en: string }> = {
@@ -40,6 +40,7 @@ export function MarketplaceForm({
   locale: Locale;
   labels: { submitted: string; send: string; sending: string };
 }) {
+  const [open, setOpen] = useState(false);
   const [state, setState] = useState<"idle" | "sending" | "ok" | "error">("idle");
   const [msg, setMsg] = useState("");
   const tr = locale === "tr";
@@ -47,8 +48,9 @@ export function MarketplaceForm({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.currentTarget;
     setState("sending");
-    const payload = Object.fromEntries(new FormData(e.currentTarget).entries());
+    const payload = Object.fromEntries(new FormData(form).entries());
     try {
       const res = await fetch("/api/marketplace", {
         method: "POST",
@@ -60,7 +62,8 @@ export function MarketplaceForm({
         throw new Error(b.detail ? JSON.stringify(b.detail) : `HTTP ${res.status}`);
       }
       setState("ok");
-      (e.target as HTMLFormElement).reset();
+      form.reset();
+      setOpen(false);
     } catch (err) {
       setState("error");
       setMsg(err instanceof Error ? err.message : L("Bir hata oluştu", "Something went wrong"));
@@ -70,7 +73,7 @@ export function MarketplaceForm({
   const steps = [
     {
       t: L("Formu doldur", "Fill the form"),
-      d: L("Uygulamanın adı, linki ve kısa açıklaması yeterli.", "Name, link and a short description is enough."),
+      d: L("Projenin adı, linki ve kısa açıklaması yeterli.", "Name, link and a short description is enough."),
     },
     {
       t: L("İnceleme", "Review"),
@@ -78,95 +81,134 @@ export function MarketplaceForm({
     },
     {
       t: L("Yayında", "Published"),
-      d: L("Onaylanınca Marketplace'te ve ana sayfada görünür.", "Once approved it appears on the Marketplace and home page."),
+      d: L("Onaylanınca TAKYAP'ta ve ana sayfada görünür.", "Once approved it appears on TAKYAP and the home page."),
     },
   ];
 
-  return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
-      <div className="card p-6">
-        {state === "ok" ? (
-          <div className="flex flex-col items-center gap-3 py-10 text-center">
-            <CheckCircle2 className="h-10 w-10 text-success" />
-            <p className="max-w-sm text-[14px] text-ink-2 dark:text-d-ink-2">{labels.submitted}</p>
-          </div>
-        ) : (
-          <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
-            <Field label={L("Uygulama adı", "App name")}>
-              <input name="name" required minLength={2} className="field" />
-            </Field>
-            <Field label={L("Kategori", "Category")}>
-              <select name="category" required defaultValue="" className="field">
-                <option value="" disabled>
-                  {L("Seçiniz", "Select")}
-                </option>
-                {Object.entries(CATEGORIES).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l[locale]}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label={L("Tek cümlelik açıklama", "One-line description")} full>
-              <input name="tagline" required minLength={8} maxLength={240} className="field" />
-            </Field>
-            <Field label={L("Web sitesi / uygulama linki", "Website / app link")}>
-              <input name="url" type="url" required placeholder="https://" className="field" />
-            </Field>
-            <Field label={L("Kaynak kod (GitHub) — zorunlu, açık kaynak", "Source code (GitHub) — required, open source")}>
-              <input
-                name="repo_url"
-                type="url"
-                required
-                placeholder="https://github.com/"
-                className="field"
-              />
-            </Field>
-            <Field label={L("Detaylı açıklama", "Detailed description")} full>
-              <textarea name="description" rows={3} maxLength={4000} className="field resize-y" />
-            </Field>
-            <Field label={L("Geliştirici / ekip", "Developer / team")}>
-              <input name="author_name" required minLength={2} className="field" />
-            </Field>
-            <Field label={L("Geliştirici linki", "Developer link")}>
-              <input name="author_url" type="url" placeholder="https://" className="field" />
-            </Field>
-            <Field label={L("E-posta (yayınlanmaz)", "Email (not published)")} full>
-              <input name="submitter_email" type="email" className="field" />
-            </Field>
-            <div className="sm:col-span-2">
-              <button
-                type="submit"
-                disabled={state === "sending"}
-                className="btn-dark disabled:opacity-50"
-              >
-                {state === "sending" ? labels.sending : labels.send} <Send className="h-4 w-4" />
-              </button>
-              {state === "error" && <p className="mt-2 text-[12px] text-live">{msg}</p>}
-            </div>
-          </form>
-        )}
+  if (state === "ok") {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-[22px] border border-line bg-paper px-6 py-10 text-center dark:border-d-line dark:bg-d-paper">
+        <CheckCircle2 className="h-10 w-10 text-success" />
+        <p className="max-w-sm text-[14px] text-ink-2 dark:text-d-ink-2">{labels.submitted}</p>
       </div>
+    );
+  }
 
-      <div className="card h-fit p-5">
-        <h3 className="text-[14px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
-          {L("Nasıl çalışır?", "How it works")}
-        </h3>
-        <ol className="mt-4 space-y-4">
-          {steps.map((s, i) => (
-            <li key={i} className="flex gap-3">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-[12px] font-bold text-accent dark:bg-accent/15">
-                {i + 1}
-              </span>
-              <span>
-                <span className="block text-[13px] font-bold text-ink dark:text-d-ink">{s.t}</span>
-                <span className="block text-[12px] leading-relaxed text-ink-2 dark:text-d-ink-2">
-                  {s.d}
-                </span>
-              </span>
-            </li>
-          ))}
-        </ol>
+  return (
+    <div className="rounded-[22px] border border-line bg-paper dark:border-d-line dark:bg-d-paper">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-4 px-5 py-5 text-left transition hover:bg-wash/60 sm:px-7 dark:hover:bg-d-wash/40"
+      >
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink text-white dark:bg-white dark:text-ink">
+          <Package className="h-5 w-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[16px] font-extrabold tracking-tight3 text-ink dark:text-d-ink sm:text-[18px]">
+            {L("Uygulamanı öner", "Submit your app")}
+          </span>
+          <span className="mt-0.5 block text-[13px] text-ink-2 dark:text-d-ink-2">
+            {open
+              ? L("Formu kapat", "Close form")
+              : L("Öneride bulunmak için dokunun", "Tap to submit")}
+          </span>
+        </span>
+        <ChevronDown
+          className={`h-5 w-5 shrink-0 text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      <div
+        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="grid gap-8 border-t border-line px-5 py-6 sm:px-7 lg:grid-cols-[1fr_280px] dark:border-d-line">
+            <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
+              <Field label={L("Uygulama adı", "App name")}>
+                <input name="name" required minLength={2} className="field" />
+              </Field>
+              <Field label={L("Kategori", "Category")}>
+                <select name="category" required defaultValue="" className="field">
+                  <option value="" disabled>
+                    {L("Seçiniz", "Select")}
+                  </option>
+                  {Object.entries(CATEGORIES).map(([v, l]) => (
+                    <option key={v} value={v}>
+                      {l[locale]}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label={L("Tek cümlelik açıklama", "One-line description")} full>
+                <input name="tagline" required minLength={8} maxLength={240} className="field" />
+              </Field>
+              <Field label={L("Web sitesi / uygulama linki", "Website / app link")}>
+                <input name="url" type="url" required placeholder="https://" className="field" />
+              </Field>
+              <Field
+                label={L(
+                  "Kaynak kod (GitHub) — zorunlu, açık kaynak",
+                  "Source code (GitHub) — required, open source",
+                )}
+              >
+                <input
+                  name="repo_url"
+                  type="url"
+                  required
+                  placeholder="https://github.com/"
+                  className="field"
+                />
+              </Field>
+              <Field label={L("Detaylı açıklama", "Detailed description")} full>
+                <textarea name="description" rows={3} maxLength={4000} className="field resize-y" />
+              </Field>
+              <Field label={L("Geliştirici / ekip", "Developer / team")}>
+                <input name="author_name" required minLength={2} className="field" />
+              </Field>
+              <Field label={L("Geliştirici linki", "Developer link")}>
+                <input name="author_url" type="url" placeholder="https://" className="field" />
+              </Field>
+              <Field label={L("E-posta (yayınlanmaz)", "Email (not published)")} full>
+                <input name="submitter_email" type="email" className="field" />
+              </Field>
+              <div className="sm:col-span-2">
+                <button
+                  type="submit"
+                  disabled={state === "sending"}
+                  className="btn-dark disabled:opacity-50"
+                >
+                  {state === "sending" ? labels.sending : labels.send} <Send className="h-4 w-4" />
+                </button>
+                {state === "error" && <p className="mt-2 text-[12px] text-live">{msg}</p>}
+              </div>
+            </form>
+
+            <div className="h-fit rounded-2xl border border-line bg-wash/40 p-5 dark:border-d-line dark:bg-d-wash/30">
+              <h3 className="text-[14px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
+                {L("Nasıl çalışır?", "How it works")}
+              </h3>
+              <ol className="mt-4 space-y-4">
+                {steps.map((s, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-[12px] font-bold text-accent dark:bg-accent/15">
+                      {i + 1}
+                    </span>
+                    <span>
+                      <span className="block text-[13px] font-bold text-ink dark:text-d-ink">{s.t}</span>
+                      <span className="block text-[12px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+                        {s.d}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

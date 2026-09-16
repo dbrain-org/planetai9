@@ -84,10 +84,7 @@ export default async function MarketplacePage({
 
       <section id="oner" className="mt-16 scroll-mt-24">
         <div className="mb-6 border-t-2 border-ink pt-8 dark:border-d-ink">
-          <h2 className="text-[22px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
-            {t.marketplace.suggestTitle}
-          </h2>
-          <p className="mt-1.5 max-w-lg text-[14px] text-ink-2 dark:text-d-ink-2">
+          <p className="max-w-lg text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
             {t.marketplace.suggestBody}
           </p>
         </div>

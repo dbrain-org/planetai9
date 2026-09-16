@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-/** Bold editorial section header: accent number chip, kicker + title, strong bottom rule. */
+/** Editorial section header: accent number chip, optional kicker, title. */
 export function SectionHeader({
   index,
   kicker,
@@ -16,7 +16,7 @@ export function SectionHeader({
 }) {
   return (
     <div
-      className={`mb-8 flex items-end justify-between gap-4 border-b-[3px] border-ink pb-3 dark:border-d-ink ${className}`}
+      className={`mb-8 flex items-end justify-between gap-4 ${className}`}
     >
       <div className="flex items-center gap-3.5">
         {index && (

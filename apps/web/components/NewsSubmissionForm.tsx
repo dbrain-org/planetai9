@@ -181,7 +181,7 @@ export function NewsSubmissionForm({
               required
               minLength={4}
               maxLength={300}
-              placeholder={L("Örn. Yerli LLM değerlendirme seti açıklandı", "e.g. New local LLM eval set released")}
+              placeholder={L("Haber başlığı", "News headline")}
               className="field"
             />
           </Field>
