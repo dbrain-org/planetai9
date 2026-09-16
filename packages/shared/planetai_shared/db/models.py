@@ -305,7 +305,9 @@ class CuratedLink(Base, TimestampMixin):
     __tablename__ = "curated_links"
 
     id: Mapped[uuid.UUID] = uuid_pk()
-    collection: Mapped[str] = mapped_column(String(30))  # tr_data | tr_ecosystem
+    collection: Mapped[str] = mapped_column(
+        String(30)
+    )  # tr_data | tr_share | tr_ecosystem (legacy)
     name: Mapped[str] = mapped_column(String(200))
     url: Mapped[str] = mapped_column(Text)
     kind: Mapped[str] = mapped_column(String(30))  # sub-label: portal / nlp / şirket / lab …
@@ -372,6 +374,8 @@ class NewsSubmission(Base, TimestampMixin):
     submitter_phone: Mapped[str | None] = mapped_column(String(40))
     submitter_profession: Mapped[str | None] = mapped_column(String(120))
     submitter_company: Mapped[str | None] = mapped_column(String(160))
+    # True ⇒ attributed to PlanetAI9 (site team), not "Okuyucu Haberleri"
+    is_staff: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[str] = mapped_column(
         String(12), default="pending"
     )  # pending | approved | rejected

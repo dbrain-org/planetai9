@@ -112,9 +112,7 @@ def _card(p: models.OpinionPost) -> ColumnCard:
 @router.get("/authors", response_model=list[AuthorRef])
 def list_authors(db: Session = Depends(get_db)) -> list[AuthorRef]:
     rows = db.scalars(
-        select(models.Author)
-        .where(models.Author.status == "active")
-        .order_by(models.Author.name)
+        select(models.Author).where(models.Author.status == "active").order_by(models.Author.name)
     ).all()
     return [_author_ref(a) for a in rows if a.slug not in _JUNK_AUTHOR_SLUGS]
 
@@ -219,9 +217,7 @@ def get_author(slug: str, db: Session = Depends(get_db)) -> dict:
     if slug in _JUNK_AUTHOR_SLUGS:
         raise HTTPException(404, "author not found")
     a = db.scalar(
-        select(models.Author).where(
-            models.Author.slug == slug, models.Author.status == "active"
-        )
+        select(models.Author).where(models.Author.slug == slug, models.Author.status == "active")
     )
     if a is None:
         raise HTTPException(404, "author not found")

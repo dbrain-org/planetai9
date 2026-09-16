@@ -1,6 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
-import type { AuthorApplication, QueueApp, QueueSubmission } from "@/lib/types";
+import type { AuthorApplication, CuratedShareItem, QueueApp, QueueSubmission } from "@/lib/types";
 
 export const ADMIN_COOKIE = "planetai_admin";
 const BASE = process.env.PLANETAI_API_URL ?? "http://localhost:8077";
@@ -57,6 +57,17 @@ export async function loadAuthorQueue(token: string | null): Promise<AuthorAppli
     const res = await adminFetch("/authors/queue", token);
     if (!res.ok) return [];
     return (await res.json()) as AuthorApplication[];
+  } catch {
+    return [];
+  }
+}
+
+export async function loadVerivatanQueue(token: string | null): Promise<CuratedShareItem[]> {
+  if (!token) return [];
+  try {
+    const res = await adminFetch("/curated/tr_share/manage", token);
+    if (!res.ok) return [];
+    return (await res.json()) as CuratedShareItem[];
   } catch {
     return [];
   }

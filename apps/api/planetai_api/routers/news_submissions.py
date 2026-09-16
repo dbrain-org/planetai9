@@ -13,7 +13,12 @@ from sqlalchemy.orm import Session
 from planetai_api.db import get_db
 from planetai_api.ratelimit import limiter
 from planetai_api.routers.marketplace import _bust_home_cache, require_admin
-from planetai_api.services.manual_event import PUBLIC_BUCKETS, create_event_from_submission
+from planetai_api.services.manual_event import (
+    PUBLIC_BUCKETS,
+    create_event_from_submission,
+    retarget_submission_source,
+    submission_looks_staff,
+)
 
 router = APIRouter()
 _settings = get_settings()
@@ -38,6 +43,7 @@ class SubmissionOut(BaseModel):
     submitter_phone: str | None
     submitter_profession: str | None
     submitter_company: str | None
+    is_staff: bool
     event_slug: str | None
     created_at: datetime
 
@@ -85,6 +91,7 @@ class SubmissionEdit(BaseModel):
     submitter_phone: str | None = Field(default=None, max_length=40)
     submitter_profession: str | None = Field(default=None, max_length=120)
     submitter_company: str | None = Field(default=None, max_length=160)
+    is_staff: bool | None = None
 
 
 def _gallery_from_submission(s: models.NewsSubmission) -> list[str]:
@@ -132,6 +139,7 @@ def _out(s: models.NewsSubmission) -> SubmissionOut:
         submitter_phone=s.submitter_phone,
         submitter_profession=s.submitter_profession,
         submitter_company=s.submitter_company,
+        is_staff=bool(s.is_staff),
         event_slug=ev.slug if ev else None,
         created_at=s.created_at,
     )
@@ -163,6 +171,7 @@ def submit_news(request: Request, payload: SubmissionIn, db: Session = Depends(g
         submitter_company=(payload.submitter_company or "").strip() or None,
         status="pending",
     )
+    submission.is_staff = submission_looks_staff(db, submission)
     db.add(submission)
     db.commit()
     return {"ok": True, "status": "pending"}
@@ -217,6 +226,8 @@ def edit_submission(
         submission.submitter_profession = payload.submitter_profession.strip() or None
     if payload.submitter_company is not None:
         submission.submitter_company = payload.submitter_company.strip() or None
+    if payload.is_staff is not None:
+        submission.is_staff = bool(payload.is_staff)
 
     if submission.event_id and submission.event is not None:
         ev = submission.event
@@ -237,6 +248,8 @@ def edit_submission(
                 art.body_text = submission.description
             if payload.image_urls is not None:
                 art.image_url = submission.image_url
+        if payload.is_staff is not None:
+            retarget_submission_source(db, submission)
 
     db.commit()
     db.refresh(submission)
@@ -258,11 +271,14 @@ def set_status(
         raise HTTPException(404, "gönderi bulunamadı")
 
     if payload.status == "approved":
+        if submission_looks_staff(db, submission):
+            submission.is_staff = True
         if submission.event_id is None:
             event = create_event_from_submission(db, submission)
             submission.event_id = event.id
         else:
             _set_reader_event_visibility(db, submission, visible=True)
+            retarget_submission_source(db, submission)
     elif payload.status in ("rejected", "pending"):
         # Unpublish the Event created from this tip — seeded/linked stories untouched.
         _set_reader_event_visibility(db, submission, visible=False)

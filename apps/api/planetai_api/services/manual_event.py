@@ -21,12 +21,14 @@ from planetai_shared.db import models
 from planetai_shared.enums import Category, SourceType, importance_band
 from planetai_shared.settings import get_settings
 from slugify import slugify
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 _settings = get_settings()
 
 READER_SOURCE_SLUG = "okuyucu-haberleri"
+STAFF_SOURCE_SLUG = "planetai9-editorial"
+MAX_IMAGES = 12
 
 # The bucket vocabulary a public submitter picks from (mirrors events.py's
 # CATEGORY_BUCKET keys) mapped to one representative Category enum value to
@@ -65,9 +67,7 @@ _WEIGHTS = {
 
 
 def get_or_create_reader_source(db: Session) -> models.Source:
-    """The one fixed Source reader-submitted events attribute to. Disabled so
-    the ingest scheduler (which only polls `enabled` sources) never touches it.
-    """
+    """Community tips from /haber-giris. Disabled so ingest never polls it."""
     src = db.scalar(select(models.Source).where(models.Source.slug == READER_SOURCE_SLUG))
     if src is not None:
         return src
@@ -85,6 +85,55 @@ def get_or_create_reader_source(db: Session) -> models.Source:
     db.add(src)
     db.flush()
     return src
+
+
+def get_or_create_staff_source(db: Session) -> models.Source:
+    """Site-team stories — shown as PlanetAI9, not Okuyucu Haberleri."""
+    src = db.scalar(select(models.Source).where(models.Source.slug == STAFF_SOURCE_SLUG))
+    if src is not None:
+        return src
+    src = models.Source(
+        slug=STAFF_SOURCE_SLUG,
+        name="PlanetAI9",
+        homepage_url=_settings.site_url,
+        feed_url=None,
+        kind="html_blog",
+        source_type=SourceType.OFFICIAL_ANNOUNCEMENT.value,
+        lang="tr",
+        trust_weight=0.9,
+        enabled=False,
+    )
+    db.add(src)
+    db.flush()
+    return src
+
+
+def submission_looks_staff(db: Session, submission: models.NewsSubmission) -> bool:
+    if bool(getattr(submission, "is_staff", False)):
+        return True
+    email = (submission.submitter_email or "").strip().lower()
+    name = (submission.submitter_name or "").strip().lower()
+    if email:
+        hit = db.scalar(
+            select(models.Author.id).where(
+                models.Author.status == "active",
+                func.lower(models.Author.email) == email,
+            )
+        )
+        if hit is not None:
+            return True
+    if name:
+        authors = db.scalars(select(models.Author).where(models.Author.status == "active")).all()
+        for a in authors:
+            if (a.name or "").strip().lower() == name:
+                return True
+    return False
+
+
+def source_for_submission(db: Session, submission: models.NewsSubmission) -> models.Source:
+    if submission_looks_staff(db, submission):
+        return get_or_create_staff_source(db)
+    return get_or_create_reader_source(db)
 
 
 def _unique_slug(db: Session, title: str) -> str:
@@ -117,14 +166,16 @@ def create_event_from_submission(db: Session, submission: models.NewsSubmission)
     filtering stays correct even if one mechanism later changes.
     """
     now = datetime.now(UTC)
-    source = get_or_create_reader_source(db)
+    if submission_looks_staff(db, submission):
+        submission.is_staff = True
+    source = source_for_submission(db, submission)
     slug = _unique_slug(db, submission.title)
     canonical_url = submission.url or f"{_settings.site_url}/news/{slug}"
 
     gallery = list(submission.image_urls or [])
     if submission.image_url and submission.image_url not in gallery:
         gallery.insert(0, submission.image_url)
-    gallery = gallery[:5]
+    gallery = gallery[:MAX_IMAGES]
     cover = gallery[0] if gallery else None
 
     article = models.Article(
@@ -174,3 +225,18 @@ def create_event_from_submission(db: Session, submission: models.NewsSubmission)
     db.commit()
     db.refresh(event)
     return event
+
+
+def retarget_submission_source(db: Session, submission: models.NewsSubmission) -> None:
+    """Keep Article.source in sync when is_staff is toggled after publish."""
+    if submission.event_id is None:
+        return
+    article = db.scalar(
+        select(models.Article).where(
+            models.Article.external_id == f"reader:{submission.id}",
+            models.Article.event_id == submission.event_id,
+        )
+    )
+    if article is None:
+        return
+    article.source_id = source_for_submission(db, submission).id

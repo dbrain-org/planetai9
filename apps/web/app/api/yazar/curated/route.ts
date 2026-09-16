@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { authorFetch, authorKey } from "@/lib/author";
 
-const COLLECTIONS = new Set(["tr_data", "tr_ecosystem"]);
+const COLLECTIONS = new Set(["tr_data", "tr_share", "tr_ecosystem"]);
 
 function coll(req: Request): string | null {
   const c = new URL(req.url).searchParams.get("collection") ?? "";

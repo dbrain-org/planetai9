@@ -168,9 +168,22 @@ export interface QueueSubmission {
   submitter_phone?: string | null;
   submitter_profession?: string | null;
   submitter_company?: string | null;
+  is_staff?: boolean;
   status: "pending" | "approved" | "rejected";
   event_slug: string | null;
   created_at: string;
+}
+
+export interface CuratedShareItem {
+  id: string;
+  collection: string;
+  name: string;
+  url: string;
+  kind: string;
+  note_tr: string | null;
+  note_en: string | null;
+  sort_order: number;
+  enabled: boolean;
 }
 
 export interface AuthorApplication {
@@ -267,7 +280,7 @@ export interface Stats {
 
 export interface CuratedLink {
   id: string;
-  collection: "tr_data" | "tr_ecosystem";
+  collection: "tr_data" | "tr_share" | "tr_ecosystem";
   name: string;
   url: string;
   kind: string;

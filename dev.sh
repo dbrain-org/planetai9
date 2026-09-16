@@ -35,7 +35,9 @@ disown || true
 echo "▶ WEB  → http://localhost:$WEB_PORT"
 pkill -f "next-server" 2>/dev/null || true
 pkill -f "next dev -p 3000 -p $WEB_PORT" 2>/dev/null || true
-nohup bash -lc "cd apps/web && npm run dev -- -p $WEB_PORT" >"$WEB_LOG" 2>&1 &
+# macOS'ta dosya izleyici limiti (EMFILE) nedeniyle Next.js ara sıra düşebiliyor.
+# Polling modu daha stabil; özellikle uzun agent oturumlarında bağlantı kopmasını azaltır.
+nohup bash -lc "cd apps/web && WATCHPACK_POLLING=true CHOKIDAR_USEPOLLING=true npm run dev -- -H 0.0.0.0 -p $WEB_PORT" >"$WEB_LOG" 2>&1 &
 disown || true
 
 sleep 5

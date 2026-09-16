@@ -144,6 +144,9 @@ services:
     # The host port stays localhost-only; Traefik reaches the container over the external web network.
     ports:
       - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    volumes:
+      # Persist reader/staff news photos across deploys (NOT in Postgres — only URLs are).
+      - web_uploads:/app/public/uploads
     depends_on:
       api: { condition: service_started }
     healthcheck:
@@ -186,6 +189,7 @@ volumes:
   pgdata:
   pgbackups:
   redisdata:
+  web_uploads:
   caddy_data:
   caddy_config:
 

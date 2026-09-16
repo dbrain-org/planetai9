@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { AdminPanel } from "@/components/AdminPanel";
-import { adminToken, loadAuthorQueue, loadNewsQueue, loadQueue } from "@/lib/admin";
+import {
+  adminToken,
+  loadAuthorQueue,
+  loadNewsQueue,
+  loadQueue,
+  loadVerivatanQueue,
+} from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +20,7 @@ export default async function AdminPage() {
   const { authed, apps } = await loadQueue(token);
   const news = authed ? await loadNewsQueue(token) : [];
   const authors = authed ? await loadAuthorQueue(token) : [];
+  const shares = authed ? await loadVerivatanQueue(token) : [];
   return (
     <div className="mx-auto max-w-3xl">
       <header className="mb-8">
@@ -22,11 +29,11 @@ export default async function AdminPage() {
           Yönetim Paneli
         </h1>
         <p className="mt-2 text-[14px] text-ink-2 dark:text-d-ink-2">
-          Okuyucu haberlerini, yazar başvurularını ve TAKYAP gönderilerini buradan onayla, düzenle
-          veya reddet.
+          Haberleri, yazar başvurularını, VeriVatan paylaşımlarını ve TAKYAP gönderilerini buradan
+          onayla veya düzenle.
         </p>
       </header>
-      <AdminPanel authed={authed} apps={apps} news={news} authors={authors} />
+      <AdminPanel authed={authed} apps={apps} news={news} authors={authors} shares={shares} />
     </div>
   );
 }

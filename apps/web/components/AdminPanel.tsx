@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, ExternalLink, KeyRound, LogOut, Pencil, RotateCcw, X } from "lucide-react";
-import type { AuthorApplication, QueueApp, QueueSubmission } from "@/lib/types";
+import type { AuthorApplication, CuratedShareItem, QueueApp, QueueSubmission } from "@/lib/types";
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Beklemede",
@@ -180,6 +180,7 @@ type NewsPatch = {
   title: string;
   description: string;
   image_urls: string[];
+  is_staff: boolean;
 };
 
 function NewsRow({
@@ -196,6 +197,7 @@ function NewsRow({
   const [title, setTitle] = useState(item.title);
   const [description, setDescription] = useState(item.description ?? "");
   const [images, setImages] = useState<string[]>(item.image_urls ?? []);
+  const [isStaff, setIsStaff] = useState(Boolean(item.is_staff));
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -215,6 +217,7 @@ function NewsRow({
         title: title.trim(),
         description: description.trim(),
         image_urls: images,
+        is_staff: isStaff,
       });
       setEditing(false);
     } finally {
@@ -227,6 +230,7 @@ function NewsRow({
     setTitle(item.title);
     setDescription(item.description ?? "");
     setImages(item.image_urls ?? []);
+    setIsStaff(Boolean(item.is_staff));
   };
 
   async function addPhotos(files: FileList | null) {
@@ -259,6 +263,11 @@ function NewsRow({
             >
               {STATUS_LABEL[item.status]}
             </span>
+            {item.is_staff && (
+              <span className="rounded-md bg-ink px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white dark:bg-white dark:text-ink">
+                PlanetAI9
+              </span>
+            )}
           </div>
           {editing ? (
             <input
@@ -349,6 +358,17 @@ function NewsRow({
         {item.submitter_phone && <span>{item.submitter_phone}</span>}
         <span>{fmtDate(item.created_at)}</span>
       </div>
+
+      {editing && (
+        <label className="mt-3 flex items-center gap-2 text-[12px] text-ink-2 dark:text-d-ink-2">
+          <input
+            type="checkbox"
+            checked={isStaff}
+            onChange={(e) => setIsStaff(e.target.checked)}
+          />
+          Site ekibi haberi (kaynak: PlanetAI9 — Okuyucu Haberleri yazılmaz)
+        </label>
+      )}
 
       <div className="mt-3 flex flex-wrap gap-2">
         {editing ? (
@@ -520,15 +540,17 @@ export function AdminPanel({
   apps,
   news,
   authors,
+  shares = [],
 }: {
   authed: boolean;
   apps: QueueApp[];
   news: QueueSubmission[];
   authors: AuthorApplication[];
+  shares?: CuratedShareItem[];
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const [tab, setTab] = useState<"news" | "marketplace" | "authors">("news");
+  const [tab, setTab] = useState<"news" | "marketplace" | "authors" | "verivatan">("news");
 
   if (!authed) return <LoginForm />;
 
@@ -580,6 +602,15 @@ export function AdminPanel({
     return data.key ?? null;
   }
 
+  async function onShareAction(id: string, enabled: boolean) {
+    const res = await fetch("/api/admin/verivatan", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id, enabled }),
+    });
+    if (res.ok) startTransition(() => router.refresh());
+  }
+
   async function logout() {
     await fetch("/api/admin/login", { method: "DELETE" });
     router.refresh();
@@ -591,14 +622,17 @@ export function AdminPanel({
   const decidedNews = news.filter((n) => n.status !== "pending");
   const pendingAuthors = authors.filter((a) => a.status === "pending");
   const otherAuthors = authors.filter((a) => a.status !== "pending");
+  const pendingShares = shares.filter((s) => !s.enabled);
+  const approvedShares = shares.filter((s) => s.enabled);
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-1 border-b border-line dark:border-d-line">
+        <div className="flex flex-wrap gap-1 border-b border-line dark:border-d-line">
           {(
             [
               ["news", "Haberler", pendingNews.length],
+              ["verivatan", "VeriVatan", pendingShares.length],
               ["authors", "Yazarlar", pendingAuthors.length],
               ["marketplace", "TAKYAP", pendingApps.length],
             ] as const
@@ -649,6 +683,66 @@ export function AdminPanel({
               <ul className="space-y-3">
                 {decidedNews.map((n) => (
                   <NewsRow key={n.id} item={n} onAction={onNewsAction} onSave={onNewsSave} />
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
+      ) : tab === "verivatan" ? (
+        <>
+          <section>
+            <h2 className="sec-title mb-4">Bekleyen veri paylaşımları</h2>
+            {pendingShares.length === 0 ? (
+              <p className="text-[13px] text-muted">Bekleyen paylaşım yok.</p>
+            ) : (
+              <ul className="space-y-3">
+                {pendingShares.map((s) => (
+                  <li key={s.id} className="card p-4">
+                    <h3 className="text-[15px] font-bold text-ink dark:text-d-ink">{s.name}</h3>
+                    <a
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-[12px] text-accent"
+                    >
+                      {s.url} <ExternalLink className="h-3 w-3" />
+                    </a>
+                    {s.note_tr && (
+                      <p className="mt-2 text-[12.5px] text-ink-2 dark:text-d-ink-2">{s.note_tr}</p>
+                    )}
+                    {s.note_en && <p className="mt-1 text-[11.5px] text-muted">{s.note_en}</p>}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        onClick={() => onShareAction(s.id, true)}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-success px-3 py-1.5 text-[12px] font-semibold text-white"
+                      >
+                        <Check className="h-3.5 w-3.5" /> Onayla & yayınla
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          {approvedShares.length > 0 && (
+            <section>
+              <h2 className="sec-title mb-4">Yayındaki paylaşımlar</h2>
+              <ul className="space-y-3">
+                {approvedShares.map((s) => (
+                  <li key={s.id} className="card p-4">
+                    <h3 className="text-[15px] font-bold">{s.name}</h3>
+                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-[12px] text-accent">
+                      {s.url}
+                    </a>
+                    <div className="mt-3">
+                      <button
+                        onClick={() => onShareAction(s.id, false)}
+                        className="rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold dark:border-d-line"
+                      >
+                        Yayından kaldır
+                      </button>
+                    </div>
+                  </li>
                 ))}
               </ul>
             </section>

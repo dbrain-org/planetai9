@@ -504,8 +504,7 @@ def test_news_submission_approval_creates_event_in_tr_region(client, monkeypatch
         assert rejected.status_code == 200
         assert client.get(f"/api/v1/events/{event_slug}").status_code == 404
         submitted = {
-            e["slug"]
-            for e in client.get("/api/v1/events?origin=submitted&limit=50").json()["data"]
+            e["slug"] for e in client.get("/api/v1/events?origin=submitted&limit=50").json()["data"]
         }
         assert event_slug not in submitted
 

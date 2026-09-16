@@ -1,8 +1,9 @@
 import { ArrowUpRight } from "lucide-react";
+import { DataShareForm } from "@/components/DataShareForm";
 import { SectionHeader } from "@/components/SectionHeader";
 import { apiSafe } from "@/lib/api";
 import { getLocale } from "@/lib/i18n";
-import { DATA_KIND_LABEL, KIND_LABEL, kindLabel } from "@/lib/turkey";
+import { DATA_KIND_LABEL, kindLabel } from "@/lib/turkey";
 import type { CuratedLink } from "@/lib/types";
 
 export const revalidate = 60;
@@ -11,9 +12,9 @@ export default async function TurkiyePage() {
   const locale = await getLocale();
   const tr = locale === "tr";
 
-  const [trData, trEcosystem] = await Promise.all([
+  const [trData, trShare] = await Promise.all([
     apiSafe<CuratedLink[]>("/curated/tr_data", []),
-    apiSafe<CuratedLink[]>("/curated/tr_ecosystem", []),
+    apiSafe<CuratedLink[]>("/curated/tr_share", []),
   ]);
 
   const note = (l: CuratedLink) => (tr ? l.note_tr : l.note_en) ?? "";
@@ -29,16 +30,16 @@ export default async function TurkiyePage() {
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
           {tr
-            ? "Türkiye'de açık veri yayınlayan kurumlar ve veri seti paylaşan şirketler — tek sayfada."
-            : "Institutions that publish open data in Türkiye and companies that release datasets — on one page."}
+            ? "Türkiye'de açık veri kaynakları ve topluluğun paylaştığı Türkçe veri setleri — tek sayfada."
+            : "Open-data sources in Türkiye and community-shared Turkish datasets — on one page."}
         </p>
       </header>
 
       <section>
         <SectionHeader
           index="01"
-          kicker={tr ? "Kurumlar" : "Institutions"}
-          title={tr ? "Açık veri yayınlayan kurumlar" : "Open-data publishers"}
+          kicker={tr ? "Kaynaklar" : "Sources"}
+          title={tr ? "Açık Veri Kaynakları" : "Open Data Sources"}
         />
         <p className="-mt-3 mb-7 max-w-2xl text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
           {tr
@@ -77,34 +78,47 @@ export default async function TurkiyePage() {
       <section>
         <SectionHeader
           index="02"
-          kicker={tr ? "Şirketler" : "Companies"}
-          title={tr ? "Veri yayınlayan şirketler" : "Data-publishing companies"}
+          kicker={tr ? "Topluluk" : "Community"}
+          title={tr ? "Türkçe veri paylaşımı" : "Turkish data sharing"}
         />
         <p className="-mt-3 mb-7 max-w-2xl text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
           {tr
-            ? "Açık veri seti, corpus veya model ağırlığı paylaşan şirketler."
-            : "Companies that publish open datasets, corpora or model weights."}
+            ? "Onayladığımız Türkçe veri seti ve corpus paylaşımları. Sen de öner — editörlerimiz inceledikten sonra burada yayınlanır."
+            : "Approved Turkish datasets and corpora. Suggest one — it goes live here after editorial review."}
         </p>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {trEcosystem.map((o) => (
-            <a
-              key={o.id}
-              href={o.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="card card-hover group p-5"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="badge">{kindLabel(KIND_LABEL, o.kind, locale)}</span>
-                <ArrowUpRight className="h-4 w-4 shrink-0 text-muted transition-colors group-hover:text-accent" />
-              </div>
-              <h4 className="mt-2 text-[15px] font-bold tracking-tight2 text-ink group-hover:text-accent dark:text-d-ink">
-                {o.name}
-              </h4>
-              <p className="mt-2 text-[13px] leading-relaxed text-ink-2 dark:text-d-ink-2">{note(o)}</p>
-            </a>
-          ))}
-        </div>
+
+        {trShare.length > 0 ? (
+          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {trShare.map((o) => (
+              <a
+                key={o.id}
+                href={o.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="card card-hover group p-5"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="badge">{tr ? "Paylaşım" : "Shared"}</span>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted transition-colors group-hover:text-accent" />
+                </div>
+                <h4 className="mt-2 text-[15px] font-bold tracking-tight2 text-ink group-hover:text-accent dark:text-d-ink">
+                  {o.name}
+                </h4>
+                {note(o) && (
+                  <p className="mt-2 text-[13px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+                    {note(o)}
+                  </p>
+                )}
+              </a>
+            ))}
+          </div>
+        ) : (
+          <p className="mb-10 text-[13px] text-muted">
+            {tr ? "Henüz onaylı paylaşım yok — ilk sen ol." : "No approved shares yet — be the first."}
+          </p>
+        )}
+
+        <DataShareForm locale={locale} />
       </section>
     </div>
   );

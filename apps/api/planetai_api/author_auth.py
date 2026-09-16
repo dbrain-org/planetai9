@@ -19,10 +19,12 @@ def studio_auth_configured(db: Session) -> bool:
         return True
     return (
         db.scalar(
-            select(models.Author.id).where(
+            select(models.Author.id)
+            .where(
                 models.Author.api_key_hash.is_not(None),
                 models.Author.status == "active",
-            ).limit(1)
+            )
+            .limit(1)
         )
         is not None
     )
@@ -51,9 +53,7 @@ def author_is_moderator(author: models.Author) -> bool:
 def admin_token_ok(db: Session, token: str | None) -> bool:
     if not token:
         return False
-    row = db.scalar(
-        select(models.SiteCredential).where(models.SiteCredential.kind == ADMIN_KIND)
-    )
+    row = db.scalar(select(models.SiteCredential).where(models.SiteCredential.kind == ADMIN_KIND))
     if row is not None and verify_api_key(token, row.secret_hash):
         return True
     return bool(_settings.admin_token and token == _settings.admin_token)
@@ -64,9 +64,7 @@ def ensure_admin_credential(db: Session, plaintext: str | None) -> None:
     if not plaintext or not plaintext.strip():
         return
     digest = hash_api_key(plaintext.strip())
-    row = db.scalar(
-        select(models.SiteCredential).where(models.SiteCredential.kind == ADMIN_KIND)
-    )
+    row = db.scalar(select(models.SiteCredential).where(models.SiteCredential.kind == ADMIN_KIND))
     if row is None:
         db.add(models.SiteCredential(kind=ADMIN_KIND, secret_hash=digest))
     else:
@@ -81,8 +79,6 @@ def moderation_channel_configured(db: Session) -> bool:
     ):
         return True
     return (
-        db.scalar(
-            select(models.Author.id).where(models.Author.is_moderator.is_(True)).limit(1)
-        )
+        db.scalar(select(models.Author.id).where(models.Author.is_moderator.is_(True)).limit(1))
         is not None
     )
