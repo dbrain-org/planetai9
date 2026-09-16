@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CoverImg } from "@/components/CoverImg";
-import { catColor } from "@/lib/category";
 
 export function ImageCarousel({
   images,
-  category = "AI",
+  category: _category = "AI",
   className = "mt-6 aspect-[16/9]",
 }: {
   images: string[];
@@ -18,15 +17,11 @@ export function ImageCarousel({
   if (!images.length) return null;
   const i = ((idx % images.length) + images.length) % images.length;
   const src = images[i]!;
-  const hue = catColor(category);
 
   return (
-    <div className={`relative overflow-hidden rounded-card ${className}`}>
-      <div
-        className="absolute inset-0 h-full w-full bg-wash dark:bg-d-wash"
-        style={{ background: `linear-gradient(140deg, ${hue}, ${hue}18)` }}
-      />
-      <CoverImg src={src} />
+    <div className={`relative overflow-hidden rounded-card bg-wash dark:bg-d-wash ${className}`}>
+      {/* Full frame — no crop; neutral letterbox if aspect differs */}
+      <CoverImg src={src} fit="contain" />
       {images.length > 1 && (
         <>
           <button

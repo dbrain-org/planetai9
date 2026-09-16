@@ -9,7 +9,16 @@ function proxied(src: string): string {
 }
 
 /** <img> that removes itself on load failure so the parent's gradient placeholder shows through. */
-export function CoverImg({ src, zoom = false }: { src: string; zoom?: boolean }) {
+export function CoverImg({
+  src,
+  zoom = false,
+  fit = "cover",
+}: {
+  src: string;
+  zoom?: boolean;
+  /** cover = fill & crop; contain = show full image (no crop). */
+  fit?: "cover" | "contain";
+}) {
   const [failed, setFailed] = useState(false);
   if (failed) return null;
   return (
@@ -20,9 +29,9 @@ export function CoverImg({ src, zoom = false }: { src: string; zoom?: boolean })
       loading="lazy"
       referrerPolicy="no-referrer"
       onError={() => setFailed(true)}
-      className={`absolute inset-0 h-full w-full object-cover transition-transform duration-500 ${
-        zoom ? "group-hover:scale-105" : ""
-      }`}
+      className={`absolute inset-0 h-full w-full transition-transform duration-500 ${
+        fit === "contain" ? "object-contain" : "object-cover"
+      } ${zoom && fit === "cover" ? "group-hover:scale-105" : ""}`}
     />
   );
 }

@@ -15,6 +15,7 @@ from planetai_api.ratelimit import limiter
 from planetai_api.routers.marketplace import _bust_home_cache, require_admin
 from planetai_api.services.manual_event import (
     PUBLIC_BUCKETS,
+    clip_summary,
     create_event_from_submission,
     retarget_submission_source,
     submission_looks_staff,
@@ -237,7 +238,7 @@ def edit_submission(
             ev.body_text = submission.description
             tip = (submission.description or "").strip()
             if tip:
-                ev.summary = tip[:280]
+                ev.summary = clip_summary(tip)
         if payload.image_urls is not None:
             ev.image_url = submission.image_url
             ev.image_urls = list(submission.image_urls or [])

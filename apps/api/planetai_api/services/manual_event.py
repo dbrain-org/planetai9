@@ -28,6 +28,22 @@ _settings = get_settings()
 
 READER_SOURCE_SLUG = "okuyucu-haberleri"
 STAFF_SOURCE_SLUG = "planetai9-editorial"
+SUMMARY_LIMIT = 280
+
+
+def clip_summary(text: str | None, limit: int = SUMMARY_LIMIT) -> str | None:
+    """Short dek for cards/detail — cut on a word boundary, never mid-word."""
+    if not text:
+        return None
+    t = " ".join(str(text).split())
+    if len(t) <= limit:
+        return t
+    cut = t[:limit].rsplit(" ", 1)[0].rstrip(" ,;:.-–—")
+    if len(cut) < max(40, limit // 3):
+        cut = t[:limit].rstrip()
+    return f"{cut}…"
+
+
 MAX_IMAGES = 12
 
 # The bucket vocabulary a public submitter picks from (mirrors events.py's
@@ -184,7 +200,7 @@ def create_event_from_submission(db: Session, submission: models.NewsSubmission)
         canonical_url=canonical_url,
         title=submission.title,
         raw_summary=submission.summary,
-        clean_summary=submission.summary or ((submission.description or "")[:280] or None),
+        clean_summary=submission.summary or clip_summary(submission.description),
         body_text=submission.description or submission.summary,
         lang="tr",
         published_at=now,
@@ -200,7 +216,7 @@ def create_event_from_submission(db: Session, submission: models.NewsSubmission)
     event = models.Event(
         slug=slug,
         title=submission.title,
-        summary=submission.summary or ((submission.description or "")[:280] or None),
+        summary=submission.summary or clip_summary(submission.description),
         body_text=submission.description,
         image_url=cover,
         image_urls=gallery,

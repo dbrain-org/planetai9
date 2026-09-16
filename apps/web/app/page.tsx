@@ -86,16 +86,16 @@ export default async function HomePage() {
 
   const side: HeroSideEntry[] = ownForSide.map((event) => ({ kind: "news" as const, event }));
 
-  // Sağ sütunu her zaman SIDE_SLOTS'a tamamla: önce videolar, yetmezse diğer haberler.
-  for (const video of home.videos) {
-    if (side.length >= SIDE_SLOTS) break;
-    side.push({ kind: "video", video });
-  }
+  // Sağ sütunu haberlerle doldur; yetmezse videoya düş.
   for (const event of ranked) {
     if (side.length >= SIDE_SLOTS) break;
     if (used.has(event.slug)) continue;
     side.push({ kind: "news", event });
     used.add(event.slug);
+  }
+  for (const video of home.videos) {
+    if (side.length >= SIDE_SLOTS) break;
+    side.push({ kind: "video", video });
   }
 
   // Hero'dan taşan PlanetAI9 haberleri → Öne Çıkanlar (kaybolmaz).

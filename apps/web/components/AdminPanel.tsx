@@ -311,7 +311,7 @@ function NewsRow({
           {(editing ? images : item.image_urls ?? []).map((u) => (
             <div key={u} className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={u} alt="" className="h-20 w-20 rounded-lg object-cover" />
+              <img src={u} alt="" className="h-20 w-20 rounded-lg bg-wash object-contain dark:bg-d-wash" />
               {editing && (
                 <button
                   type="button"

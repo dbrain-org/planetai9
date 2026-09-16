@@ -50,7 +50,13 @@ export function HeroBlock({
     <section className="grid gap-6 lg:grid-cols-[1.55fr_1fr] lg:items-start lg:gap-10">
       <article className="group">
         <Link href={`/news/${lead.slug}`} className="block">
-          <Cover src={lead.image_url} category={lead.category} className="aspect-[16/9]" rounded="rounded-card" zoom />
+          <Cover
+            src={lead.image_url}
+            category={lead.category}
+            className="aspect-[16/9]"
+            rounded="rounded-card"
+            fit="contain"
+          />
           <Meta
             summary={lead.summary}
             date={lead.published_at}

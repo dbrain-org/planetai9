@@ -9,21 +9,27 @@ export function Cover({
   className = "",
   rounded = "rounded-xl",
   zoom = false,
+  fit = "cover",
 }: {
   src: string | null;
   category: string;
   className?: string;
   rounded?: string;
   zoom?: boolean;
+  fit?: "cover" | "contain";
 }) {
   const hue = catColor(category);
   return (
     <div className={`relative overflow-hidden bg-wash dark:bg-d-wash ${rounded} ${className}`}>
-      <div
-        className="absolute inset-0 h-full w-full"
-        style={{ background: `linear-gradient(140deg, ${hue}, ${hue}18)` }}
-      />
-      {src && <CoverImg src={src} zoom={zoom} />}
+      {fit === "cover" ? (
+        <div
+          className="absolute inset-0 h-full w-full"
+          style={{ background: `linear-gradient(140deg, ${hue}, ${hue}18)` }}
+        />
+      ) : (
+        <div className="absolute inset-0 h-full w-full bg-wash dark:bg-d-wash" />
+      )}
+      {src && <CoverImg src={src} zoom={zoom} fit={fit} />}
     </div>
   );
 }
