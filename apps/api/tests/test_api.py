@@ -461,6 +461,7 @@ def test_news_submission_approval_creates_event_in_tr_region(client, monkeypatch
         "/api/v1/news-submissions",
         json={
             "title": "PyTest okuyucu haberi",
+            "summary": "LLM Radar yayında — kırk karakterlik kısa bir alt başlık özeti.",
             "description": body,
             "submitter_name": "Test Suite",
             "submitter_phone": "05551234567",
@@ -488,6 +489,7 @@ def test_news_submission_approval_creates_event_in_tr_region(client, monkeypatch
         detail = client.get(f"/api/v1/events/{event_slug}")
         assert detail.status_code == 200
         assert detail.json()["title"] == title
+        assert detail.json()["summary"].startswith("LLM Radar")
         assert detail.json()["image_urls"] == ["/uploads/news/demo/1.jpg"]
 
         tr_slugs = {

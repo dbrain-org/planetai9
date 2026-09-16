@@ -178,6 +178,7 @@ function AppRow({
 
 type NewsPatch = {
   title: string;
+  summary: string;
   description: string;
   image_urls: string[];
   is_staff: boolean;
@@ -195,6 +196,7 @@ function NewsRow({
   const [pending, setPending] = useState(false);
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(item.title);
+  const [summary, setSummary] = useState(item.summary ?? "");
   const [description, setDescription] = useState(item.description ?? "");
   const [images, setImages] = useState<string[]>(item.image_urls ?? []);
   const [isStaff, setIsStaff] = useState(Boolean(item.is_staff));
@@ -215,6 +217,7 @@ function NewsRow({
     try {
       await onSave(item.id, {
         title: title.trim(),
+        summary: summary.trim(),
         description: description.trim(),
         image_urls: images,
         is_staff: isStaff,
@@ -228,6 +231,7 @@ function NewsRow({
   const resetEdit = () => {
     setEditing(false);
     setTitle(item.title);
+    setSummary(item.summary ?? "");
     setDescription(item.description ?? "");
     setImages(item.image_urls ?? []);
     setIsStaff(Boolean(item.is_staff));
@@ -274,7 +278,7 @@ function NewsRow({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="field mt-2"
-              placeholder="Haber konusu"
+              placeholder="Haber başlığı"
             />
           ) : (
             <h3 className="mt-1.5 text-[15px] font-bold text-ink dark:text-d-ink">{item.title}</h3>
@@ -289,6 +293,20 @@ function NewsRow({
           </a>
         )}
       </div>
+
+      {editing ? (
+        <textarea
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          rows={3}
+          className="field mt-3 resize-y"
+          placeholder="Alt başlık (1–2 cümle)"
+        />
+      ) : (
+        item.summary && (
+          <p className="mt-2 text-[13px] leading-relaxed text-ink-2 dark:text-d-ink-2">{item.summary}</p>
+        )
+      )}
 
       {editing ? (
         <textarea
@@ -375,7 +393,12 @@ function NewsRow({
           <>
             <button
               onClick={save}
-              disabled={pending || title.trim().length < 4 || description.trim().length < 40}
+              disabled={
+                pending ||
+                title.trim().length < 4 ||
+                summary.trim().length < 20 ||
+                description.trim().length < 40
+              }
               className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-ink"
             >
               Kaydet

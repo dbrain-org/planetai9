@@ -14,6 +14,7 @@ good enough to rank a reader story by recency; it will generally sit low under
 from __future__ import annotations
 
 import hashlib
+import re
 import uuid
 from datetime import UTC, datetime
 
@@ -30,14 +31,29 @@ READER_SOURCE_SLUG = "okuyucu-haberleri"
 STAFF_SOURCE_SLUG = "planetai9-editorial"
 SUMMARY_LIMIT = 280
 
+_SENT_END = re.compile(r"(?<=[.!?…])\s+")
+
 
 def clip_summary(text: str | None, limit: int = SUMMARY_LIMIT) -> str | None:
-    """Short dek for cards/detail — cut on a word boundary, never mid-word."""
+    """Short dek — prefer whole sentences; never end mid-word."""
     if not text:
         return None
     t = " ".join(str(text).split())
     if len(t) <= limit:
         return t
+    # Pack as many complete sentences as fit (no trailing …).
+    out = ""
+    for sent in _SENT_END.split(t):
+        sent = sent.strip()
+        if not sent:
+            continue
+        cand = f"{out} {sent}".strip() if out else sent
+        if len(cand) <= limit:
+            out = cand
+        else:
+            break
+    if len(out) >= max(40, limit // 3):
+        return out
     cut = t[:limit].rsplit(" ", 1)[0].rstrip(" ,;:.-–—")
     if len(cut) < max(40, limit // 3):
         cut = t[:limit].rstrip()
@@ -200,7 +216,7 @@ def create_event_from_submission(db: Session, submission: models.NewsSubmission)
         canonical_url=canonical_url,
         title=submission.title,
         raw_summary=submission.summary,
-        clean_summary=submission.summary or clip_summary(submission.description),
+        clean_summary=submission.summary,
         body_text=submission.description or submission.summary,
         lang="tr",
         published_at=now,
@@ -216,7 +232,7 @@ def create_event_from_submission(db: Session, submission: models.NewsSubmission)
     event = models.Event(
         slug=slug,
         title=submission.title,
-        summary=submission.summary or clip_summary(submission.description),
+        summary=submission.summary,
         body_text=submission.description,
         image_url=cover,
         image_urls=gallery,

@@ -75,7 +75,7 @@ export function LlmRadarArticle({
         </div>
 
         {gallery.length > 0 && (
-          <ImageCarousel images={gallery} category={event.category} className="mt-7 aspect-[16/9]" />
+          <ImageCarousel images={gallery} category={event.category} />
         )}
 
         <div className="mt-9 space-y-6">

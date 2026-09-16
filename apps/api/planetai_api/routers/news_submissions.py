@@ -54,7 +54,7 @@ class StatusChange(BaseModel):
 
 
 class SubmissionIn(BaseModel):
-    """Public tip — konu + içerik + gönderen; kategori yok (varsayılan AI)."""
+    """Public tip — başlık + alt başlık + içerik + gönderen; kategori yok (varsayılan AI)."""
 
     title: str = Field(min_length=4, max_length=300)  # haber konusu
     description: str = Field(min_length=40, max_length=8000)  # haber içeriği
@@ -66,7 +66,7 @@ class SubmissionIn(BaseModel):
     submitter_company: str | None = Field(default=None, max_length=160)
     image_urls: list[str] = Field(default_factory=list, max_length=MAX_IMAGES)
     url: HttpUrl | None = None
-    summary: str | None = Field(default=None, max_length=600)
+    summary: str = Field(min_length=20, max_length=600)  # alt başlık / dek
     image_url: HttpUrl | None = None
 
     @field_validator("image_urls")
@@ -85,6 +85,7 @@ class SubmissionIn(BaseModel):
 class SubmissionEdit(BaseModel):
     title: str | None = Field(default=None, min_length=4, max_length=300)
     description: str | None = Field(default=None, min_length=40, max_length=20000)
+    summary: str | None = Field(default=None, max_length=600)
     category: str | None = None
     image_urls: list[str] | None = None
     submitter_name: str | None = Field(default=None, max_length=120)
@@ -112,11 +113,14 @@ def _out(s: models.NewsSubmission) -> SubmissionOut:
 
     title = s.title
     description = s.description
+    summary = s.summary
     urls = _gallery_from_submission(s)
 
     ev = s.event
     if ev is not None:
         title = ev.title or title
+        if ev.summary:
+            summary = ev.summary
         if ev.body_text and len(ev.body_text.strip()) >= len((description or "").strip()):
             description = ev.body_text
         _text, gallery = split_body_and_gallery(ev.body_text, ev.image_url, ev.image_urls)
@@ -130,7 +134,7 @@ def _out(s: models.NewsSubmission) -> SubmissionOut:
         title=title,
         url=s.url,
         description=description,
-        summary=s.summary,
+        summary=summary,
         image_url=urls[0] if urls else s.image_url,
         image_urls=urls,
         category=s.category,
@@ -209,6 +213,8 @@ def edit_submission(
         submission.title = payload.title.strip()
     if payload.description is not None:
         submission.description = payload.description.strip()
+    if payload.summary is not None:
+        submission.summary = payload.summary.strip() or None
     if payload.category is not None:
         if payload.category not in PUBLIC_BUCKETS:
             raise HTTPException(422, f"category must be one of {PUBLIC_BUCKETS}")
@@ -233,9 +239,12 @@ def edit_submission(
     if submission.event_id and submission.event is not None:
         ev = submission.event
         ev.title = submission.title
-        # Prefer the edited body; keep a usable summary without wiping a longer one
         if payload.description is not None:
             ev.body_text = submission.description
+        # Explicit alt başlık wins; otherwise keep existing, else clip from body.
+        if payload.summary is not None:
+            ev.summary = submission.summary
+        elif not (ev.summary or "").strip():
             tip = (submission.description or "").strip()
             if tip:
                 ev.summary = clip_summary(tip)
@@ -247,6 +256,9 @@ def edit_submission(
             art.title = submission.title
             if payload.description is not None:
                 art.body_text = submission.description
+            if payload.summary is not None or payload.description is not None:
+                art.clean_summary = ev.summary
+                art.raw_summary = submission.summary
             if payload.image_urls is not None:
                 art.image_url = submission.image_url
         if payload.is_staff is not None:

@@ -96,11 +96,17 @@ export function NewsSubmissionForm({
     const form = e.currentTarget;
     const fd = new FormData(form);
     const title = String(fd.get("title") ?? "").trim();
+    const summary = String(fd.get("summary") ?? "").trim();
     const description = String(fd.get("description") ?? "").trim();
     const submitter_name = String(fd.get("submitter_name") ?? "").trim();
     if (title.length < 4) {
       setState("error");
       setMsg(L("Haber konusu en az 4 karakter olmalı.", "Topic must be at least 4 characters."));
+      return;
+    }
+    if (summary.length < 20) {
+      setState("error");
+      setMsg(L("Alt başlık en az 20 karakter olmalı.", "Subtitle must be at least 20 characters."));
       return;
     }
     if (description.length < 40) {
@@ -132,6 +138,7 @@ export function NewsSubmissionForm({
 
       const payload = {
         title,
+        summary,
         description,
         submitter_name,
         submitter_email: String(fd.get("submitter_email") ?? "").trim() || undefined,
@@ -183,6 +190,30 @@ export function NewsSubmissionForm({
               maxLength={300}
               placeholder={L("Haber başlığı", "News headline")}
               className="field"
+            />
+          </Field>
+
+          <Field
+            label={L("Alt başlık", "Subtitle")}
+            icon={AlignLeft}
+            required
+            full
+            hint={L(
+              "Kartlarda ve haber sayfasında görünen kısa özet — 1–2 cümle, tam yazın.",
+              "Short dek shown on cards and the article page — 1–2 full sentences.",
+            )}
+          >
+            <textarea
+              name="summary"
+              required
+              minLength={20}
+              maxLength={400}
+              rows={3}
+              placeholder={L(
+                "Haberi bir-iki cümlede özetleyin…",
+                "Summarize the story in one or two sentences…",
+              )}
+              className="field resize-y min-h-[72px]"
             />
           </Field>
 
