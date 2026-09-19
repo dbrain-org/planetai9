@@ -38,6 +38,9 @@ class EventCard(BaseModel):
     top_source: SourceRef | None
     published_at: datetime
     image_url: str | None
+    view_count: int = 0
+    like_count: int = 0
+    comment_count: int = 0
 
 
 class ImportanceFactorsOut(BaseModel):
@@ -84,6 +87,9 @@ class EventDetail(BaseModel):
     importance_factors: ImportanceFactorsOut | None
     related_events: list[EventCard]
     related_videos: list[VideoCard]
+    view_count: int = 0
+    like_count: int = 0
+    comment_count: int = 0
 
 
 class TimelineItem(BaseModel):
@@ -135,6 +141,8 @@ class HomePayload(BaseModel):
     top_signals: list[EventCard]
     latest_news: list[EventCard]
     popular: list[EventCard]
+    most_read: list[EventCard] = []
+    most_commented: list[EventCard] = []
     trending: list[TopicTrend]
     videos: list[VideoCard]
     timeline: list[TimelineItem]
@@ -156,6 +164,12 @@ class SearchResult(BaseModel):
     research: Page
 
 
+class EntityImage(BaseModel):
+    url: str
+    caption: str | None = None
+    event_slug: str | None = None
+
+
 class EntityDetail(BaseModel):
     slug: str
     name: str
@@ -166,6 +180,12 @@ class EntityDetail(BaseModel):
     relations: list[EntityRelationOut]
     latest_events: list[EventCard]
     videos: list[VideoCard]
+    columns: list[ColumnCardLite] = []
+    images: list[EntityImage] = []
+    event_count: int = 0
+    video_count: int = 0
+    column_count: int = 0
+    author_slug: str | None = None
 
 
 class EntityRelationOut(BaseModel):

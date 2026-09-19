@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { EventCard } from "@/components/EventCard";
 import { VideoCard } from "@/components/VideoCard";
 import { Page } from "@/components/Page";
 import { api } from "@/lib/api";
+import { entityHref } from "@/lib/entity";
 import { getDict, getLocale } from "@/lib/i18n";
 import type { EntityDetail } from "@/lib/types";
 
@@ -31,6 +32,11 @@ export default async function EntityPage({ params }: { params: Promise<{ slug: s
   } catch {
     notFound();
   }
+
+  if (entity.type === "person") {
+    redirect(`/kisi/${entity.slug}`);
+  }
+
   const tr = locale === "tr";
 
   return (
@@ -70,7 +76,7 @@ export default async function EntityPage({ params }: { params: Promise<{ slug: s
               {entity.relations.map((r, i) => (
                 <Link
                   key={i}
-                  href={`/entities/${r.entity.slug}`}
+                  href={entityHref(r.entity)}
                   className="flex items-center gap-2 py-2.5 text-sm hover:text-accent"
                 >
                   <span className="text-[11px] uppercase tracking-wide text-muted">

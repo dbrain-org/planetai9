@@ -1,10 +1,15 @@
 import { ArrowUpRight } from "lucide-react";
+import { ArticleEngagement } from "@/components/ArticleEngagement";
+import { ArticleEntities } from "@/components/ArticleEntities";
 import { CatBadge } from "@/components/Cover";
+import { CommentSection } from "@/components/CommentSection";
 import { EventRow } from "@/components/EventCard";
 import { ImageCarousel } from "@/components/ImageCarousel";
 import { Meta } from "@/components/Meta";
 import type { Locale } from "@/lib/i18n";
 import type { EventCard as EventCardT, EventDetail } from "@/lib/types";
+import { entityHref } from "@/lib/entity";
+import Link from "next/link";
 
 function looksLikeStats(p: string) {
   return /\d([.,]\d)?\s*(bin|K|k)|%\d|\d{2,}/.test(p) && p.length > 80 && p.length < 420;
@@ -72,6 +77,7 @@ export function LlmRadarArticle({
             source={primary?.source.name}
             locale={locale}
           />
+          <ArticleEngagement slug={event.slug} locale={locale} />
         </div>
 
         {gallery.length > 0 && (
@@ -102,6 +108,19 @@ export function LlmRadarArticle({
             <ArrowUpRight className="h-5 w-5 text-accent" />
           </a>
         )}
+
+        {event.primary_entity && (
+          <p className="mt-4 text-[13px] text-ink-2 dark:text-d-ink-2">
+            {tr ? "İlgili sayfa: " : "Related page: "}
+            <Link href={entityHref(event.primary_entity)} className="font-semibold link-accent">
+              {event.primary_entity.name}
+            </Link>
+          </p>
+        )}
+
+        <ArticleEntities entities={event.entities} locale={locale} />
+
+        <CommentSection slug={event.slug} locale={locale} />
       </article>
 
       <aside className="lg:pt-1">

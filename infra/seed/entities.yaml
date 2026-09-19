@@ -51,6 +51,13 @@ people:
   - { slug: yann-lecun,      name: Yann LeCun,       parent: meta-ai,         aliases: [] }
   - { slug: jensen-huang,    name: Jensen Huang,     parent: nvidia,          aliases: [] }
   - { slug: elon-musk,       name: Elon Musk,        parent: xai,             aliases: [] }
+  # PlanetAI9 kanal konukları / konuşmacılar
+  - { slug: kemal-kar,          name: Kemal Kar,          tier: 0.45, aliases: [] }
+  - { slug: koray-kavukcuoglu,  name: Koray Kavukcuoğlu,  tier: 0.55, aliases: ["Koray Kavukcuoglu"] }
+  - { slug: haluk-alp,          name: Haluk Alp,          tier: 0.40, aliases: ["AnatolianAi", "Anatolian AI"] }
+  - { slug: ayhan-demirci,      name: Ayhan Demirci,      tier: 0.45, aliases: [] }
+  - { slug: susan-wojcicki,     name: Susan Wojcicki,     tier: 0.50, aliases: [] }
+  - { slug: garri-kasparov,     name: Garri Kasparov,     tier: 0.45, aliases: ["Garry Kasparov", "Kasparov"] }
 
 institutions:
   - { slug: stanford,   name: Stanford,   aliases: ["Stanford University", "Stanford HAI"] }

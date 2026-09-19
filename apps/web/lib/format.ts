@@ -1,6 +1,4 @@
-import type { Locale } from "./i18n";
-
-export { categoryLabel, impactLabel } from "./i18n";
+export type Locale = "tr" | "en";
 
 const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ["year", 60 * 60 * 24 * 365],

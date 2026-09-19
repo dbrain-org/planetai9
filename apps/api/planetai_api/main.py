@@ -12,8 +12,10 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from planetai_api.ratelimit import limiter
 from planetai_api.routers import (
+    auth,
     authors,
     curated,
+    engagement,
     entities,
     events,
     home,
@@ -53,7 +55,8 @@ app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_settings.cors_origins,
-    allow_methods=["GET", "POST"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
     max_age=3600,
 )
@@ -79,6 +82,8 @@ app.include_router(marketplace.router, prefix=API_V1, tags=["marketplace"])
 app.include_router(authors.router, prefix=API_V1, tags=["authors"])
 app.include_router(curated.router, prefix=API_V1, tags=["curated"])
 app.include_router(news_submissions.router, prefix=API_V1, tags=["news_submissions"])
+app.include_router(auth.router, prefix=API_V1, tags=["auth"])
+app.include_router(engagement.router, prefix=API_V1, tags=["engagement"])
 app.include_router(meta.router, prefix=API_V1, tags=["meta"])
 
 

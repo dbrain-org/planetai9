@@ -117,6 +117,9 @@ class Event(Base, TimestampMixin):
     lang: Mapped[str] = mapped_column(
         String(8), default="en"
     )  # language of title/summary/body_text
+    view_count: Mapped[int] = mapped_column(Integer, default=0)
+    like_count: Mapped[int] = mapped_column(Integer, default=0)
+    comment_count: Mapped[int] = mapped_column(Integer, default=0)
 
     primary_entity: Mapped[Entity | None] = relationship(foreign_keys=[primary_entity_id])
     articles: Mapped[list[Article]] = relationship(back_populates="event")
@@ -128,6 +131,8 @@ class Event(Base, TimestampMixin):
         Index("ix_events_last_activity", "last_activity_at"),
         Index("ix_events_category_importance", "category", "importance"),
         Index("ix_events_top_signal", "is_top_signal", "importance"),
+        Index("ix_events_view_count", "view_count"),
+        Index("ix_events_comment_count", "comment_count"),
     )
 
 
@@ -436,6 +441,114 @@ class OpinionPost(Base, TimestampMixin):
     author: Mapped[Author] = relationship(back_populates="posts")
 
     __table_args__ = (Index("ix_opinion_published", "status", "published_at"),)
+
+
+class User(Base, TimestampMixin):
+    """Reader account — email/password login for comments / likes."""
+
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    email: Mapped[str] = mapped_column(String(200), unique=True)
+    display_name: Mapped[str] = mapped_column(String(80))
+    # pbkdf2_sha256$… — None for legacy magic-link-only accounts
+    password_hash: Mapped[str | None] = mapped_column(String(200))
+    avatar_url: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(12), default="active")  # active | banned
+
+    __table_args__ = (Index("ix_users_email", "email"),)
+
+
+class AuthMagicLink(Base):
+    """One-time email login token (hashed)."""
+
+    __tablename__ = "auth_magic_links"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    email: Mapped[str] = mapped_column(String(200))
+    display_name: Mapped[str | None] = mapped_column(String(80))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (Index("ix_auth_magic_email", "email"),)
+
+
+class UserSession(Base):
+    """Opaque session tokens for logged-in readers."""
+
+    __tablename__ = "user_sessions"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    user_agent: Mapped[str | None] = mapped_column(String(300))
+    ip: Mapped[str | None] = mapped_column(String(64))
+
+    user: Mapped[User] = relationship()
+
+    __table_args__ = (Index("ix_user_sessions_user", "user_id"),)
+
+
+class EventLike(Base):
+    __tablename__ = "event_likes"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    event_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("events.id", ondelete="CASCADE"), primary_key=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class EventComment(Base, TimestampMixin):
+    __tablename__ = "event_comments"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    event_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    # One-level thread: reply points at a top-level comment (or is itself top-level).
+    parent_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("event_comments.id", ondelete="CASCADE")
+    )
+    body: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(12), default="active")  # active | hidden | deleted
+    like_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    user: Mapped[User] = relationship()
+
+    __table_args__ = (
+        Index("ix_event_comments_event", "event_id", "created_at"),
+        Index("ix_event_comments_user", "user_id"),
+        Index("ix_event_comments_parent", "parent_id"),
+    )
+
+
+class CommentLike(Base):
+    __tablename__ = "comment_likes"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    comment_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("event_comments.id", ondelete="CASCADE"), primary_key=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
 
 class IngestRun(Base):

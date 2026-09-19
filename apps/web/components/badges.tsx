@@ -1,4 +1,4 @@
-import { impactLabel } from "@/lib/format";
+import { impactLabel } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 
 const DOT: Record<string, string> = {

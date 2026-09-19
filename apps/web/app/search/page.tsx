@@ -3,6 +3,7 @@ import { EventCard } from "@/components/EventCard";
 import { Page } from "@/components/Page";
 import { VideoCard } from "@/components/VideoCard";
 import { apiSafe } from "@/lib/api";
+import { entityHref } from "@/lib/entity";
 import { getDict, getLocale } from "@/lib/i18n";
 import type { SearchResult } from "@/lib/types";
 
@@ -49,7 +50,7 @@ export default async function SearchPage({
             <p className="eyebrow mb-2">{tr ? "Kavramlar" : "Entities"}</p>
             <div className="flex flex-wrap gap-2">
               {result.entities.map((e) => (
-                <Link key={e.slug} href={`/entities/${e.slug}`} className="pill bg-accent text-white hover:bg-accent-ink">
+                <Link key={e.slug} href={entityHref(e)} className="pill bg-accent text-white hover:bg-accent-ink">
                   {e.name}
                 </Link>
               ))}

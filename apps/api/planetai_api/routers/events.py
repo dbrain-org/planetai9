@@ -63,7 +63,7 @@ def list_events(
     origin: str | None = None,
     importance_min: float | None = None,
     impact: str | None = None,
-    sort: str = Query("recent", pattern="^(recent|importance)$"),
+    sort: str = Query("recent", pattern="^(recent|importance|views|comments|likes)$"),
     cursor: str | None = None,
     limit: int = Query(20, ge=1, le=50),
     lang: str | None = Depends(get_lang),
@@ -134,6 +134,14 @@ def list_events(
 
     if sort == "importance":
         stmt = stmt.order_by(models.Event.importance.desc(), models.Event.id.desc())
+    elif sort == "views":
+        stmt = stmt.order_by(models.Event.view_count.desc(), models.Event.last_activity_at.desc())
+    elif sort == "comments":
+        stmt = stmt.order_by(
+            models.Event.comment_count.desc(), models.Event.last_activity_at.desc()
+        )
+    elif sort == "likes":
+        stmt = stmt.order_by(models.Event.like_count.desc(), models.Event.last_activity_at.desc())
     else:
         stmt = stmt.order_by(models.Event.last_activity_at.desc(), models.Event.id.desc())
         if cursor:

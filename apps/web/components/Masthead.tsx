@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getDict, getLocale } from "@/lib/i18n";
+import { AuthMenu } from "./AuthMenu";
 import { LangToggle } from "./LangToggle";
 import { ThemeToggle } from "./ThemeToggle";
 import { SearchBox } from "./SearchBox";
@@ -63,6 +64,7 @@ export async function Masthead() {
           <div className="hidden w-48 2xl:block">
             <SearchBox placeholder={t.searchPlaceholder} />
           </div>
+          <AuthMenu locale={locale} />
           <LangToggle locale={locale} />
           <ThemeToggle />
         </div>

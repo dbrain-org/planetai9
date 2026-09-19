@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { EventCard } from "@/components/EventCard";
 import { HeroBlock, type HeroSideEntry } from "@/components/HeroBlock";
-import { TrendsCard } from "@/components/HomeRail";
+import { RankedNewsList, TrendsCard } from "@/components/HomeRail";
 import { VideoCard } from "@/components/VideoCard";
 import { apiSafe } from "@/lib/api";
 import { getDict, getLocale } from "@/lib/i18n";
@@ -19,6 +19,8 @@ const EMPTY: HomePayload = {
   top_signals: [],
   latest_news: [],
   popular: [],
+  most_read: [],
+  most_commented: [],
   trending: [],
   videos: [],
   timeline: [],
@@ -28,7 +30,7 @@ const EMPTY: HomePayload = {
 
 function SectionHead({ title, href, seeAll }: { title: string; href?: string; seeAll: string }) {
   return (
-    <div className="mb-5 flex items-end justify-between gap-3">
+    <div className="mb-4 flex items-end justify-between gap-3">
       <h2 className="sec-title">{title}</h2>
       {href && (
         <Link
@@ -116,8 +118,15 @@ export default async function HomePage() {
   );
   const moreVideos = home.videos.filter((v) => !sideVideoIds.has(v.youtube_id)).slice(0, 4);
 
+  const showRail =
+    home.trending.length > 0 ||
+    home.most_read.length > 0 ||
+    home.most_commented.length > 0;
+  const showMain =
+    featured.length > 0 || moreVideos.length > 0 || showRail;
+
   return (
-    <div className="space-y-10 sm:space-y-12">
+    <div className="space-y-8">
       {lead && (
         <HeroBlock
           lead={lead}
@@ -127,38 +136,68 @@ export default async function HomePage() {
         />
       )}
 
-      {(featured.length > 0 || home.trending.length > 0) && (
-        <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start lg:gap-10">
-          {featured.length > 0 && (
-            <div>
-              <SectionHead
-                title={locale === "tr" ? "Öne Çıkanlar" : "Featured"}
-                href="/news?region=TR&sort=recent"
-                seeAll={seeAll}
-              />
-              <div className="grid gap-x-5 gap-y-7 sm:grid-cols-2 xl:grid-cols-3">
-                {featured.map((e) => (
-                  <EventCard key={e.slug} event={e} locale={locale} />
-                ))}
+      {showMain && (
+        <section
+          className={
+            showRail
+              ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start lg:gap-7"
+              : undefined
+          }
+        >
+          <div className="space-y-8">
+            {featured.length > 0 && (
+              <div>
+                <SectionHead
+                  title={locale === "tr" ? "Öne Çıkanlar" : "Featured"}
+                  href="/news?region=TR&sort=recent"
+                  seeAll={seeAll}
+                />
+                <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
+                  {featured.map((e) => (
+                    <EventCard key={e.slug} event={e} locale={locale} />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          {home.trending.length > 0 && (
-            <div className={featured.length > 0 ? "lg:pt-11" : undefined}>
-              <TrendsCard trends={home.trending} t={t} />
-            </div>
-          )}
-        </section>
-      )}
+            )}
 
-      {moreVideos.length > 0 && (
-        <section>
-          <SectionHead title={t.section.video} href="/videos" seeAll={seeAll} />
-          <div className="grid gap-x-5 gap-y-7 sm:grid-cols-2 lg:grid-cols-4">
-            {moreVideos.map((v) => (
-              <VideoCard key={v.youtube_id} video={v} locale={locale} />
-            ))}
+            {moreVideos.length > 0 && (
+              <div>
+                <SectionHead title={t.section.video} href="/videos" seeAll={seeAll} />
+                <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+                  {moreVideos.map((v) => (
+                    <VideoCard key={v.youtube_id} video={v} locale={locale} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+
+          {showRail && (
+            <aside className={`space-y-4 ${featured.length > 0 ? "lg:pt-11" : ""}`}>
+              <p className="hidden text-[11px] font-bold uppercase tracking-[0.12em] text-muted lg:block">
+                {locale === "tr" ? "Gündemdekiler" : "Trending now"}
+              </p>
+              {home.trending.length > 0 && <TrendsCard trends={home.trending} t={t} />}
+              <RankedNewsList
+                title={locale === "tr" ? "En çok okunan" : "Most read"}
+                href="/news?sort=views"
+                items={home.most_read}
+                locale={locale}
+                metric="views"
+                seeAll={seeAll}
+                limit={4}
+              />
+              <RankedNewsList
+                title={locale === "tr" ? "En çok yorumlanan" : "Most discussed"}
+                href="/news?sort=comments"
+                items={home.most_commented}
+                locale={locale}
+                metric="comments"
+                seeAll={seeAll}
+                limit={4}
+              />
+            </aside>
+          )}
         </section>
       )}
     </div>

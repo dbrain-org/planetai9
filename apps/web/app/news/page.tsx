@@ -22,7 +22,10 @@ export default async function NewsPage({
   const tr = locale === "tr";
   const sp = await searchParams;
   const bucket = sp.bucket ?? "";
-  const sort = sp.sort === "importance" ? "importance" : "recent";
+  const SORTS = ["recent", "importance", "views", "comments", "likes"] as const;
+  const sort = SORTS.includes(sp.sort as (typeof SORTS)[number])
+    ? (sp.sort as (typeof SORTS)[number])
+    : "recent";
   const win = WINDOWS.includes(sp.window as (typeof WINDOWS)[number]) ? (sp.window as string) : "";
   const region = REGIONS.includes(sp.region as (typeof REGIONS)[number]) ? (sp.region as string) : "";
 
@@ -50,7 +53,10 @@ export default async function NewsPage({
   };
 
   const activeCount =
-    (bucket ? 1 : 0) + (region ? 1 : 0) + (win ? 1 : 0) + (sort === "importance" ? 1 : 0);
+    (bucket ? 1 : 0) +
+    (region ? 1 : 0) +
+    (win ? 1 : 0) +
+    (sort !== "recent" ? 1 : 0);
 
   const Item = ({ href, on, children }: { href: string; on: boolean; children: React.ReactNode }) => (
     <Link
@@ -120,6 +126,9 @@ export default async function NewsPage({
           [
             ["recent", t.common.latestSort],
             ["importance", t.common.importanceSort],
+            ["views", tr ? "En çok okunan" : "Most read"],
+            ["comments", tr ? "En çok yorum" : "Most commented"],
+            ["likes", tr ? "En çok beğeni" : "Most liked"],
           ] as const
         ).map(([s, lbl]) => (
           <li key={s}>

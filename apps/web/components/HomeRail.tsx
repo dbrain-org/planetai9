@@ -1,29 +1,107 @@
 import Link from "next/link";
-import { Flame, Play } from "lucide-react";
+import { Eye, Flame, MessageCircle, Play } from "lucide-react";
 import { relativeTime } from "@/lib/format";
 import type { DictT, Locale } from "@/lib/i18n";
-import type { TopicTrend, VideoCard } from "@/lib/types";
+import type { EventCard, TopicTrend, VideoCard } from "@/lib/types";
+
+function formatCount(n: number, locale: Locale): string {
+  return new Intl.NumberFormat(locale === "tr" ? "tr-TR" : "en-US").format(n);
+}
+
+/** Compact ranked list for home right-rail (most read / most commented). */
+export function RankedNewsList({
+  title,
+  href,
+  items,
+  locale,
+  metric,
+  seeAll,
+  limit = 5,
+}: {
+  title: string;
+  href: string;
+  items: EventCard[];
+  locale: Locale;
+  metric: "views" | "comments";
+  seeAll: string;
+  limit?: number;
+}) {
+  const rows = items.slice(0, limit);
+  if (rows.length === 0) return null;
+
+  return (
+    <div className="card p-4">
+      <div className="mb-2.5 flex items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 text-[14px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
+          {metric === "views" ? (
+            <Eye className="h-3.5 w-3.5 text-accent" strokeWidth={2.2} />
+          ) : (
+            <MessageCircle className="h-3.5 w-3.5 text-accent" strokeWidth={2.2} />
+          )}
+          {title}
+        </h3>
+        <Link
+          href={href}
+          className="shrink-0 text-[11px] font-semibold text-accent hover:text-accent-ink"
+        >
+          {seeAll}
+        </Link>
+      </div>
+      <ol className="divide-y divide-line dark:divide-d-line">
+        {rows.map((e, i) => {
+          const count =
+            metric === "views" ? (e.view_count ?? 0) : (e.comment_count ?? 0);
+          return (
+            <li key={e.slug}>
+              <Link href={`/news/${e.slug}`} className="group flex gap-2.5 py-2 first:pt-0 last:pb-0">
+                <span className="w-4 shrink-0 text-[12px] font-extrabold tabular-nums text-muted">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="min-w-0">
+                  <span className="line-clamp-2 text-[12.5px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
+                    {e.title}
+                  </span>
+                  {count > 0 && (
+                    <span className="mt-0.5 block text-[10.5px] tabular-nums text-muted">
+                      {metric === "views"
+                        ? locale === "tr"
+                          ? `${formatCount(count, locale)} okuma`
+                          : `${formatCount(count, locale)} views`
+                        : locale === "tr"
+                          ? `${formatCount(count, locale)} yorum`
+                          : `${formatCount(count, locale)} comments`}
+                    </span>
+                  )}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
 
 export function TrendsCard({ trends, t }: { trends: TopicTrend[]; t: DictT }) {
   return (
-    <div className="card p-5">
-      <h3 className="mb-4 flex items-center gap-2 text-[15px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
-        <Flame className="h-4 w-4 text-live" strokeWidth={2.2} />
+    <div className="card p-4">
+      <h3 className="mb-3 flex items-center gap-2 text-[14px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
+        <Flame className="h-3.5 w-3.5 text-live" strokeWidth={2.2} />
         {t.section.trends}
       </h3>
-      <ol className="space-y-3.5">
+      <ol className="space-y-2.5">
         {trends.slice(0, 5).map((tr, i) => {
           const lead = tr.sample_events[0];
           return (
             <li key={tr.topic.slug}>
-              <Link href={`/trends/${tr.topic.slug}`} className="group flex gap-3.5">
-                <span className="w-4 shrink-0 text-[15px] font-extrabold text-muted">{i + 1}</span>
+              <Link href={`/trends/${tr.topic.slug}`} className="group flex gap-2.5">
+                <span className="w-4 shrink-0 text-[13px] font-extrabold text-muted">{i + 1}</span>
                 <span className="min-w-0">
-                  <span className="block text-[14px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
+                  <span className="block text-[13px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
                     {tr.topic.name}
                   </span>
                   {lead?.primary_entity && (
-                    <span className="block text-[12px] text-ink-2 dark:text-d-ink-2">
+                    <span className="block text-[11.5px] text-ink-2 dark:text-d-ink-2">
                       {lead.primary_entity.name}
                     </span>
                   )}

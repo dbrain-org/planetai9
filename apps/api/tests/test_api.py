@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_healthz(client):
     r = client.get("/api/v1/healthz")
     assert r.status_code == 200
@@ -12,6 +15,8 @@ def test_home_shape(client):
         "top_signals",
         "latest_news",
         "popular",
+        "most_read",
+        "most_commented",
         "trending",
         "videos",
         "timeline",
@@ -19,6 +24,68 @@ def test_home_shape(client):
         "sections",
     ):
         assert key in body
+
+
+def test_reader_auth_and_engagement(client, monkeypatch):
+    from planetai_api.routers import auth as auth_router
+
+    monkeypatch.setattr(auth_router._settings, "env", "development")
+    events = client.get("/api/v1/events?limit=1").json()["data"]
+    if not events:
+        pytest.skip("no events in database")
+    slug = events[0]["slug"]
+
+    assert client.get(f"/api/v1/events/{slug}/engagement").status_code == 200
+    assert client.post(f"/api/v1/events/{slug}/view").status_code == 200
+    assert client.post(f"/api/v1/events/{slug}/like").status_code == 401
+
+    email = "reader-pass@example.com"
+    registered = client.post(
+        "/api/v1/auth/register",
+        json={"email": email, "password": "secret12", "display_name": "Reader Pass"},
+    )
+    assert registered.status_code == 200
+    assert registered.json()["email"] == email
+    assert client.cookies.get("planetai_session")
+
+    me = client.get("/api/v1/auth/me")
+    assert me.status_code == 200
+    assert me.json()["display_name"] == "Reader Pass"
+
+    liked = client.post(f"/api/v1/events/{slug}/like")
+    assert liked.status_code == 200
+    assert liked.json()["liked"] is True
+    assert liked.json()["like_count"] >= 1
+
+    comment = client.post(
+        f"/api/v1/events/{slug}/comments",
+        json={"body": "Harika bir haber, teşekkürler."},
+    )
+    assert comment.status_code == 201
+    cid = comment.json()["id"]
+
+    listed = client.get(f"/api/v1/events/{slug}/comments")
+    assert listed.status_code == 200
+    assert any(c["id"] == cid for c in listed.json())
+
+    deleted = client.delete(f"/api/v1/events/{slug}/comments/{cid}")
+    assert deleted.status_code == 200
+
+    assert client.post("/api/v1/auth/logout").status_code == 200
+    assert client.get("/api/v1/auth/me").json() is None
+
+    logged = client.post(
+        "/api/v1/auth/login",
+        json={"email": email, "password": "secret12"},
+    )
+    assert logged.status_code == 200
+    assert client.get("/api/v1/auth/me").json()["email"] == email
+
+    bad = client.post(
+        "/api/v1/auth/login",
+        json={"email": email, "password": "wrongpass"},
+    )
+    assert bad.status_code == 401
 
 
 def test_events_filters(client):

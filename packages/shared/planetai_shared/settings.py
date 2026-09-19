@@ -52,6 +52,14 @@ class Settings(BaseSettings):
     # author slugs allowed to moderate (legacy; prefer authors.is_moderator)
     moderator_authors: list[str] = []
 
+    # reader auth (magic link). session_secret signs nothing — we store hashed tokens;
+    # keep a dedicated secret so rotating admin_token doesn't wipe sessions.
+    session_secret: str | None = None
+    magic_link_ttl_min: int = 30
+    session_ttl_days: int = 30
+    # optional SMTP — unset ⇒ magic link returned in API response when env!=production
+    smtp_url: str | None = None
+
     # observability — error monitoring; unset ⇒ Sentry disabled
     sentry_dsn: str | None = None
     sentry_traces_sample_rate: float = 0.0
@@ -82,6 +90,10 @@ class Settings(BaseSettings):
     @property
     def is_prod(self) -> bool:
         return self.env == "production"
+
+    @property
+    def effective_session_secret(self) -> str:
+        return self.session_secret or self.admin_token or "planetai-dev-session-secret"
 
 
 @lru_cache

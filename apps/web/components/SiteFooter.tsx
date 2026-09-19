@@ -14,6 +14,7 @@ export async function SiteFooter() {
     { label: "VeriVatan", href: "/turkiye" },
     { label: "TAKYAP", href: "/marketplace" },
     { label: tr ? "Yazarlar" : "Authors", href: "/yazarlar" },
+    { label: tr ? "Kişiler" : "People", href: "/kisiler" },
   ];
 
   const company = [

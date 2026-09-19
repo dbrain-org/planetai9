@@ -31,6 +31,9 @@ export interface EventCard {
   top_source: SourceRef | null;
   published_at: string;
   image_url: string | null;
+  view_count?: number;
+  like_count?: number;
+  comment_count?: number;
 }
 
 export interface ImportanceFactors {
@@ -72,6 +75,9 @@ export interface EventDetail {
   importance_factors: ImportanceFactors | null;
   related_events: EventCard[];
   related_videos: VideoCard[];
+  view_count?: number;
+  like_count?: number;
+  comment_count?: number;
 }
 
 export interface TimelineItem {
@@ -123,6 +129,8 @@ export interface HomePayload {
   top_signals: EventCard[];
   latest_news: EventCard[];
   popular: EventCard[];
+  most_read: EventCard[];
+  most_commented: EventCard[];
   trending: TopicTrend[];
   videos: VideoCard[];
   timeline: TimelineItem[];
@@ -248,12 +256,21 @@ export interface EntityListItem {
   name: string;
   type: string;
   description: string | null;
+  logo_url?: string | null;
+  event_count?: number;
+  video_count?: number;
 }
 
 export interface EntityRelationOut {
   relation: string;
   direction: "in" | "out";
   entity: EntityRef;
+}
+
+export interface EntityImage {
+  url: string;
+  caption: string | null;
+  event_slug: string | null;
 }
 
 export interface EntityDetail {
@@ -266,6 +283,22 @@ export interface EntityDetail {
   relations: EntityRelationOut[];
   latest_events: EventCard[];
   videos: VideoCard[];
+  columns?: ColumnCardLite[];
+  images?: EntityImage[];
+  event_count?: number;
+  video_count?: number;
+  column_count?: number;
+  author_slug?: string | null;
+}
+
+export interface ColumnCardLite {
+  slug: string;
+  title: string;
+  dek: string | null;
+  hero_image_url: string | null;
+  published_at: string;
+  author_name: string;
+  author_slug: string;
 }
 
 export interface Stats {

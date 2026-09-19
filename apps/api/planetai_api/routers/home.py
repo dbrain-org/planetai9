@@ -25,7 +25,7 @@ def home(
     region: str | None = None,
 ) -> schemas.HomePayload:
     region = region.upper() if region and region.upper() in {"TR", "WORLD"} else None
-    cache_key = f"home:v6:{lang or 'tr'}:{region or 'all'}"
+    cache_key = f"home:v7:{lang or 'tr'}:{region or 'all'}"
     cached = cache.get(cache_key)
     if cached:
         return schemas.HomePayload.model_validate(cached)
@@ -83,6 +83,32 @@ def home(
         .limit(6)
     ).all()
 
+    most_read = db.scalars(
+        region_filter(
+            select(models.Event).where(
+                models.Event.status == "active",
+                models.Event.category != Category.RESEARCH.value,
+                models.Event.id.not_in(research_event_ids),
+                models.Event.view_count > 0,
+            )
+        )
+        .order_by(models.Event.view_count.desc(), models.Event.last_activity_at.desc())
+        .limit(6)
+    ).all()
+
+    most_commented = db.scalars(
+        region_filter(
+            select(models.Event).where(
+                models.Event.status == "active",
+                models.Event.category != Category.RESEARCH.value,
+                models.Event.id.not_in(research_event_ids),
+                models.Event.comment_count > 0,
+            )
+        )
+        .order_by(models.Event.comment_count.desc(), models.Event.last_activity_at.desc())
+        .limit(6)
+    ).all()
+
     columns = db.execute(
         select(models.OpinionPost, models.Author)
         .join(models.Author, models.Author.id == models.OpinionPost.author_id)
@@ -128,6 +154,8 @@ def home(
         top_signals=[serializers.event_card(db, e, lang) for e in top_signals],
         latest_news=[serializers.event_card(db, e, lang) for e in latest],
         popular=[serializers.event_card(db, e, lang) for e in popular],
+        most_read=[serializers.event_card(db, e, lang) for e in most_read],
+        most_commented=[serializers.event_card(db, e, lang) for e in most_commented],
         sections={k: [serializers.event_card(db, e, lang) for e in v] for k, v in sections.items()},
         trending=build_trends(db, window="24h", limit=8, lang=lang),
         videos=[serializers.video_card(v) for v in videos],

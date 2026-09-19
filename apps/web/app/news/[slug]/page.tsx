@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
+import { ArticleEngagement } from "@/components/ArticleEngagement";
+import { ArticleEntities } from "@/components/ArticleEntities";
+import { CommentSection } from "@/components/CommentSection";
 import { EventRow } from "@/components/EventCard";
 import { VideoCard } from "@/components/VideoCard";
 import { ImageCarousel } from "@/components/ImageCarousel";
@@ -61,6 +64,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             source={primary?.source.name}
             locale={locale}
           />
+          <ArticleEngagement slug={event.slug} locale={locale} />
         </div>
 
         {(event.image_urls?.length || event.image_url) && (
@@ -153,6 +157,22 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           </a>
         )}
 
+        <ArticleEntities entities={event.entities} locale={locale} />
+
+        {event.topics.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {event.topics.map((tp) => (
+              <Link
+                key={tp.slug}
+                href={`/trends/${tp.slug}`}
+                className="rounded-full bg-wash px-3 py-1 text-[12px] font-medium text-ink-2 hover:bg-line dark:bg-d-wash dark:text-d-ink-2"
+              >
+                #{tp.name.replace(/\s+/g, "")}
+              </Link>
+            ))}
+          </div>
+        )}
+
         {event.sources.length > 1 && (
           <section className="mt-8">
             <h2 className="text-[13px] font-bold uppercase tracking-[0.1em] text-ink-2 dark:text-d-ink-2">
@@ -204,33 +224,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           </section>
         )}
 
-        {(event.entities.length > 0 || event.topics.length > 0) && (
-          <div className="mt-8 flex flex-wrap gap-2">
-            {event.entities.map(({ entity, role }) => (
-              <Link
-                key={entity.slug}
-                href={`/entities/${entity.slug}`}
-                className={`rounded-full px-3 py-1 text-[12px] font-medium ${
-                  role === "primary"
-                    ? "bg-ink text-white dark:bg-white dark:text-ink"
-                    : "bg-wash text-ink-2 hover:bg-line dark:bg-d-wash dark:text-d-ink-2"
-                }`}
-              >
-                {entity.name}
-              </Link>
-            ))}
-            {event.topics.map((tp) => (
-              <Link
-                key={tp.slug}
-                href={`/trends/${tp.slug}`}
-                className="rounded-full bg-wash px-3 py-1 text-[12px] font-medium text-ink-2 hover:bg-line dark:bg-d-wash dark:text-d-ink-2"
-              >
-                #{tp.name.replace(/\s+/g, "")}
-              </Link>
-            ))}
-          </div>
-        )}
-
         {event.related_videos.length > 0 && (
           <section className="mt-10">
             <h2 className="sec-title mb-5">{t.event.relatedVideos}</h2>
@@ -241,6 +234,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </div>
           </section>
         )}
+
+        <CommentSection slug={event.slug} locale={locale} />
       </article>
 
       <aside className="lg:pt-1">

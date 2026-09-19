@@ -1,4 +1,4 @@
-import { categoryLabel } from "@/lib/format";
+import { categoryLabel } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { catColor } from "@/lib/category";
 import { CoverImg } from "./CoverImg";

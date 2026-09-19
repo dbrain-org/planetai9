@@ -19,7 +19,12 @@ from sqlalchemy.orm import Session
 
 from planetai_ingest.collectors import RawItem, collector_for
 from planetai_ingest.pipeline import classify, dedup
-from planetai_ingest.pipeline.entities import EntityHit, EntityIndex, choose_primary
+from planetai_ingest.pipeline.entities import (
+    EntityHit,
+    EntityIndex,
+    auto_tag_people,
+    choose_primary,
+)
 from planetai_ingest.pipeline.score import persist_factors, score_event
 from planetai_ingest.text import (
     clean_url,
@@ -60,6 +65,7 @@ def collect_source(source_id: uuid.UUID) -> dict:
         if source.kind == "youtube":
             collector_for(source).fetch()
             link_videos(db)
+            backfill_people_on_events(db)
             source.last_fetched_at = datetime.now(UTC)
             return stats
         if not source.feed_url:
@@ -145,6 +151,21 @@ def _ingest_item(
     body_excerpt = summary_src[:500] or None
 
     hits = index.match(item.title, summary_src)
+    # Auto-discover people named in the headline / summary (create if missing).
+    for person in auto_tag_people(db, title=item.title, body=summary_src, source="news"):
+        if any(h.entity_id == str(person.id) for h in hits):
+            continue
+        in_title = person.name.lower() in item.title.lower()
+        hits.append(
+            EntityHit(
+                str(person.id),
+                "person",
+                person.name,
+                float(person.tier or 0.4),
+                in_title,
+            )
+        )
+
     title_anchor_ids = frozenset(h.entity_id for h in hits if h.in_title)
 
     # relevance gate: drop off-topic posts from broad feeds. Keep anything that
@@ -356,11 +377,22 @@ def _unique_slug(db: Session, title: str) -> str:
 
 
 def link_videos(db: Session) -> int:
-    """Connect videos to entities/topics by dictionary match on title+description."""
-    index = EntityIndex.from_db(db)
+    """Connect videos to entities/topics; auto-create person entities from guest names."""
     topics = db.scalars(select(models.Topic)).all()
     made = 0
     videos = db.scalars(select(models.Video)).all()
+
+    # Pass 1 — discover guests ("X ile", title patterns) and ensure person rows exist.
+    for video in videos:
+        auto_tag_people(
+            db,
+            title=video.title,
+            body=video.description or "",
+            source="video",
+        )
+    db.flush()
+
+    index = EntityIndex.from_db(db)
     for video in videos:
         text = f"{video.title} {video.description or ''}"
         existing = {
@@ -369,15 +401,36 @@ def link_videos(db: Session) -> int:
                 select(models.VideoLink).where(models.VideoLink.video_id == video.id)
             ).all()
         }
+        # Prefer explicit guest extraction links first.
+        for person in auto_tag_people(
+            db,
+            title=video.title,
+            body=video.description or "",
+            source="video",
+        ):
+            key = ("entity", str(person.id))
+            if key not in existing:
+                db.add(
+                    models.VideoLink(
+                        video_id=video.id,
+                        target_type="entity",
+                        target_id=person.id,
+                    )
+                )
+                made += 1
+                existing.add(key)
         for hit in index.match(video.title, video.description or ""):
             key = ("entity", hit.entity_id)
             if key not in existing:
                 db.add(
                     models.VideoLink(
-                        video_id=video.id, target_type="entity", target_id=uuid.UUID(hit.entity_id)
+                        video_id=video.id,
+                        target_type="entity",
+                        target_id=uuid.UUID(hit.entity_id),
                     )
                 )
                 made += 1
+                existing.add(key)
         low = text.lower()
         for topic in topics:
             if any(k.lower() in low for k in (topic.keywords or [])):
@@ -387,6 +440,40 @@ def link_videos(db: Session) -> int:
                         models.VideoLink(video_id=video.id, target_type="topic", target_id=topic.id)
                     )
                     made += 1
+                    existing.add(key)
+    return made
+
+
+def backfill_people_on_events(db: Session, *, limit: int = 800) -> int:
+    """Attach auto-discovered people to existing events (title/summary)."""
+    made = 0
+    events = db.scalars(
+        select(models.Event)
+        .where(models.Event.status == "active")
+        .order_by(models.Event.last_activity_at.desc())
+        .limit(limit)
+    ).all()
+    for ev in events:
+        existing = {
+            str(r.entity_id)
+            for r in db.scalars(
+                select(models.EventEntity).where(models.EventEntity.event_id == ev.id)
+            ).all()
+        }
+        for person in auto_tag_people(db, title=ev.title, body=ev.summary or "", source="news"):
+            if str(person.id) in existing:
+                continue
+            in_title = person.name.lower() in ev.title.lower()
+            db.add(
+                models.EventEntity(
+                    event_id=ev.id,
+                    entity_id=person.id,
+                    role="mentioned",
+                    confidence=0.7 if in_title else 0.55,
+                )
+            )
+            made += 1
+            existing.add(str(person.id))
     return made
 
 

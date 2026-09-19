@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, ExternalLink, Youtube } from "lucide-react";
+import { ArticleEntities } from "@/components/ArticleEntities";
 import { EventRow } from "@/components/EventCard";
 import { api, apiSafe } from "@/lib/api";
 import { dateLabel, duration, relativeTime } from "@/lib/format";
 import { getDict, getLocale } from "@/lib/i18n";
+import { linkifyEntities } from "@/lib/linkify";
 import type { VideoCard, VideoDetail } from "@/lib/types";
 
 export const revalidate = 300;
@@ -101,24 +103,30 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
           </div>
 
           {(video.related_entities.length > 0 || video.related_topics.length > 0) && (
-            <div className="flex flex-wrap gap-2">
-              {video.related_entities.map((e) => (
-                <Link key={e.slug} href={`/entities/${e.slug}`} className="pill hover:text-accent">
-                  {e.name}
-                </Link>
-              ))}
-              {video.related_topics.map((tp) => (
-                <Link key={tp.slug} href={`/trends/${tp.slug}`} className="pill hover:text-accent">
-                  #{tp.name.replace(/\s+/g, "")}
-                </Link>
-              ))}
+            <div className="space-y-3">
+              {video.related_entities.length > 0 && (
+                <ArticleEntities
+                  entities={video.related_entities.map((e) => ({ entity: e, role: "related" }))}
+                  locale={locale}
+                  compact
+                />
+              )}
+              {video.related_topics.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {video.related_topics.map((tp) => (
+                    <Link key={tp.slug} href={`/trends/${tp.slug}`} className="pill hover:text-accent">
+                      #{tp.name.replace(/\s+/g, "")}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           <div className="border-t border-line pt-4 dark:border-d-line">
             {video.description ? (
               <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
-                {video.description}
+                {linkifyEntities(video.description, video.related_entities)}
               </p>
             ) : (
               <p className="text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">

@@ -105,6 +105,9 @@ def event_card(db: Session, event: models.Event, lang: str | None = None) -> sch
         top_source=(lambda s: source_ref(s) if s else None)(_top_source(db, event)),
         published_at=event.last_activity_at,
         image_url=event.image_url,
+        view_count=int(getattr(event, "view_count", 0) or 0),
+        like_count=int(getattr(event, "like_count", 0) or 0),
+        comment_count=int(getattr(event, "comment_count", 0) or 0),
     )
 
 
@@ -199,6 +202,9 @@ def event_detail(db: Session, event: models.Event, lang: str | None = None) -> s
         importance_factors=fout,
         related_events=[event_card(db, e, lang) for e in related],
         related_videos=[video_card(v) for v in related_videos],
+        view_count=int(getattr(event, "view_count", 0) or 0),
+        like_count=int(getattr(event, "like_count", 0) or 0),
+        comment_count=int(getattr(event, "comment_count", 0) or 0),
     )
 
 
