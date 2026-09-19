@@ -46,6 +46,10 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("trends", help="compute trend snapshots + refresh top signals")
     sub.add_parser("retag", help="re-run topic matching over existing events")
+    sub.add_parser(
+        "backfill-people",
+        help="link seeded/auto people onto existing events (title/summary/body)",
+    )
     sub.add_parser("scheduler", help="run the long-lived scheduler")
 
     args = parser.parse_args(argv)
@@ -98,6 +102,19 @@ def main(argv: list[str] | None = None) -> int:
         from planetai_ingest.retag import run as retag_run
 
         print(f"new links: {retag_run()}")
+        _bust_api_cache()
+        return 0
+
+    if args.cmd == "backfill-people":
+        from planetai_shared.db.base import session_scope
+
+        from planetai_ingest.pipeline.ingest import backfill_people_on_events
+        from planetai_ingest.seed import run as seed_run
+
+        seed_run()
+        with session_scope() as db:
+            n = backfill_people_on_events(db)
+        print(f"people links: {n}")
         _bust_api_cache()
         return 0
 

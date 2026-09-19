@@ -12,6 +12,7 @@ import { Meta } from "@/components/Meta";
 import { api, apiSafe } from "@/lib/api";
 import { relativeTime } from "@/lib/format";
 import { getDict, getLocale } from "@/lib/i18n";
+import { linkifyEntities } from "@/lib/linkify";
 import type { EventDetail, ImportanceFactors, Page as PageT } from "@/lib/types";
 
 export const revalidate = 120;
@@ -45,6 +46,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const hasDek = Boolean(event.summary?.trim());
   const lead = (hasDek ? event.summary : event.body[0]) || event.summary || null;
   const bodyParas = hasDek ? event.body : event.body.length > 1 ? event.body.slice(1) : [];
+  const linkEntities = event.entities.map((e) => e.entity);
 
   return (
     <div className="mx-auto grid max-w-content gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-16">
@@ -54,7 +56,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </h1>
         {lead && (
           <p className="mt-4 text-[18px] leading-relaxed text-ink-2 dark:text-d-ink-2">
-            {lead}
+            {linkifyEntities(lead, linkEntities)}
           </p>
         )}
         <div className="mt-5 border-y border-line py-3 dark:border-d-line">
@@ -66,6 +68,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           />
           <ArticleEngagement slug={event.slug} locale={locale} />
         </div>
+
+        <ArticleEntities entities={event.entities} locale={locale} compact />
 
         {(event.image_urls?.length || event.image_url) && (
           <ImageCarousel
@@ -84,7 +88,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           <div className="mt-8 space-y-5">
             {bodyParas.map((p, i) => (
               <p key={i} className="text-[17px] leading-[1.8] text-ink dark:text-d-ink">
-                {p}
+                {linkifyEntities(p, linkEntities)}
               </p>
             ))}
             {primary && (
@@ -156,8 +160,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             <ArrowUpRight className="h-5 w-5 text-accent" />
           </a>
         )}
-
-        <ArticleEntities entities={event.entities} locale={locale} />
 
         {event.topics.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">

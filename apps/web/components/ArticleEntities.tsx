@@ -21,23 +21,34 @@ export function ArticleEntities({
   const others = entities.filter((e) => e.entity.type !== "person");
 
   if (compact) {
+    if (!people.length && !others.length) return null;
     return (
-      <div className="flex flex-wrap gap-2">
-        {entities.map(({ entity, role }) => (
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        {people.length > 0 && (
+          <span className="mr-1 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+            {tr ? "Kişiler" : "People"}
+          </span>
+        )}
+        {people.map(({ entity }) => (
+          <Link
+            key={entity.slug}
+            href={entityHref(entity)}
+            className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1.5 text-[13px] font-semibold text-accent transition-colors hover:bg-accent hover:text-white dark:bg-accent/15"
+          >
+            <UserRound className="h-3.5 w-3.5" />
+            {entity.name}
+          </Link>
+        ))}
+        {others.map(({ entity, role }) => (
           <Link
             key={entity.slug}
             href={entityHref(entity)}
             className={`rounded-full px-3 py-1 text-[12px] font-medium transition-colors ${
-              entity.type === "person"
-                ? "bg-accent-soft text-accent hover:bg-accent hover:text-white dark:bg-accent/15"
-                : role === "primary"
-                  ? "bg-ink text-white dark:bg-white dark:text-ink"
-                  : "bg-wash text-ink-2 hover:bg-line dark:bg-d-wash dark:text-d-ink-2"
+              role === "primary"
+                ? "bg-ink text-white dark:bg-white dark:text-ink"
+                : "bg-wash text-ink-2 hover:bg-line dark:bg-d-wash dark:text-d-ink-2"
             }`}
           >
-            {entity.type === "person" && (
-              <UserRound className="mr-1 inline h-3 w-3 -translate-y-px" />
-            )}
             {entity.name}
           </Link>
         ))}

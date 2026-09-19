@@ -444,15 +444,22 @@ def link_videos(db: Session) -> int:
     return made
 
 
-def backfill_people_on_events(db: Session, *, limit: int = 800) -> int:
-    """Attach auto-discovered people to existing events (title/summary)."""
+def backfill_people_on_events(db: Session, *, limit: int | None = None) -> int:
+    """Attach people to existing events via seed dictionary + auto-extract.
+
+    Matches title / summary / body_text so names that only appear in the article
+    body (common for long PlanetAI9 posts) still get linked.
+    """
     made = 0
-    events = db.scalars(
+    index = EntityIndex.from_db(db)
+    stmt = (
         select(models.Event)
         .where(models.Event.status == "active")
         .order_by(models.Event.last_activity_at.desc())
-        .limit(limit)
-    ).all()
+    )
+    if limit is not None:
+        stmt = stmt.limit(limit)
+    events = db.scalars(stmt).all()
     for ev in events:
         existing = {
             str(r.entity_id)
@@ -460,7 +467,21 @@ def backfill_people_on_events(db: Session, *, limit: int = 800) -> int:
                 select(models.EventEntity).where(models.EventEntity.event_id == ev.id)
             ).all()
         }
-        for person in auto_tag_people(db, title=ev.title, body=ev.summary or "", source="news"):
+        body = " ".join(p for p in (ev.summary, ev.body_text) if p) or ""
+        for hit in index.match(ev.title, body):
+            if hit.entity_type != "person" or hit.entity_id in existing:
+                continue
+            db.add(
+                models.EventEntity(
+                    event_id=ev.id,
+                    entity_id=hit.entity_id,
+                    role="mentioned",
+                    confidence=0.8 if hit.in_title else 0.65,
+                )
+            )
+            made += 1
+            existing.add(hit.entity_id)
+        for person in auto_tag_people(db, title=ev.title, body=body, source="news"):
             if str(person.id) in existing:
                 continue
             in_title = person.name.lower() in ev.title.lower()
@@ -498,6 +519,8 @@ def run_all(only_kinds: set[str] | None = None) -> dict:
         totals["sources"] += 1
 
     with session_scope() as db:
+        people_links = backfill_people_on_events(db)
+        totals["people_links"] = people_links
         db.add(
             models.IngestRun(
                 job="collect:" + (",".join(sorted(only_kinds)) if only_kinds else "all"),

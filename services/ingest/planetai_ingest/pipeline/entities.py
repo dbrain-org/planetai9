@@ -24,7 +24,9 @@ _TYPE_RANK = {
     EntityType.COMPANY: 2,
     EntityType.INSTITUTION: 2,
 }
-_WORD = re.compile(r"[a-z0-9]")
+_WORD = re.compile(r"[a-z0-9çğıöşü]")
+# Turkish possessives / clitics after a name: "Sam Altman'a", "Jensen Huang'ın"
+_NAME_SUFFIX = re.compile(r"^[''`](?:a|e|ı|i|u|ü|ın|in|un|ün|da|de|ta|te|dan|den)?(?:\b|$)")
 
 # "Kemal Kar ile" — strongest TR guest signal
 _GUEST_ILE = re.compile(
@@ -170,8 +172,14 @@ class EntityIndex:
 
 def _boundary_ok(text: str, start: int, end: int) -> bool:
     before = text[start - 1] if start > 0 else " "
-    after = text[end + 1] if end + 1 < len(text) else " "
-    return not _WORD.match(before) and not _WORD.match(after)
+    if _WORD.match(before):
+        return False
+    rest = text[end + 1 :]
+    after = rest[:1] if rest else " "
+    # Allow "Name'a" / "Name'ın" — apostrophe+suffix is still a name hit.
+    if after in "'’`" or _NAME_SUFFIX.match(rest):
+        return True
+    return not _WORD.match(after)
 
 
 def choose_primary(hits: list[EntityHit]) -> EntityHit | None:

@@ -6,16 +6,25 @@ import { CommentSection } from "@/components/CommentSection";
 import { EventRow } from "@/components/EventCard";
 import { ImageCarousel } from "@/components/ImageCarousel";
 import { Meta } from "@/components/Meta";
-import type { Locale } from "@/lib/i18n";
-import type { EventCard as EventCardT, EventDetail } from "@/lib/types";
 import { entityHref } from "@/lib/entity";
+import type { Locale } from "@/lib/i18n";
+import { linkifyEntities } from "@/lib/linkify";
+import type { EntityRef, EventCard as EventCardT, EventDetail } from "@/lib/types";
 import Link from "next/link";
 
 function looksLikeStats(p: string) {
   return /\d([.,]\d)?\s*(bin|K|k)|%\d|\d{2,}/.test(p) && p.length > 80 && p.length < 420;
 }
 
-function Paragraph({ text, role }: { text: string; role: "lead" | "body" | "bridge" | "callout" | "close" }) {
+function Paragraph({
+  text,
+  role,
+  entities,
+}: {
+  text: string;
+  role: "lead" | "body" | "bridge" | "callout" | "close";
+  entities: EntityRef[];
+}) {
   const cls =
     role === "lead"
       ? "article-lead"
@@ -26,7 +35,7 @@ function Paragraph({ text, role }: { text: string; role: "lead" | "body" | "brid
           : role === "close"
             ? "article-close"
             : "article-body";
-  return <p className={cls}>{text}</p>;
+  return <p className={cls}>{linkifyEntities(text, entities)}</p>;
 }
 
 function roleFor(p: string, index: number, total: number): "lead" | "body" | "bridge" | "callout" | "close" {
@@ -59,6 +68,7 @@ export function LlmRadarArticle({
   const paragraphs = event.body.filter(
     (p) => !/^\/news\/.*\.(svg|png|jpe?g|webp)$/i.test(p.trim()),
   );
+  const linkEntities = event.entities.map((e) => e.entity);
 
   return (
     <div className="mx-auto grid max-w-content gap-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
@@ -69,7 +79,11 @@ export function LlmRadarArticle({
         <h1 className="mt-3 max-w-[20ch] text-[32px] font-extrabold leading-[1.08] tracking-tight3 text-ink dark:text-d-ink sm:max-w-none sm:text-[40px]">
           {event.title}
         </h1>
-        {event.summary && <p className="article-dek mt-4 max-w-[38rem]">{event.summary}</p>}
+        {event.summary && (
+          <p className="article-dek mt-4 max-w-[38rem]">
+            {linkifyEntities(event.summary, linkEntities)}
+          </p>
+        )}
         <div className="mt-5 border-y border-line py-3 dark:border-d-line">
           <Meta
             summary={paragraphs.join(" ") || event.summary}
@@ -80,13 +94,20 @@ export function LlmRadarArticle({
           <ArticleEngagement slug={event.slug} locale={locale} />
         </div>
 
+        <ArticleEntities entities={event.entities} locale={locale} compact />
+
         {gallery.length > 0 && (
           <ImageCarousel images={gallery} category={event.category} />
         )}
 
         <div className="mt-9 space-y-6">
           {paragraphs.map((p, i) => (
-            <Paragraph key={p.slice(0, 48)} text={p} role={roleFor(p, i, paragraphs.length)} />
+            <Paragraph
+              key={p.slice(0, 48)}
+              text={p}
+              role={roleFor(p, i, paragraphs.length)}
+              entities={linkEntities}
+            />
           ))}
         </div>
 
@@ -117,8 +138,6 @@ export function LlmRadarArticle({
             </Link>
           </p>
         )}
-
-        <ArticleEntities entities={event.entities} locale={locale} />
 
         <CommentSection slug={event.slug} locale={locale} />
       </article>
