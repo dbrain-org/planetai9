@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { ArticleEngagement } from "@/components/ArticleEngagement";
-import { ArticleEntities } from "@/components/ArticleEntities";
 import { CommentSection } from "@/components/CommentSection";
 import { EventRow } from "@/components/EventCard";
 import { VideoCard } from "@/components/VideoCard";
@@ -68,8 +67,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           />
           <ArticleEngagement slug={event.slug} locale={locale} />
         </div>
-
-        <ArticleEntities entities={event.entities} locale={locale} compact />
 
         {(event.image_urls?.length || event.image_url) && (
           <ImageCarousel

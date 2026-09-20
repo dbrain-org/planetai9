@@ -113,7 +113,108 @@ _STOP_TOKENS = frozenset(
         "llm",
         "gpt",
         "api",
+        # Program / product / generic title-case junk (was auto-tagged as "people")
+        "çağrı",
+        "çağrısı",
+        "cagri",
+        "cagrisi",
+        "veri",
+        "merkezi",
+        "merkez",
+        "platform",
+        "program",
+        "programı",
+        "programi",
+        "destek",
+        "yatırım",
+        "yatirim",
+        "ofisi",
+        "ofis",
+        "bakanlık",
+        "bakanligi",
+        "bakanlığı",
+        "bakani",
+        "bakanı",
+        "bakanimiz",
+        "bakanımız",
+        "island",
+        "mode",
+        "lens",
+        "ads",
+        "fund",
+        "group",
+        "court",
+        "services",
+        "video",
+        "cloud",
+        "holding",
+        "insight",
+        "democracy",
+        "karnesi",
+        "router",
+        "labs",
+        "robotics",
+        "digital",
+        "playground",
+        "business",
+        "pace",
+        "car",
+        "kuantum",
+        "quantum",
+        "hit",
+        "hit-30",
+        "special",
+        "operations",
+        "command",
+        "european",
+        "commission",
+        "supreme",
+        "financial",
+        "protect",
+        "query",
+        "image",
+        "factory",
+        "prior",
+        "scaleup",
+        "europe",
+        "promake",
+        "esports",
+        "youzu",
+        "prime",
+        "after",
+        "teradyne",
+        "sumo",
+        "alibaba",
+        "everglades",
+        "equipment",
+        "milyon",
+        "dolar",
+        "kullanım",
+        "kullanim",
+        "kullanıcılar",
+        "kullanicilar",
+        "antigravity",
+        "siri",
+        "dynamic",
+        "taiwanese",
+        "hokkien",
+        "big",
+        "blue",
+        "robom",
+        "müşavir",
+        "musavir",
+        "kanıtın",
+        "kanitin",
+        "lean",
+        "mathematician",
     }
+)
+
+# Role titles that often precede a real person name in TR news copy.
+_TR_ROLE_PERSON = re.compile(
+    r"(?:Bakan(?:ı|imiz|ımız)|Başkan(?:ı|imiz|ımız)|Cumhurbaşkanı|"
+    r"Prof\.?\s*Dr\.?|Doç\.?\s*Dr\.?|Dr\.?)\s+"
+    r"([A-ZÇĞİÖŞÜ][a-zçğıöşü''\-]+(?:\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü''\-]+){1,2})"
 )
 
 
@@ -192,16 +293,49 @@ def choose_primary(hits: list[EntityHit]) -> EntityHit | None:
 
 
 def _looks_like_person_name(name: str) -> bool:
+    """True only for plausible human names — reject title-case program phrases."""
     parts = [p for p in re.split(r"\s+", name.strip()) if p]
-    if len(parts) < 2 or len(parts) > 3:
+    if len(parts) < 2 or len(parts) > 4:
         return False
     if len(name) < 5 or len(name) > 60:
+        return False
+    # Last token ending in common TR noun suffixes is almost never a surname.
+    last = parts[-1].lower().strip("'-")
+    if last.endswith(("çağrısı", "cagrisi", "merkezi", "platformu", "programı", "programi")):
+        return False
+    if last in {
+        "çağrı",
+        "çağrısı",
+        "cagri",
+        "cagrisi",
+        "merkezi",
+        "platform",
+        "program",
+        "island",
+        "group",
+        "fund",
+        "labs",
+        "mode",
+        "cloud",
+        "holding",
+        "services",
+        "commission",
+        "court",
+        "command",
+        "video",
+        "ads",
+        "router",
+        "karnesi",
+    }:
         return False
     for p in parts:
         low = p.lower().strip("'-")
         if low in _STOP_TOKENS or len(low) < 2:
             return False
         if not p[0].isupper():
+            return False
+        # Reject tokens that are all-caps acronyms longer than 3 (HIT, AI ok-ish as mid).
+        if len(p) > 3 and p.isupper():
             return False
     return True
 
@@ -211,7 +345,8 @@ def extract_person_candidates(text: str, *, source: str = "news") -> list[str]:
 
     ``source``:
       - ``video``: TR "X ile" guests + leading "Name:" title guests
-      - ``news``: "X ile" + English headline verb patterns only
+      - ``news``: only high-confidence role titles ("Bakanımız X Y") + English
+        headline verbs — never free-form title-case phrases (those became junk).
     """
     if not text:
         return []
@@ -228,27 +363,38 @@ def extract_person_candidates(text: str, *, source: str = "news") -> list[str]:
         seen.add(key)
         found.append(name)
 
-    for m in _GUEST_ILE.finditer(text):
-        add(m.group(1))
-
     if source == "video":
+        for m in _GUEST_ILE.finditer(text):
+            add(m.group(1))
         first = text.split("\n", 1)[0].strip()
         m = _VIDEO_TITLE_GUEST.match(first)
         if m:
             add(m.group(1))
     else:
+        # News: no "X ile" scan over the full body — that tagged "Kuantum Çağrısı ile".
+        for m in _TR_ROLE_PERSON.finditer(text):
+            add(m.group(1))
         for m in _NEWS_VERB_PERSON.finditer(text):
             add(m.group(1))
 
     return found
 
 
-def ensure_person_entity(db: Session, name: str) -> models.Entity:
-    """Get or create a person entity for ``name`` (idempotent)."""
+def ensure_person_entity(db: Session, name: str) -> models.Entity | None:
+    """Get or create a person entity for ``name`` (idempotent).
+
+    Returns ``None`` when ``name`` fails the person-name heuristic so callers
+    never persist junk like "Kuantum Çağrısı".
+    """
     name = " ".join(name.split())
+    if not _looks_like_person_name(name):
+        return None
     slug = slugify(name)[:160] or "person"
     existing = db.scalar(select(models.Entity).where(models.Entity.slug == slug))
     if existing is not None:
+        # Do not resurrect a junk row that happens to share a slug collision.
+        if existing.type == EntityType.PERSON.value and not _looks_like_person_name(existing.name):
+            return None
         return existing
     by_name = db.scalar(
         select(models.Entity).where(
@@ -283,5 +429,14 @@ def auto_tag_people(
     text = f"{title}\n{body}".strip()
     people: list[models.Entity] = []
     for name in extract_person_candidates(text, source=source):
-        people.append(ensure_person_entity(db, name))
+        person = ensure_person_entity(db, name)
+        if person is not None:
+            people.append(person)
     return people
+
+
+def is_linkable_person_entity(name: str, *, entity_type: str) -> bool:
+    """Whether a DB person row is safe to surface as an in-article link."""
+    if entity_type != EntityType.PERSON.value and entity_type != "person":
+        return True
+    return _looks_like_person_name(name)

@@ -21,8 +21,8 @@ def test_mentions_respects_word_boundaries():
 def test_attach_entities_links_people_and_orgs():
     """Use unique names so CI seed entities (TÜBİSAD, …) cannot steal primary."""
     token = uuid.uuid4().hex[:8]
-    org_name = f"Acme Quantum {token}"
-    person_name = f"Zeynep Testoglu {token}"
+    org_name = f"Acme Quantum Labs {token.upper()}"
+    person_name = "Zeynep Testoglu"
     slug = f"attach-test-{token}"
     now = datetime.now(UTC)
 
@@ -31,7 +31,7 @@ def test_attach_entities_links_people_and_orgs():
             slug=f"acme-quantum-{token}",
             name=org_name,
             type="institution",
-            aliases=[f"AcmeQuantum{token}"],
+            aliases=[f"AcmeQuantum{token.upper()}"],
             tier=0.5,
         )
         person = models.Entity(

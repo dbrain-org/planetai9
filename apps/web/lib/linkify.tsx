@@ -4,7 +4,74 @@ import type { ReactNode } from "react";
 import { entityHref } from "@/lib/entity";
 import type { EntityRef } from "@/lib/types";
 
-const ORG_TYPES = new Set(["company", "institution"]);
+/** Only people + firms/institutions — never models/products or junk auto-people. */
+const LINKABLE_TYPES = new Set(["person", "company", "institution"]);
+
+const JUNK_LAST = new Set([
+  "çağrı",
+  "çağrısı",
+  "cagri",
+  "cagrisi",
+  "merkezi",
+  "platform",
+  "program",
+  "island",
+  "group",
+  "fund",
+  "labs",
+  "mode",
+  "cloud",
+  "holding",
+  "services",
+  "commission",
+  "court",
+  "command",
+  "video",
+  "ads",
+  "router",
+  "karnesi",
+]);
+
+const JUNK_ANY = new Set([
+  "kuantum",
+  "quantum",
+  "veri",
+  "merkez",
+  "merkezi",
+  "platform",
+  "program",
+  "hit",
+  "dynamic",
+  "island",
+  "business",
+  "pace",
+  "car",
+  "çağrı",
+  "çağrısı",
+  "cagri",
+  "cagrisi",
+]);
+
+function looksLikePersonName(name: string): boolean {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length < 2 || parts.length > 4) return false;
+  if (name.length < 5 || name.length > 60) return false;
+  const last = parts[parts.length - 1]!.toLowerCase().replace(/^[''`-]+|[''`-]+$/g, "");
+  if (JUNK_LAST.has(last)) return false;
+  if (/(çağrısı|cagrisi|merkezi|platformu|programı|programi)$/i.test(last)) return false;
+  for (const p of parts) {
+    const low = p.toLowerCase().replace(/^[''`-]+|[''`-]+$/g, "");
+    if (JUNK_ANY.has(low) || low.length < 2) return false;
+    if (p[0] !== p[0]!.toUpperCase()) return false;
+  }
+  return true;
+}
+
+function isLinkable(entity: EntityRef): boolean {
+  if (!LINKABLE_TYPES.has(entity.type)) return false;
+  if (entity.type === "person" && !looksLikePersonName(entity.name)) return false;
+  return true;
+}
 
 type PhraseHit = { phrase: string; entity: EntityRef };
 
@@ -12,7 +79,7 @@ type PhraseHit = { phrase: string; entity: EntityRef };
 function phrasesFor(entities: EntityRef[]): PhraseHit[] {
   const seen = new Set<string>();
   const out: PhraseHit[] = [];
-  for (const entity of entities) {
+  for (const entity of entities.filter(isLinkable)) {
     const candidates = [entity.name, ...(entity.aliases ?? [])]
       .map((p) => p.trim())
       .filter((p) => p.length >= 3);
@@ -23,16 +90,14 @@ function phrasesFor(entities: EntityRef[]): PhraseHit[] {
       out.push({ phrase, entity });
     }
   }
-  // People/orgs slightly ahead of same-length product names; longest still wins.
   return out.sort((a, b) => {
     if (b.phrase.length !== a.phrase.length) return b.phrase.length - a.phrase.length;
-    const rank = (e: EntityRef) =>
-      e.type === "person" ? 3 : ORG_TYPES.has(e.type) ? 2 : 1;
+    const rank = (e: EntityRef) => (e.type === "person" ? 2 : 1);
     return rank(b.entity) - rank(a.entity);
   });
 }
 
-/** Turn known entity names (and aliases) inside plain text into links. */
+/** Turn known person / company / institution names inside plain text into links. */
 export function linkifyEntities(text: string, entities: EntityRef[]): ReactNode[] {
   if (!text || entities.length === 0) return [text];
 
@@ -55,7 +120,7 @@ export function linkifyEntities(text: string, entities: EntityRef[]): ReactNode[
     const ent = byLower.get(raw.toLowerCase());
     if (ent) {
       const isPerson = ent.type === "person";
-      const isOrg = ORG_TYPES.has(ent.type);
+      const isOrg = ent.type === "company" || ent.type === "institution";
       parts.push(
         <Link
           key={`${ent.slug}-${i++}`}

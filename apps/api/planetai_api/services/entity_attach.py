@@ -19,17 +19,83 @@ _NAME_SUFFIX = re.compile(
     re.IGNORECASE,
 )
 
-# Types we surface as in-article links (people hubs + company/org pages).
+# Types we surface as in-article links (people hubs + company/org pages only).
 _LINKABLE = frozenset(
     {
         "person",
         "company",
         "institution",
-        "model",
-        "product",
-        "technology",
     }
 )
+
+# Same junk filter as ingest — keep display free of auto-tagged program phrases.
+_PERSON_JUNK_LAST = frozenset(
+    {
+        "çağrı",
+        "çağrısı",
+        "cagri",
+        "cagrisi",
+        "merkezi",
+        "platform",
+        "program",
+        "island",
+        "group",
+        "fund",
+        "labs",
+        "mode",
+        "cloud",
+        "holding",
+        "services",
+        "commission",
+        "court",
+        "command",
+        "video",
+        "ads",
+        "router",
+        "karnesi",
+    }
+)
+_PERSON_STOP = frozenset(
+    {
+        "kuantum",
+        "quantum",
+        "veri",
+        "merkez",
+        "merkezi",
+        "platform",
+        "program",
+        "hit",
+        "dynamic",
+        "island",
+        "business",
+        "pace",
+        "car",
+        "çağrı",
+        "çağrısı",
+        "cagri",
+        "cagrisi",
+    }
+)
+
+
+def _looks_like_person_name(name: str) -> bool:
+    parts = [p for p in re.split(r"\s+", name.strip()) if p]
+    if len(parts) < 2 or len(parts) > 4:
+        return False
+    if len(name) < 5 or len(name) > 60:
+        return False
+    last = parts[-1].lower().strip("'-")
+    if last in _PERSON_JUNK_LAST or last.endswith(
+        ("çağrısı", "cagrisi", "merkezi", "platformu", "programı", "programi")
+    ):
+        return False
+    for p in parts:
+        low = p.lower().strip("'-")
+        if low in _PERSON_STOP or len(low) < 2:
+            return False
+        if not p[0].isupper():
+            return False
+    return True
 
 
 def _boundary_ok(text: str, start: int, end: int) -> bool:
@@ -103,6 +169,8 @@ def attach_entities_to_event(db: Session, event: models.Event) -> int:
                     in_title = True
                     break
         if not hit:
+            continue
+        if etype == "person" and not _looks_like_person_name(name):
             continue
 
         role = "mentioned"

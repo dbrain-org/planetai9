@@ -24,6 +24,7 @@ from planetai_ingest.pipeline.entities import (
     EntityIndex,
     auto_tag_people,
     choose_primary,
+    is_linkable_person_entity,
 )
 from planetai_ingest.pipeline.score import persist_factors, score_event
 from planetai_ingest.text import (
@@ -150,7 +151,11 @@ def _ingest_item(
     clean_summary = summarize_excerpt(summary_src) or None
     body_excerpt = summary_src[:500] or None
 
-    hits = index.match(item.title, summary_src)
+    hits = [
+        h
+        for h in index.match(item.title, summary_src)
+        if h.entity_type != "person" or is_linkable_person_entity(h.name, entity_type="person")
+    ]
     # Auto-discover people named in the headline / summary (create if missing).
     for person in auto_tag_people(db, title=item.title, body=summary_src, source="news"):
         if any(h.entity_id == str(person.id) for h in hits):
@@ -420,6 +425,10 @@ def link_videos(db: Session) -> int:
                 made += 1
                 existing.add(key)
         for hit in index.match(video.title, video.description or ""):
+            if hit.entity_type == "person" and not is_linkable_person_entity(
+                hit.name, entity_type="person"
+            ):
+                continue
             key = ("entity", hit.entity_id)
             if key not in existing:
                 db.add(
@@ -444,15 +453,12 @@ def link_videos(db: Session) -> int:
     return made
 
 
-# Types we link from the dictionary into article bodies (people + firms + …).
+# Types we link from the dictionary into article bodies (people + firms only).
 _BACKFILL_TYPES = frozenset(
     {
         "person",
         "company",
         "institution",
-        "model",
-        "product",
-        "technology",
     }
 )
 
@@ -462,6 +468,8 @@ def backfill_people_on_events(db: Session, *, limit: int | None = None) -> int:
 
     Matches title / summary / body_text so names that only appear in the article
     body (common for long PlanetAI9 posts) still get linked.
+
+    Also drops EventEntity links to junk auto-people ("Kuantum Çağrısı", …).
     """
     made = 0
     index = EntityIndex.from_db(db)
@@ -474,6 +482,18 @@ def backfill_people_on_events(db: Session, *, limit: int | None = None) -> int:
         stmt = stmt.limit(limit)
     events = db.scalars(stmt).all()
     for ev in events:
+        # Prune junk person links first so they stop showing in articles.
+        for ee in list(
+            db.scalars(select(models.EventEntity).where(models.EventEntity.event_id == ev.id)).all()
+        ):
+            ent = db.get(models.Entity, ee.entity_id)
+            if ent is None:
+                continue
+            if ent.type == "person" and not is_linkable_person_entity(
+                ent.name, entity_type="person"
+            ):
+                db.delete(ee)
+
         existing = {
             str(r.entity_id)
             for r in db.scalars(
@@ -483,6 +503,10 @@ def backfill_people_on_events(db: Session, *, limit: int | None = None) -> int:
         body = " ".join(p for p in (ev.summary, ev.body_text) if p) or ""
         for hit in index.match(ev.title, body):
             if hit.entity_type not in _BACKFILL_TYPES or hit.entity_id in existing:
+                continue
+            if hit.entity_type == "person" and not is_linkable_person_entity(
+                hit.name, entity_type="person"
+            ):
                 continue
             db.add(
                 models.EventEntity(

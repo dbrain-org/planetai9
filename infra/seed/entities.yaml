@@ -72,9 +72,12 @@ people:
   - { slug: hilmi-kocak,         name: Hilmi Koçak,         tier: 0.40, aliases: ["Hilmi Kocak"] }
   - { slug: ahmet-avci,          name: Ahmet Avcı,          tier: 0.40, aliases: ["Ahmet Avci"] }
   - { slug: hasan-ozkapi,        name: Hasan Özkapı,        tier: 0.40, aliases: ["Hasan Ozkapi"] }
+  - { slug: mehmet-fatih-kacir,  name: Mehmet Fatih Kacır,  tier: 0.50, aliases: ["Mehmet Fatih Kacir", "Fatih Kacır", "Fatih Kacir"] }
 
 institutions:
   - { slug: stanford,   name: Stanford,   aliases: ["Stanford University", "Stanford HAI"] }
   - { slug: mit,        name: MIT,        aliases: ["Massachusetts Institute of Technology", "MIT CSAIL"] }
   - { slug: berkeley,   name: UC Berkeley, aliases: ["Berkeley AI Research", "BAIR"] }
   - { slug: tubisad,    name: TÜBİSAD,    tier: 0.55, aliases: ["Tubisad", "TUBISAD", "Tübisad"] }
+  - { slug: sanayi-ve-teknoloji-bakanligi, name: Sanayi ve Teknoloji Bakanlığı, tier: 0.55, aliases: ["Sanayi ve Teknoloji Bakanligi", "Sanayi Bakanlığı", "Sanayi Bakanligi"] }
+  - { slug: cumhurbaskanligi-yatirim-ofisi, name: Cumhurbaşkanlığı Yatırım ve Finans Ofisi, tier: 0.45, aliases: ["Cumhurbaşkanlığı Yatırım Ofisi", "Yatırım ve Finans Ofisi"] }

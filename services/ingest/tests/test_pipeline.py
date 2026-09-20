@@ -72,3 +72,33 @@ def test_entity_index_matches_aliases_and_boundaries():
 
     # word-boundary: "openair" must not match "OpenAI"
     assert idx.match("the openair festival", "") == []
+
+
+def test_person_extract_rejects_program_phrases_and_finds_minister():
+    from planetai_ingest.pipeline.entities import (
+        _looks_like_person_name,
+        extract_person_candidates,
+    )
+
+    assert not _looks_like_person_name("Kuantum Çağrısı")
+    assert not _looks_like_person_name("Veri Merkezi Çağrısı")
+    assert not _looks_like_person_name("Dynamic Island")
+    assert _looks_like_person_name("Mehmet Fatih Kacır")
+    assert _looks_like_person_name("Sam Altman")
+
+    body = (
+        "GITEX Ai Türkiye'ye Sanayi ve Teknoloji Bakanımız Mehmet Fatih Kacır "
+        "katıldı. HIT-Kuantum Çağrısı ile HIT-Veri Merkezi Çağrısı açıklandı."
+    )
+    names = extract_person_candidates(body, source="news")
+    assert "Mehmet Fatih Kacır" in names
+    assert "Kuantum Çağrısı" not in names
+    assert "Veri Merkezi Çağrısı" not in names
+
+    # "X ile" over body must not invent people from news copy
+    assert extract_person_candidates("Kuantum Çağrısı ile başladı", source="news") == []
+    assert "Kuantum Çağrısı" in extract_person_candidates(
+        "Kuantum Çağrısı ile başladı", source="video"
+    ) or not _looks_like_person_name("Kuantum Çağrısı")
+    # video ile still gated by looks_like — junk rejected
+    assert extract_person_candidates("Kuantum Çağrısı ile başladı", source="video") == []

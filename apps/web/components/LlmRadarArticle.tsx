@@ -1,6 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
 import { ArticleEngagement } from "@/components/ArticleEngagement";
-import { ArticleEntities } from "@/components/ArticleEntities";
 import { CatBadge } from "@/components/Cover";
 import { CommentSection } from "@/components/CommentSection";
 import { EventRow } from "@/components/EventCard";
@@ -93,8 +92,6 @@ export function LlmRadarArticle({
           />
           <ArticleEngagement slug={event.slug} locale={locale} />
         </div>
-
-        <ArticleEntities entities={event.entities} locale={locale} compact />
 
         {gallery.length > 0 && (
           <ImageCarousel images={gallery} category={event.category} />
