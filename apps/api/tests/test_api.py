@@ -593,6 +593,7 @@ def test_news_submission_approval_creates_event_in_tr_region(client, monkeypatch
             db.query(models.NewsSubmission).filter_by(id=row["id"]).delete()
             ev = db.query(models.Event).filter_by(slug=event_slug).first()
             if ev is not None:
+                db.query(models.EventEntity).filter_by(event_id=ev.id).delete()
                 db.query(models.Article).filter_by(event_id=ev.id).delete()
                 db.query(models.EventTopic).filter_by(event_id=ev.id).delete()
                 db.delete(ev)

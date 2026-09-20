@@ -18,6 +18,9 @@ companies:
   - { slug: hugging-face,    name: Hugging Face,          tier: 0.60, aliases: ["HuggingFace"] }
   - { slug: perplexity,      name: Perplexity,           tier: 0.55, aliases: ["Perplexity AI"] }
   - { slug: stability-ai,    name: Stability AI,          tier: 0.50, aliases: ["StabilityAI"] }
+  - { slug: tesla,           name: Tesla,                tier: 0.70, aliases: [] }
+  - { slug: spacex,          name: SpaceX,               tier: 0.65, aliases: [] }
+  - { slug: accenture,       name: Accenture,            tier: 0.45, aliases: [] }
 
 model_families:
   - { slug: gpt,      name: GPT,      parent: openai,          tier: 1.0, desc: "OpenAI'nin amiral gemisi çok modlu model ailesi.", aliases: ["GPT-4", "GPT-4o", "GPT-5", "ChatGPT", "o1", "o3"] }
@@ -58,8 +61,20 @@ people:
   - { slug: ayhan-demirci,      name: Ayhan Demirci,      tier: 0.45, aliases: [] }
   - { slug: susan-wojcicki,     name: Susan Wojcicki,     tier: 0.50, aliases: [] }
   - { slug: garri-kasparov,     name: Garri Kasparov,     tier: 0.45, aliases: ["Garry Kasparov", "Kasparov"] }
+  # TÜBİSAD / TR ekosistemi — haber gövdesinde geçen isimler
+  - { slug: mehmet-ali-tombalak, name: Mehmet Ali Tombalak, tier: 0.40, aliases: [] }
+  - { slug: berrin-ozselcuk,     name: Berrin Özselçuk,     tier: 0.40, aliases: ["Berrin Ozselcuk"] }
+  - { slug: baris-karakullukcu,  name: Barış Karakullukçu,  tier: 0.40, aliases: ["Baris Karakullukcu", "Barış Karakullukcu"] }
+  - { slug: kivanc-uslu,         name: Kıvanç Uslu,         tier: 0.40, aliases: ["Kivanc Uslu"] }
+  - { slug: mert-menekse,        name: Mert Menekşe,        tier: 0.40, aliases: ["Mert Menekse"] }
+  - { slug: ozgur-ozluk,         name: Özgür Özlük,         tier: 0.40, aliases: ["Ozgur Ozluk", "Prof. Dr. Özgür Özlük", "Prof. Dr. Ozgur Ozluk"] }
+  - { slug: metin-sezgin,        name: Metin Sezgin,        tier: 0.40, aliases: ["Prof. Dr. Metin Sezgin"] }
+  - { slug: hilmi-kocak,         name: Hilmi Koçak,         tier: 0.40, aliases: ["Hilmi Kocak"] }
+  - { slug: ahmet-avci,          name: Ahmet Avcı,          tier: 0.40, aliases: ["Ahmet Avci"] }
+  - { slug: hasan-ozkapi,        name: Hasan Özkapı,        tier: 0.40, aliases: ["Hasan Ozkapi"] }
 
 institutions:
   - { slug: stanford,   name: Stanford,   aliases: ["Stanford University", "Stanford HAI"] }
   - { slug: mit,        name: MIT,        aliases: ["Massachusetts Institute of Technology", "MIT CSAIL"] }
   - { slug: berkeley,   name: UC Berkeley, aliases: ["Berkeley AI Research", "BAIR"] }
+  - { slug: tubisad,    name: TÜBİSAD,    tier: 0.55, aliases: ["Tubisad", "TUBISAD", "Tübisad"] }

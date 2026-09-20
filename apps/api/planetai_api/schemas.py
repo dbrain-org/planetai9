@@ -11,6 +11,7 @@ class EntityRef(BaseModel):
     slug: str
     name: str
     type: str
+    aliases: list[str] = []
 
 
 class SourceRef(BaseModel):

@@ -49,7 +49,12 @@ def split_body_and_gallery(
 def entity_ref(ent: models.Entity | None) -> schemas.EntityRef | None:
     if ent is None:
         return None
-    return schemas.EntityRef(slug=ent.slug, name=ent.name, type=ent.type)
+    return schemas.EntityRef(
+        slug=ent.slug,
+        name=ent.name,
+        type=ent.type,
+        aliases=list(ent.aliases or []),
+    )
 
 
 def source_ref(src: models.Source) -> schemas.SourceRef:

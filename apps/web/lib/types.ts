@@ -4,6 +4,8 @@ export interface EntityRef {
   slug: string;
   name: string;
   type: string;
+  /** Optional alternate spellings used for in-body link matching. */
+  aliases?: string[];
 }
 
 export interface SourceRef {

@@ -254,6 +254,12 @@ def create_event_from_submission(db: Session, submission: models.NewsSubmission)
     if topic is not None:
         db.add(models.EventTopic(event_id=event.id, topic_id=topic.id, weight=1.0))
 
+    # Link people / companies / orgs named in the story so the web layer can
+    # linkify them (dictionary match on title + summary + body).
+    from planetai_api.services.entity_attach import attach_entities_to_event
+
+    attach_entities_to_event(db, event)
+
     db.commit()
     db.refresh(event)
     return event

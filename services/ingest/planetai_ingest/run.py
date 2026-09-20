@@ -48,7 +48,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("retag", help="re-run topic matching over existing events")
     sub.add_parser(
         "backfill-people",
-        help="link seeded/auto people onto existing events (title/summary/body)",
+        help="link seeded people + companies/orgs onto existing events (title/summary/body)",
     )
     sub.add_parser("scheduler", help="run the long-lived scheduler")
 
@@ -114,7 +114,7 @@ def main(argv: list[str] | None = None) -> int:
         seed_run()
         with session_scope() as db:
             n = backfill_people_on_events(db)
-        print(f"people links: {n}")
+        print(f"entity links: {n}")
         _bust_api_cache()
         return 0
 

@@ -444,8 +444,21 @@ def link_videos(db: Session) -> int:
     return made
 
 
+# Types we link from the dictionary into article bodies (people + firms + …).
+_BACKFILL_TYPES = frozenset(
+    {
+        "person",
+        "company",
+        "institution",
+        "model",
+        "product",
+        "technology",
+    }
+)
+
+
 def backfill_people_on_events(db: Session, *, limit: int | None = None) -> int:
-    """Attach people to existing events via seed dictionary + auto-extract.
+    """Attach people + companies/orgs to existing events via dictionary + auto-extract.
 
     Matches title / summary / body_text so names that only appear in the article
     body (common for long PlanetAI9 posts) still get linked.
@@ -469,7 +482,7 @@ def backfill_people_on_events(db: Session, *, limit: int | None = None) -> int:
         }
         body = " ".join(p for p in (ev.summary, ev.body_text) if p) or ""
         for hit in index.match(ev.title, body):
-            if hit.entity_type != "person" or hit.entity_id in existing:
+            if hit.entity_type not in _BACKFILL_TYPES or hit.entity_id in existing:
                 continue
             db.add(
                 models.EventEntity(

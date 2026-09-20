@@ -21,7 +21,7 @@ def pytest_collection_modifyitems(config, items):
         return
     skip = pytest.mark.skip(reason="database not migrated/reachable")
     for item in items:
-        if "test_api" in item.nodeid:
+        if "test_api" in item.nodeid or "test_entity_attach" in item.nodeid:
             item.add_marker(skip)
 
 
