@@ -67,6 +67,25 @@ def source_ref(src: models.Source) -> schemas.SourceRef:
     )
 
 
+def event_image_url(db: Session, event: models.Event) -> str | None:
+    """Prefer event cover; fall back to first article image so cards aren't empty."""
+    if event.image_url:
+        return event.image_url
+    if isinstance(event.image_urls, list):
+        for u in event.image_urls:
+            if isinstance(u, str) and u.strip():
+                return u.strip()
+    return db.scalar(
+        select(models.Article.image_url)
+        .where(
+            models.Article.event_id == event.id,
+            models.Article.image_url.isnot(None),
+            models.Article.image_url != "",
+        )
+        .limit(1)
+    )
+
+
 def _top_source(db: Session, event: models.Event) -> models.Source | None:
     row = db.execute(
         select(models.Source)
@@ -109,7 +128,7 @@ def event_card(db: Session, event: models.Event, lang: str | None = None) -> sch
         primary_entity=entity_ref(event.primary_entity),
         top_source=(lambda s: source_ref(s) if s else None)(_top_source(db, event)),
         published_at=event.last_activity_at,
-        image_url=event.image_url,
+        image_url=event_image_url(db, event),
         view_count=int(getattr(event, "view_count", 0) or 0),
         like_count=int(getattr(event, "like_count", 0) or 0),
         comment_count=int(getattr(event, "comment_count", 0) or 0),

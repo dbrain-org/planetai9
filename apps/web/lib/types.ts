@@ -324,3 +324,97 @@ export interface CuratedLink {
   sort_order: number;
   enabled: boolean;
 }
+
+export interface LlmKpi {
+  models: number;
+  open_weight: number;
+  producers: number;
+  radar_ok: boolean;
+}
+
+export interface LlmChartBucket {
+  label: string;
+  count: number;
+}
+
+export interface LlmYearBucket {
+  year: number;
+  count: number;
+}
+
+export interface LlmMapPin {
+  slug: string;
+  name: string;
+  city: string | null;
+  lat: number;
+  lng: number;
+  kind: string;
+}
+
+export interface LlmDeveloperCard {
+  slug: string;
+  display_name: string;
+  kind: string;
+  bio?: string | null;
+  logo_url?: string | null;
+  website_url?: string | null;
+  hf_url?: string | null;
+  city?: string | null;
+  model_count: number;
+  curated: boolean;
+}
+
+export interface LlmModelRow {
+  name: string;
+  technique?: string | null;
+  published_at?: string | null;
+  downloads: number;
+  source_url?: string | null;
+  website_url?: string | null;
+}
+
+export interface LlmDeveloperComment {
+  id: string;
+  author_name: string;
+  body: string;
+  created_at: string;
+  status: string;
+}
+
+export interface LlmDeveloperDetail {
+  slug: string;
+  display_name: string;
+  kind: string;
+  bio?: string | null;
+  logo_url?: string | null;
+  website_url?: string | null;
+  hf_url?: string | null;
+  city?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  model_count: number;
+  models: LlmModelRow[];
+  comments: LlmDeveloperComment[];
+  curated: boolean;
+}
+
+export interface TurkiyeLlmOverview {
+  kpi: LlmKpi;
+  by_technique: LlmChartBucket[];
+  by_year: LlmYearBucket[];
+  top_producers: LlmDeveloperCard[];
+  map_pins: LlmMapPin[];
+  news: EventCard[];
+  radar_url: string;
+}
+
+export interface DeveloperCommentQueueItem {
+  id: string;
+  developer_slug: string;
+  developer_name: string;
+  author_name: string;
+  author_email: string | null;
+  body: string;
+  status: string;
+  created_at: string;
+}

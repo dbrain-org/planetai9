@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class EntityRef(BaseModel):
@@ -201,6 +201,114 @@ class CategoryCount(BaseModel):
     events_total: int = 0
 
 
+# --- Türkiye LLM vitrin -------------------------------------------------------
+
+
+class LlmKpi(BaseModel):
+    models: int
+    open_weight: int
+    producers: int
+    radar_ok: bool = True
+
+
+class LlmChartBucket(BaseModel):
+    label: str
+    count: int
+
+
+class LlmYearBucket(BaseModel):
+    year: int
+    count: int
+
+
+class LlmMapPin(BaseModel):
+    slug: str
+    name: str
+    city: str | None
+    lat: float
+    lng: float
+    kind: str
+
+
+class LlmDeveloperCard(BaseModel):
+    slug: str
+    display_name: str
+    kind: str
+    bio: str | None = None
+    logo_url: str | None = None
+    website_url: str | None = None
+    hf_url: str | None = None
+    city: str | None = None
+    model_count: int = 0
+    curated: bool = False
+
+
+class LlmModelRow(BaseModel):
+    name: str
+    technique: str | None = None
+    published_at: str | None = None
+    downloads: int = 0
+    source_url: str | None = None
+    website_url: str | None = None
+
+
+class LlmDeveloperComment(BaseModel):
+    id: str
+    author_name: str
+    body: str
+    created_at: datetime
+    status: str = "approved"
+
+
+class LlmDeveloperDetail(BaseModel):
+    slug: str
+    display_name: str
+    kind: str
+    bio: str | None = None
+    logo_url: str | None = None
+    website_url: str | None = None
+    hf_url: str | None = None
+    city: str | None = None
+    lat: float | None = None
+    lng: float | None = None
+    model_count: int = 0
+    models: list[LlmModelRow] = []
+    comments: list[LlmDeveloperComment] = []
+    curated: bool = False
+
+
+class TurkiyeLlmOverview(BaseModel):
+    kpi: LlmKpi
+    by_technique: list[LlmChartBucket]
+    by_year: list[LlmYearBucket]
+    top_producers: list[LlmDeveloperCard]
+    map_pins: list[LlmMapPin]
+    news: list[EventCard]
+    radar_url: str = "https://llmradar.planetai9.com/#turkish"
+
+
+class DeveloperCommentCreate(BaseModel):
+    author_name: str = Field(min_length=2, max_length=120)
+    author_email: str | None = Field(default=None, max_length=200)
+    body: str = Field(min_length=8, max_length=4000)
+
+
+class DeveloperCommentQueueItem(BaseModel):
+    id: str
+    developer_slug: str
+    developer_name: str
+    author_name: str
+    author_email: str | None
+    body: str
+    status: str
+    created_at: datetime
+
+
+class DeveloperCommentStatusUpdate(BaseModel):
+    status: str = Field(pattern="^(approved|rejected|pending)$")
+
+
 EventDetail.model_rebuild()
 VideoDetail.model_rebuild()
 EntityDetail.model_rebuild()
+TurkiyeLlmOverview.model_rebuild()

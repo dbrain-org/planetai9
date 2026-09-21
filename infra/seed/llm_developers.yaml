@@ -1,0 +1,244 @@
+# Curated TR LLM producers for /turkiye-llm.
+# Model catalogue stays on LLM Radar; these rows add bio, map pins, and Q&A hosts.
+# radar_slug should match HF org / Radar company slug when known.
+
+developers:
+  - slug: ytu-ce-cosmos
+    display_name: YTÜ CE Cosmos
+    kind: org
+    radar_slug: ytu-ce-cosmos
+    bio: "Yıldız Teknik Üniversitesi bilgisayar mühendisliği — Türkçe LLM ve NLP."
+    website_url: https://huggingface.co/ytu-ce-cosmos
+    hf_url: https://huggingface.co/ytu-ce-cosmos
+    city: İstanbul
+    lat: 41.0264
+    lng: 28.8900
+    sort_order: 10
+
+  - slug: vngrs
+    display_name: VNGRS
+    kind: org
+    radar_slug: vngrs-ai
+    bio: "Kumru ve açık kaynak Türkçe dil modelleri."
+    website_url: https://vngrs.com
+    hf_url: https://huggingface.co/vngrs-ai
+    city: İstanbul
+    lat: 41.0850
+    lng: 29.0120
+    sort_order: 20
+
+  - slug: dbmdz
+    display_name: MDZ Digital Library
+    kind: org
+    radar_slug: dbmdz
+    bio: "BERTurk ailesi — Türkçe transformer modellerinin öncüleri."
+    website_url: https://huggingface.co/dbmdz
+    hf_url: https://huggingface.co/dbmdz
+    city: Münih
+    lat: null
+    lng: null
+    sort_order: 30
+
+  - slug: savasy
+    display_name: Savaş Yıldırım
+    kind: person
+    radar_slug: savasy
+    bio: "Türkçe NER, duygu analizi ve QNLI modelleri."
+    website_url: https://huggingface.co/savasy
+    hf_url: https://huggingface.co/savasy
+    city: İstanbul
+    lat: 41.0150
+    lng: 28.9800
+    sort_order: 40
+
+  - slug: turkcell
+    display_name: Turkcell
+    kind: org
+    radar_slug: turkcell
+    bio: "Türk telekom ekosisteminde dil teknolojisi ve LLM çalışmaları."
+    website_url: https://www.turkcell.com.tr
+    hf_url: https://huggingface.co/TURKCELL
+    city: İstanbul
+    lat: 41.0780
+    lng: 29.0100
+    sort_order: 50
+
+  - slug: wiroai
+    display_name: Wiro AI
+    kind: org
+    radar_slug: wiroai
+    bio: "Türkiye merkezli model geliştirme."
+    website_url: https://wiro.ai
+    hf_url: https://huggingface.co/WiroAI
+    city: İstanbul
+    lat: 41.0420
+    lng: 29.0050
+    sort_order: 60
+
+  - slug: loodos
+    display_name: Loodos
+    kind: org
+    radar_slug: loodos
+    bio: "Türkçe NLP ve dil modeli çalışmaları."
+    website_url: https://loodos.com
+    hf_url: https://huggingface.co/loodos
+    city: İstanbul
+    lat: 41.0550
+    lng: 28.9950
+    sort_order: 70
+
+  - slug: alican-kiraz
+    display_name: Alican Kiraz
+    kind: person
+    radar_slug: alicankiraz0
+    bio: "Açık kaynak Türkçe güvenlik / LLM modelleri."
+    website_url: https://huggingface.co/AlicanKiraz0
+    hf_url: https://huggingface.co/AlicanKiraz0
+    city: İstanbul
+    lat: 41.0680
+    lng: 29.0200
+    sort_order: 80
+
+  - slug: emrecan
+    display_name: Emrecan
+    kind: person
+    radar_slug: emrecan
+    bio: "Türkçe encoder / dil modeli katkıları."
+    website_url: https://huggingface.co/emrecan
+    hf_url: https://huggingface.co/emrecan
+    city: Ankara
+    lat: 39.9250
+    lng: 32.8600
+    sort_order: 90
+
+  - slug: akdeniz27
+    display_name: Akdeniz27
+    kind: person
+    radar_slug: akdeniz27
+    bio: "Türkçe NER ve encoder modelleri."
+    website_url: https://huggingface.co/akdeniz27
+    hf_url: https://huggingface.co/akdeniz27
+    city: Antalya
+    lat: 36.8969
+    lng: 30.7133
+    sort_order: 100
+
+  - slug: selman-baysan
+    display_name: Selman Baysan
+    kind: person
+    radar_slug: selmanbaysan
+    bio: "Türkçe LLM ve ince ayar çalışmaları."
+    website_url: https://huggingface.co/selmanbaysan
+    hf_url: https://huggingface.co/selmanbaysan
+    city: İstanbul
+    lat: 41.0350
+    lng: 28.9700
+    sort_order: 110
+
+  - slug: ctoraman
+    display_name: C. Toraman
+    kind: person
+    radar_slug: ctoraman
+    bio: "Türkçe dil işleme modelleri."
+    website_url: https://huggingface.co/ctoraman
+    hf_url: https://huggingface.co/ctoraman
+    city: Ankara
+    lat: 39.9400
+    lng: 32.8400
+    sort_order: 120
+
+  - slug: fkuyumcu
+    display_name: F. Kuyumcu
+    kind: person
+    radar_slug: fkuyumcu
+    bio: "Türkçe model yayınları."
+    website_url: https://huggingface.co/fkuyumcu
+    hf_url: https://huggingface.co/fkuyumcu
+    city: İzmir
+    lat: 38.4237
+    lng: 27.1428
+    sort_order: 130
+
+  - slug: trmteb
+    display_name: TRMTEB
+    kind: org
+    radar_slug: trmteb
+    bio: "Türkçe embedding / değerlendirme çalışmaları."
+    website_url: https://huggingface.co/trmteb
+    hf_url: https://huggingface.co/trmteb
+    city: İstanbul
+    lat: 41.0480
+    lng: 29.0000
+    sort_order: 140
+
+  - slug: bogazici-cmpe
+    display_name: Boğaziçi CMPE
+    kind: org
+    radar_slug: bogazici-cmpe
+    bio: "Boğaziçi Üniversitesi bilgisayar mühendisliği NLP / dil modelleri."
+    website_url: https://www.cmpe.boun.edu.tr
+    hf_url: null
+    city: İstanbul
+    lat: 41.0850
+    lng: 29.0450
+    sort_order: 150
+
+  - slug: metu-ceng
+    display_name: ODTÜ CENG
+    kind: org
+    radar_slug: metu-ceng
+    bio: "Orta Doğu Teknik Üniversitesi bilgisayar mühendisliği NLP araştırmaları."
+    website_url: https://ceng.metu.edu.tr
+    hf_url: null
+    city: Ankara
+    lat: 39.8910
+    lng: 32.7840
+    sort_order: 160
+
+  - slug: bilkent-cs
+    display_name: Bilkent CS
+    kind: org
+    radar_slug: bilkent-cs
+    bio: "Bilkent Üniversitesi bilgisayar / dil teknolojileri."
+    website_url: https://www.cs.bilkent.edu.tr
+    hf_url: null
+    city: Ankara
+    lat: 39.8680
+    lng: 32.7490
+    sort_order: 170
+
+  - slug: koc-ai
+    display_name: Koç Üniversitesi AI
+    kind: org
+    radar_slug: koc-ai
+    bio: "Koç Üniversitesi yapay zekâ ve dil teknolojileri."
+    website_url: https://www.ku.edu.tr
+    hf_url: null
+    city: İstanbul
+    lat: 41.2050
+    lng: 29.0720
+    sort_order: 180
+
+  - slug: sabanci-nlp
+    display_name: Sabancı NLP
+    kind: org
+    radar_slug: sabanci-nlp
+    bio: "Sabancı Üniversitesi doğal dil işleme grubu."
+    website_url: https://www.sabanciuniv.edu
+    hf_url: null
+    city: İstanbul
+    lat: 40.8910
+    lng: 29.3780
+    sort_order: 190
+
+  - slug: tubitak-bilgem
+    display_name: TÜBİTAK BİLGEM
+    kind: org
+    radar_slug: tubitak-bilgem
+    bio: "Ulusal bilişim / dil teknolojileri araştırma merkezi."
+    website_url: https://bilgem.tubitak.gov.tr
+    hf_url: null
+    city: Kocaeli
+    lat: 40.7860
+    lng: 29.4500
+    sort_order: 200

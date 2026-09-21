@@ -24,6 +24,7 @@ from planetai_api.routers import (
     news_submissions,
     search,
     trends,
+    turkiye_llm,
     videos,
 )
 
@@ -84,6 +85,7 @@ app.include_router(curated.router, prefix=API_V1, tags=["curated"])
 app.include_router(news_submissions.router, prefix=API_V1, tags=["news_submissions"])
 app.include_router(auth.router, prefix=API_V1, tags=["auth"])
 app.include_router(engagement.router, prefix=API_V1, tags=["engagement"])
+app.include_router(turkiye_llm.router, prefix=API_V1, tags=["turkiye_llm"])
 app.include_router(meta.router, prefix=API_V1, tags=["meta"])
 
 

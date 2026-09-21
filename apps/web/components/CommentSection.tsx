@@ -88,9 +88,12 @@ function CommentText({
 export function CommentSection({
   slug,
   locale = "tr",
+  kind = "event",
 }: {
   slug: string;
   locale?: "tr" | "en";
+  /** News articles use event endpoints; Türkiye LLM producers use developer endpoints. */
+  kind?: "event" | "developer";
 }) {
   const tr = locale === "tr";
   const [comments, setComments] = useState<Comment[]>([]);
@@ -102,13 +105,16 @@ export function CommentSection({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const commentsBase =
+    kind === "developer"
+      ? `/api/engagement/developers/${encodeURIComponent(slug)}/comments`
+      : `/api/engagement/${encodeURIComponent(slug)}/comments`;
+
   const load = useCallback(async () => {
-    const res = await fetch(`/api/engagement/${encodeURIComponent(slug)}/comments`, {
-      cache: "no-store",
-    });
+    const res = await fetch(commentsBase, { cache: "no-store" });
     if (!res.ok) return;
     setComments((await res.json()) as Comment[]);
-  }, [slug]);
+  }, [commentsBase]);
 
   useEffect(() => {
     load().catch(() => undefined);
@@ -143,15 +149,14 @@ export function CommentSection({
     setError(null);
     setBusy(true);
     try {
-      const res = await fetch(`/api/engagement/${encodeURIComponent(slug)}/comments`, {
+      const res = await fetch(commentsBase, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           body: text,
           ...(parentId ? { parent_id: parentId } : {}),
         }),
-      });
-      const data = await res.json().catch(() => ({}));
+      });      const data = await res.json().catch(() => ({}));
       if (res.status === 401) {
         setError(tr ? "Yorum için giriş yapmalısınız." : "Please sign in to comment.");
         return false;
@@ -192,10 +197,9 @@ export function CommentSection({
   }
 
   async function remove(id: string) {
-    const res = await fetch(
-      `/api/engagement/${encodeURIComponent(slug)}/comments?id=${encodeURIComponent(id)}`,
-      { method: "DELETE" },
-    );
+    const res = await fetch(`${commentsBase}?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
     if (!res.ok) return;
     setComments((prev) => prev.filter((c) => c.id !== id && c.parent_id !== id));
     if (replyTo?.id === id) setReplyTo(null);
@@ -206,10 +210,9 @@ export function CommentSection({
       setError(tr ? "Beğenmek için giriş yapın." : "Sign in to like.");
       return;
     }
-    const res = await fetch(
-      `/api/engagement/${encodeURIComponent(slug)}/comments/${encodeURIComponent(c.id)}/like`,
-      { method: "POST" },
-    );
+    const res = await fetch(`${commentsBase}/${encodeURIComponent(c.id)}/like`, {
+      method: "POST",
+    });
     if (res.status === 401) {
       setError(tr ? "Beğenmek için giriş yapın." : "Sign in to like.");
       return;

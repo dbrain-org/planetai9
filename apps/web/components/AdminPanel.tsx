@@ -702,8 +702,7 @@ export function AdminPanel({
           </section>
           {decidedNews.length > 0 && (
             <section>
-              <h2 className="sec-title mb-4">Karar verilen haberler</h2>
-              <ul className="space-y-3">
+              <h2 className="sec-title mb-4">Karar verilen haberler</h2>              <ul className="space-y-3">
                 {decidedNews.map((n) => (
                   <NewsRow key={n.id} item={n} onAction={onNewsAction} onSave={onNewsSave} />
                 ))}

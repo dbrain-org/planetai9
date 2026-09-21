@@ -2,10 +2,27 @@
 
 import { useState } from "react";
 
-/** Route publisher images through our proxy so hot-link-blocked hosts (Reddit…) still load. */
-function proxied(src: string): string {
+/** Hosts that block hot-linking — route through /img. Everyone else loads direct. */
+function needsProxy(src: string): boolean {
+  try {
+    const host = new URL(src).hostname.toLowerCase();
+    return (
+      host === "redd.it" ||
+      host.endsWith(".redd.it") ||
+      host.endsWith("redditmedia.com") ||
+      host.endsWith("redditstatic.com") ||
+      host === "reddit.com" ||
+      host.endsWith(".reddit.com")
+    );
+  } catch {
+    return false;
+  }
+}
+
+function resolveSrc(src: string): string {
   if (src.startsWith("/") || src.startsWith("data:")) return src;
-  return `/img?u=${encodeURIComponent(src)}`;
+  if (needsProxy(src)) return `/img?u=${encodeURIComponent(src)}`;
+  return src;
 }
 
 /** <img> that removes itself on load failure so the parent's gradient placeholder shows through. */
@@ -24,7 +41,7 @@ export function CoverImg({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={proxied(src)}
+      src={resolveSrc(src)}
       alt=""
       loading="lazy"
       referrerPolicy="no-referrer"

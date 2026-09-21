@@ -64,6 +64,12 @@ class Settings(BaseSettings):
     sentry_dsn: str | None = None
     sentry_traces_sample_rate: float = 0.0
 
+    # LLM Radar (Türkiye LLM vitrin). Unset ⇒ overview falls back to curated + news.
+    # api_base = JSON API; web_base = browser UI (may differ locally: :8080 vs :3000).
+    llmradar_api_base: str = "https://llmradar.planetai9.com"
+    llmradar_web_base: str = "https://llmradar.planetai9.com"
+    cache_ttl_turkiye_llm_sec: int = 600
+
     # feature flags
     ai_enrich_enabled: bool = False
 

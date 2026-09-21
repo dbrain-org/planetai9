@@ -551,6 +551,77 @@ class CommentLike(Base):
     )
 
 
+class LlmDeveloper(Base, TimestampMixin):
+    """Curated TR LLM producer profile for the /turkiye-llm vitrin.
+
+    Model catalogue stays on LLM Radar; this row only holds editorial bio / map pin.
+    """
+
+    __tablename__ = "llm_developers"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    slug: Mapped[str] = mapped_column(String(160), unique=True)
+    display_name: Mapped[str] = mapped_column(String(200))
+    kind: Mapped[str] = mapped_column(String(12), default="org")  # org | person
+    bio: Mapped[str | None] = mapped_column(Text)
+    logo_url: Mapped[str | None] = mapped_column(Text)
+    website_url: Mapped[str | None] = mapped_column(Text)
+    hf_url: Mapped[str | None] = mapped_column(Text)
+    city: Mapped[str | None] = mapped_column(String(120))
+    lat: Mapped[float | None] = mapped_column(Numeric(9, 6))
+    lng: Mapped[float | None] = mapped_column(Numeric(9, 6))
+    # Matches Radar company_slug / HF org when known
+    radar_slug: Mapped[str | None] = mapped_column(String(160))
+    published: Mapped[bool] = mapped_column(Boolean, default=True)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+
+    __table_args__ = (
+        Index("ix_llm_developers_published", "published", "sort_order"),
+        Index("ix_llm_developers_radar_slug", "radar_slug"),
+    )
+
+
+class DeveloperComment(Base, TimestampMixin):
+    """Logged-in Q&A on a curated LLM developer page (same UX as news comments)."""
+
+    __tablename__ = "developer_comments"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    developer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("llm_developers.id", ondelete="CASCADE")
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    parent_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("developer_comments.id", ondelete="CASCADE")
+    )
+    body: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(12), default="active")  # active | deleted
+    like_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    user: Mapped[User] = relationship()
+    developer: Mapped[LlmDeveloper] = relationship()
+
+    __table_args__ = (
+        Index("ix_developer_comments_dev", "developer_id", "created_at"),
+        Index("ix_developer_comments_user", "user_id"),
+        Index("ix_developer_comments_parent", "parent_id"),
+    )
+
+
+class DeveloperCommentLike(Base):
+    __tablename__ = "developer_comment_likes"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    comment_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("developer_comments.id", ondelete="CASCADE"), primary_key=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class IngestRun(Base):
     """Bookkeeping for scheduler visibility / healthz."""
 

@@ -347,6 +347,29 @@ def fix_llmradar_asset_paths(db: Session) -> None:
     db.flush()
 
 
+def seed_llm_developers(db: Session) -> None:
+    """Upsert curated TR LLM producer profiles for /turkiye-llm."""
+    for i, row in enumerate(config.llm_developers().get("developers") or []):
+        slug = row["slug"]
+        ent = db.scalar(select(models.LlmDeveloper).where(models.LlmDeveloper.slug == slug))
+        if ent is None:
+            ent = models.LlmDeveloper(slug=slug)
+            db.add(ent)
+        ent.display_name = row["display_name"]
+        ent.kind = row.get("kind") or "org"
+        ent.bio = (row.get("bio") or "").strip() or None
+        ent.logo_url = row.get("logo_url")
+        ent.website_url = row.get("website_url")
+        ent.hf_url = row.get("hf_url")
+        ent.city = row.get("city")
+        ent.lat = row.get("lat")
+        ent.lng = row.get("lng")
+        ent.radar_slug = row.get("radar_slug") or slug
+        ent.published = bool(row.get("published", True))
+        ent.sort_order = int(row.get("sort_order", i * 10))
+    db.flush()
+
+
 def run() -> None:
     with session_scope() as db:
         seed_entities(db)
@@ -357,6 +380,7 @@ def run() -> None:
         seed_marketplace(db)
         seed_curated_links(db)
         seed_stories(db)
+        seed_llm_developers(db)
         fix_llmradar_asset_paths(db)
     log.info("seed complete")
 

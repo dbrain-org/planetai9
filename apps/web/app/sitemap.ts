@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { apiSafe } from "@/lib/api";
-import type { EventCard, TopicTrend } from "@/lib/types";
+import type { EventCard, LlmDeveloperCard, TopicTrend } from "@/lib/types";
 
 const SITE = process.env.PLANETAI_SITE_URL ?? "https://planetai9.com";
 
@@ -19,11 +19,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     cursor = res.next_cursor;
   }
 
-  const trends = await apiSafe<TopicTrend[]>("/trends?limit=30", []);
+  const [trends, llmDevs] = await Promise.all([
+    apiSafe<TopicTrend[]>("/trends?limit=30", []),
+    apiSafe<LlmDeveloperCard[]>("/turkiye-llm/developers", []),
+  ]);
 
-  const staticPages = ["", "/news", "/turkiye", "/trends", "/videos", "/marketplace", "/yazarlar", "/hakkinda", "/gizlilik", "/sources"].map(
-    (p) => ({ url: `${SITE}${p}`, changeFrequency: "daily" as const, priority: p === "" ? 1 : 0.7 }),
-  );
+  const staticPages = [
+    "",
+    "/news",
+    "/turkiye",
+    "/turkiye-llm",
+    "/turkiye-llm/ureticiler",
+    "/trends",
+    "/videos",
+    "/marketplace",
+    "/yazarlar",
+    "/hakkinda",
+    "/gizlilik",
+    "/sources",
+  ].map((p) => ({
+    url: `${SITE}${p}`,
+    changeFrequency: "daily" as const,
+    priority: p === "" ? 1 : 0.7,
+  }));
 
   return [
     ...staticPages,
@@ -37,6 +55,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${SITE}/trends/${t.topic.slug}`,
       changeFrequency: "daily" as const,
       priority: 0.5,
+    })),
+    ...llmDevs.map((d) => ({
+      url: `${SITE}/turkiye-llm/ureticiler/${d.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.55,
     })),
   ];
 }

@@ -76,3 +76,11 @@ def stories() -> dict:
     if not path.exists():
         return {"stories": []}
     return _load("stories.yaml") or {"stories": []}
+
+
+@lru_cache
+def llm_developers() -> dict:
+    path = SEED_DIR / "llm_developers.yaml"
+    if not path.exists():
+        return {"developers": []}
+    return _load("llm_developers.yaml") or {"developers": []}

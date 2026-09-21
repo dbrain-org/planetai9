@@ -12,6 +12,7 @@ export async function SiteFooter() {
     { label: tr ? "Gündem" : "News", href: "/" },
     { label: tr ? "Dünya" : "World", href: "/news?region=world" },
     { label: "VeriVatan", href: "/turkiye" },
+    { label: tr ? "Türkiye LLM" : "Türkiye LLM", href: "/turkiye-llm" },
     { label: "TAKYAP", href: "/marketplace" },
     { label: tr ? "Yazarlar" : "Authors", href: "/yazarlar" },
     { label: tr ? "Kişiler" : "People", href: "/kisiler" },

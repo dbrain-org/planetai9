@@ -3,7 +3,6 @@ import { getDict, getLocale } from "@/lib/i18n";
 import { AuthMenu } from "./AuthMenu";
 import { LangToggle } from "./LangToggle";
 import { ThemeToggle } from "./ThemeToggle";
-import { SearchBox } from "./SearchBox";
 import { LogoMark } from "./Logo";
 
 export async function Masthead() {
@@ -14,6 +13,7 @@ export async function Masthead() {
     { label: t.nav.news, href: "/" },
     { label: t.nav.world, href: "/news?region=world" },
     { label: t.nav.turkey, href: "/turkiye" },
+    { label: t.nav.turkeyLlm, href: "/turkiye-llm" },
     { label: "LLMRadar", href: "https://llmradar.planetai9.com", external: true },
     { label: t.nav.authors, href: "/yazarlar" },
     { label: t.nav.marketplace, href: "/marketplace" },
@@ -61,9 +61,6 @@ export async function Masthead() {
         </nav>
 
         <div className="ml-auto flex shrink-0 items-center gap-2.5 lg:ml-0">
-          <div className="hidden w-48 2xl:block">
-            <SearchBox placeholder={t.searchPlaceholder} />
-          </div>
           <AuthMenu locale={locale} />
           <LangToggle locale={locale} />
           <ThemeToggle />

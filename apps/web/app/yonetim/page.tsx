@@ -33,7 +33,13 @@ export default async function AdminPage() {
           onayla veya düzenle.
         </p>
       </header>
-      <AdminPanel authed={authed} apps={apps} news={news} authors={authors} shares={shares} />
+      <AdminPanel
+        authed={authed}
+        apps={apps}
+        news={news}
+        authors={authors}
+        shares={shares}
+      />
     </div>
   );
 }

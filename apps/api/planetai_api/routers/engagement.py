@@ -343,3 +343,218 @@ def delete_comment(
     ev.comment_count = max(0, int(ev.comment_count or 0) - removed)
     db.commit()
     return {"ok": True}
+
+
+def _developer_or_404(db: Session, slug: str) -> models.LlmDeveloper:
+    dev = db.scalar(
+        select(models.LlmDeveloper).where(
+            models.LlmDeveloper.slug == slug,
+            models.LlmDeveloper.published.is_(True),
+        )
+    )
+    if dev is None:
+        raise HTTPException(404, "üretici bulunamadı")
+    return dev
+
+
+def _pack_developer_comments(
+    db: Session,
+    rows: list,
+    user: models.User | None,
+) -> list[CommentOut]:
+    liked_ids: set = set()
+    if user is not None and rows:
+        ids = [c.id for c, _ in rows]
+        liked_ids = set(
+            db.scalars(
+                select(models.DeveloperCommentLike.comment_id).where(
+                    models.DeveloperCommentLike.user_id == user.id,
+                    models.DeveloperCommentLike.comment_id.in_(ids),
+                )
+            ).all()
+        )
+
+    by_id = {c.id: (c, u) for c, u in rows}
+    known_names = {uu.display_name for _, uu in by_id.values()}
+    out: list[CommentOut] = []
+    for c, u in rows:
+        reply_to: str | None = None
+        if c.parent_id and c.parent_id in by_id:
+            parent_name = by_id[c.parent_id][1].display_name
+            body_l = c.body.lstrip()
+            parent_mention = f"@{parent_name}"
+            if body_l.lower().startswith(parent_mention.lower()):
+                reply_to = parent_name
+            elif body_l.startswith("@"):
+                after = body_l[1:]
+                matched = next(
+                    (
+                        n
+                        for n in sorted(known_names, key=len, reverse=True)
+                        if after.lower() == n.lower() or after.lower().startswith(n.lower() + " ")
+                    ),
+                    None,
+                )
+                reply_to = matched or after.split(None, 1)[0]
+            else:
+                reply_to = parent_name
+        out.append(
+            CommentOut(
+                id=str(c.id),
+                body=c.body,
+                created_at=c.created_at,
+                author_name=u.display_name,
+                is_mine=bool(user and u.id == user.id),
+                parent_id=str(c.parent_id) if c.parent_id else None,
+                reply_to_name=reply_to,
+                like_count=int(c.like_count or 0),
+                liked_by_me=c.id in liked_ids,
+            )
+        )
+    return out
+
+
+@router.get("/developers/{slug}/comments", response_model=list[CommentOut])
+def list_developer_comments(
+    slug: str,
+    db: Session = Depends(get_db),
+    user: models.User | None = Depends(get_optional_user),
+    limit: int = Query(100, ge=1, le=200),
+) -> list[CommentOut]:
+    dev = _developer_or_404(db, slug)
+    rows = db.execute(
+        select(models.DeveloperComment, models.User)
+        .join(models.User, models.User.id == models.DeveloperComment.user_id)
+        .where(
+            models.DeveloperComment.developer_id == dev.id,
+            models.DeveloperComment.status == "active",
+        )
+        .order_by(models.DeveloperComment.created_at.asc())
+        .limit(limit)
+    ).all()
+    return _pack_developer_comments(db, rows, user)
+
+
+@router.post("/developers/{slug}/comments", response_model=CommentOut, status_code=201)
+@limiter.limit("20/hour")
+def post_developer_comment(
+    request: Request,
+    slug: str,
+    payload: CommentIn,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_user),
+) -> CommentOut:
+    import uuid as _uuid
+
+    dev = _developer_or_404(db, slug)
+    body = " ".join(payload.body.split()).strip()
+    if len(body) < 2:
+        raise HTTPException(422, "yorum çok kısa")
+
+    parent_id = None
+    reply_to_name: str | None = None
+    if payload.parent_id:
+        try:
+            pid = _uuid.UUID(payload.parent_id)
+        except ValueError as exc:
+            raise HTTPException(422, "geçersiz yanıt") from exc
+        parent = db.get(models.DeveloperComment, pid)
+        if parent is None or parent.developer_id != dev.id or parent.status != "active":
+            raise HTTPException(404, "yanıtlanacak yorum bulunamadı")
+        parent_id = parent.parent_id or parent.id
+        reply_user = db.get(models.User, parent.user_id)
+        reply_to_name = reply_user.display_name if reply_user else None
+        if reply_to_name:
+            mention = f"@{reply_to_name}"
+            if not body.lower().startswith(mention.lower()):
+                body = f"{mention} {body}"
+
+    c = models.DeveloperComment(
+        id=_uuid.uuid4(),
+        developer_id=dev.id,
+        user_id=user.id,
+        parent_id=parent_id,
+        body=body,
+        status="active",
+        like_count=0,
+    )
+    db.add(c)
+    db.commit()
+    db.refresh(c)
+    return CommentOut(
+        id=str(c.id),
+        body=c.body,
+        created_at=c.created_at or datetime.now(UTC),
+        author_name=user.display_name,
+        is_mine=True,
+        parent_id=str(c.parent_id) if c.parent_id else None,
+        reply_to_name=reply_to_name,
+        like_count=0,
+        liked_by_me=False,
+    )
+
+
+@router.post("/developers/{slug}/comments/{comment_id}/like", response_model=LikeOut)
+@limiter.limit("60/minute")
+def toggle_developer_comment_like(
+    request: Request,
+    slug: str,
+    comment_id: str,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_user),
+) -> LikeOut:
+    import uuid as _uuid
+
+    dev = _developer_or_404(db, slug)
+    try:
+        cid = _uuid.UUID(comment_id)
+    except ValueError as exc:
+        raise HTTPException(404, "yorum bulunamadı") from exc
+    c = db.get(models.DeveloperComment, cid)
+    if c is None or c.developer_id != dev.id or c.status != "active":
+        raise HTTPException(404, "yorum bulunamadı")
+
+    existing = db.get(models.DeveloperCommentLike, (user.id, c.id))
+    if existing is not None:
+        db.delete(existing)
+        c.like_count = max(0, int(c.like_count or 0) - 1)
+        liked = False
+    else:
+        db.add(models.DeveloperCommentLike(user_id=user.id, comment_id=c.id))
+        c.like_count = int(c.like_count or 0) + 1
+        liked = True
+    db.commit()
+    db.refresh(c)
+    return LikeOut(liked=liked, like_count=int(c.like_count or 0))
+
+
+@router.delete("/developers/{slug}/comments/{comment_id}")
+def delete_developer_comment(
+    slug: str,
+    comment_id: str,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_user),
+) -> dict:
+    import uuid as _uuid
+
+    dev = _developer_or_404(db, slug)
+    try:
+        cid = _uuid.UUID(comment_id)
+    except ValueError as exc:
+        raise HTTPException(404, "yorum bulunamadı") from exc
+    c = db.get(models.DeveloperComment, cid)
+    if c is None or c.developer_id != dev.id or c.status != "active":
+        raise HTTPException(404, "yorum bulunamadı")
+    if c.user_id != user.id:
+        raise HTTPException(403, "bu yorumu silemezsiniz")
+    kids = db.scalars(
+        select(models.DeveloperComment).where(
+            models.DeveloperComment.parent_id == c.id,
+            models.DeveloperComment.status == "active",
+        )
+    ).all()
+    c.status = "deleted"
+    for kid in kids:
+        kid.status = "deleted"
+    db.commit()
+    return {"ok": True}
