@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from planetai_shared.db import models
@@ -12,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from planetai_api import cache, schemas, serializers
 from planetai_api.db import get_db, get_lang
+from planetai_api.hf_catalog import HfCatalog, catalog_for
 from planetai_api.radar_client import (
     aggregate_orgs,
     fetch_turkish_models,
@@ -460,6 +462,8 @@ def get_developer(slug: str, db: Session = Depends(get_db)) -> schemas.LlmDevelo
     ]
 
     display_name = curated.display_name if curated else (org.name if org else slug)
+    hf_url = (curated.hf_url if curated else None) or (org.hf_url if org else None)
+    hf = _hf_out(catalog_for(hf_url))
     return schemas.LlmDeveloperDetail(
         slug=curated.slug if curated else (org.slug if org else slug),
         display_name=display_name,
@@ -468,7 +472,7 @@ def get_developer(slug: str, db: Session = Depends(get_db)) -> schemas.LlmDevelo
         logo_url=curated.logo_url if curated else None,
         website_url=(curated.website_url if curated else None)
         or (org.website_url if org else None),
-        hf_url=(curated.hf_url if curated else None) or (org.hf_url if org else None),
+        hf_url=hf_url,
         linkedin_url=curated.linkedin_url if curated else None,
         github_url=curated.github_url if curated else None,
         city=curated.city if curated else None,
@@ -476,6 +480,54 @@ def get_developer(slug: str, db: Session = Depends(get_db)) -> schemas.LlmDevelo
         lng=float(curated.lng) if curated and curated.lng is not None else None,
         model_count=len(model_rows),
         models=model_rows,
+        hf=hf,
         comments=[],
         curated=curated is not None,
     )
+
+
+def _hf_out(catalog: HfCatalog) -> schemas.HfCatalogOut:
+    def rows(items) -> list[schemas.HfShare]:
+        return [
+            schemas.HfShare(
+                name=i.name,
+                url=i.url,
+                kind=i.kind,
+                downloads=i.downloads,
+                pipeline=i.pipeline,
+            )
+            for i in items
+        ]
+
+    return schemas.HfCatalogOut(
+        llm=rows(catalog.llm),
+        tts=rows(catalog.tts),
+        datasets=rows(catalog.datasets),
+    )
+
+
+@router.get("/open-datasets", response_model=list[schemas.OpenDatasetCard])
+def open_datasets(db: Session = Depends(get_db)) -> list[schemas.OpenDatasetCard]:
+    """Datasets published on Hugging Face by curated Türkiye LLM producers."""
+    producers = [(d.slug, d.display_name, d.hf_url) for d in _curated_published(db) if d.hf_url]
+    cards: list[schemas.OpenDatasetCard] = []
+
+    def _one(row: tuple[str, str, str]) -> list[schemas.OpenDatasetCard]:
+        slug, name, hf_url = row
+        return [
+            schemas.OpenDatasetCard(
+                name=item.name,
+                url=item.url,
+                downloads=item.downloads,
+                producer_slug=slug,
+                producer_name=name,
+            )
+            for item in catalog_for(hf_url).datasets
+        ]
+
+    if producers:
+        with ThreadPoolExecutor(max_workers=min(8, len(producers))) as pool:
+            for batch in pool.map(_one, producers):
+                cards.extend(batch)
+    cards.sort(key=lambda c: (-c.downloads, c.name.casefold()))
+    return cards

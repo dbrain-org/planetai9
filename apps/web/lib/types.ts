@@ -383,6 +383,28 @@ export interface LlmDeveloperComment {
   status: string;
 }
 
+export interface HfShare {
+  name: string;
+  url: string;
+  kind: string;
+  downloads: number;
+  pipeline?: string | null;
+}
+
+export interface HfCatalog {
+  llm: HfShare[];
+  tts: HfShare[];
+  datasets: HfShare[];
+}
+
+export interface OpenDatasetCard {
+  name: string;
+  url: string;
+  downloads: number;
+  producer_slug: string;
+  producer_name: string;
+}
+
 export interface LlmDeveloperDetail {
   slug: string;
   display_name: string;
@@ -398,6 +420,7 @@ export interface LlmDeveloperDetail {
   lng?: number | null;
   model_count: number;
   models: LlmModelRow[];
+  hf?: HfCatalog;
   comments: LlmDeveloperComment[];
   curated: boolean;
 }

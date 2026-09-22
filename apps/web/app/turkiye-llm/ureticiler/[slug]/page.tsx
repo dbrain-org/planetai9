@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { api, apiSafe } from "@/lib/api";
 import { getLocale } from "@/lib/i18n";
-import type { LlmDeveloperDetail } from "@/lib/types";
+import type { HfShare, LlmDeveloperDetail } from "@/lib/types";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Building2, ExternalLink, UserRound } from "lucide-react";
@@ -33,6 +33,67 @@ export async function generateMetadata({
       url: `/turkiye-llm/ureticiler/${detail.slug}`,
     },
   };
+}
+
+function ShareRows({ items, tr }: { items: HfShare[]; tr: boolean }) {
+  return (
+    <div className="mt-3 divide-y divide-line border-y border-line dark:divide-d-line dark:border-d-line">
+      {items.map((item) => (
+        <a
+          key={item.url}
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block hover:bg-wash/60 dark:hover:bg-d-wash/40"
+        >
+          <div className="flex items-center gap-3 py-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[14px] font-semibold text-ink dark:text-d-ink">{item.name}</p>
+              <p className="text-[12px] text-muted">
+                {item.pipeline ? item.pipeline : "Hugging Face"}
+                {item.downloads > 0
+                  ? ` · ${item.downloads.toLocaleString(tr ? "tr-TR" : "en")} DL`
+                  : ""}
+              </p>
+            </div>
+            <ArrowUpRight className="h-4 w-4 shrink-0 text-accent" />
+          </div>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function HfShares({ detail, tr }: { detail: LlmDeveloperDetail; tr: boolean }) {
+  const hf = detail.hf ?? { llm: [], tts: [], datasets: [] };
+  const groups = [
+    { key: "llm", title: "LLM", items: hf.llm },
+    { key: "tts", title: "TTS", items: hf.tts },
+    { key: "data", title: tr ? "Veri" : "Data", items: hf.datasets },
+  ].filter((g) => g.items.length > 0);
+  if (groups.length === 0) return null;
+  return (
+    <section className="mt-10">
+      <h2 className="text-[13px] font-bold uppercase tracking-[0.1em] text-ink-2 dark:text-d-ink-2">
+        {tr ? "Hugging Face paylaşımları" : "Hugging Face shares"}
+      </h2>
+      <p className="mt-2 text-[13px] text-muted">
+        {tr
+          ? "Bu üreticinin açık model, ses ve veri setleri."
+          : "This producer’s public models, speech, and datasets."}
+      </p>
+      <div className="mt-6 space-y-8">
+        {groups.map((g) => (
+          <div key={g.key}>
+            <h3 className="text-[12px] font-bold uppercase tracking-[0.12em] text-muted">
+              {g.title} · {g.items.length}
+            </h3>
+            <ShareRows items={g.items} tr={tr} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export default async function UreticiDetailPage({
@@ -139,6 +200,8 @@ export default async function UreticiDetailPage({
             );
           })()}
         </div>
+
+        <HfShares detail={detail} tr={tr} />
 
         <section className="mt-10">
           <h2 className="text-[13px] font-bold uppercase tracking-[0.1em] text-ink-2 dark:text-d-ink-2">

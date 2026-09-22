@@ -1,10 +1,11 @@
 import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 import { DataShareForm } from "@/components/DataShareForm";
 import { SectionHeader } from "@/components/SectionHeader";
 import { apiSafe } from "@/lib/api";
 import { getLocale } from "@/lib/i18n";
 import { DATA_KIND_LABEL, kindLabel } from "@/lib/turkey";
-import type { CuratedLink } from "@/lib/types";
+import type { CuratedLink, OpenDatasetCard } from "@/lib/types";
 
 export const revalidate = 60;
 
@@ -12,9 +13,10 @@ export default async function TurkiyePage() {
   const locale = await getLocale();
   const tr = locale === "tr";
 
-  const [trData, trShare] = await Promise.all([
+  const [trData, trShare, producerData] = await Promise.all([
     apiSafe<CuratedLink[]>("/curated/tr_data", []),
     apiSafe<CuratedLink[]>("/curated/tr_share", []),
+    apiSafe<OpenDatasetCard[]>("/turkiye-llm/open-datasets", [], { revalidate: 3600 }),
   ]);
 
   const note = (l: CuratedLink) => (tr ? l.note_tr : l.note_en) ?? "";
@@ -75,9 +77,52 @@ export default async function TurkiyePage() {
         )}
       </section>
 
+      {producerData.length > 0 && (
+        <section>
+          <SectionHeader
+            index="02"
+            kicker={tr ? "Üreticiler" : "Producers"}
+            title={tr ? "Açık veri setleri" : "Open datasets"}
+          />
+          <p className="-mt-3 mb-7 max-w-2xl text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+            {tr
+              ? "Türkiye LLM üreticilerinin Hugging Face’te paylaştığı açık veri setleri."
+              : "Open datasets published on Hugging Face by Türkiye LLM producers."}
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {producerData.map((d) => (
+              <div key={d.url} className="card bg-paper p-5 dark:bg-d-paper">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="badge">{tr ? "Veri" : "Data"}</span>
+                  <a href={d.url} target="_blank" rel="noopener noreferrer" aria-label={d.name}>
+                    <ArrowUpRight className="h-4 w-4 shrink-0 text-muted transition-colors hover:text-accent" />
+                  </a>
+                </div>
+                <a
+                  href={d.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 block text-[15px] font-bold tracking-tight2 text-ink hover:text-accent dark:text-d-ink"
+                >
+                  {d.name}
+                </a>
+                <p className="mt-2 text-[13px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+                  <Link href={`/turkiye-llm/ureticiler/${d.producer_slug}`} className="hover:text-accent">
+                    {d.producer_name}
+                  </Link>
+                  {d.downloads > 0
+                    ? ` · ${d.downloads.toLocaleString(tr ? "tr-TR" : "en")} DL`
+                    : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section>
         <SectionHeader
-          index="02"
+          index={producerData.length > 0 ? "03" : "02"}
           kicker={tr ? "Topluluk" : "Community"}
           title={tr ? "Türkçe veri paylaşımı" : "Turkish data sharing"}
         />

@@ -262,6 +262,28 @@ class LlmDeveloperComment(BaseModel):
     status: str = "approved"
 
 
+class HfShare(BaseModel):
+    name: str
+    url: str
+    kind: str
+    downloads: int = 0
+    pipeline: str | None = None
+
+
+class HfCatalogOut(BaseModel):
+    llm: list[HfShare] = []
+    tts: list[HfShare] = []
+    datasets: list[HfShare] = []
+
+
+class OpenDatasetCard(BaseModel):
+    name: str
+    url: str
+    downloads: int = 0
+    producer_slug: str
+    producer_name: str
+
+
 class LlmDeveloperDetail(BaseModel):
     slug: str
     display_name: str
@@ -277,6 +299,7 @@ class LlmDeveloperDetail(BaseModel):
     lng: float | None = None
     model_count: int = 0
     models: list[LlmModelRow] = []
+    hf: HfCatalogOut = HfCatalogOut()
     comments: list[LlmDeveloperComment] = []
     curated: bool = False
 
