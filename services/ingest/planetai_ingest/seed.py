@@ -361,6 +361,8 @@ def seed_llm_developers(db: Session) -> None:
         ent.logo_url = row.get("logo_url")
         ent.website_url = row.get("website_url")
         ent.hf_url = row.get("hf_url")
+        ent.linkedin_url = (row.get("linkedin_url") or "").strip() or None
+        ent.github_url = (row.get("github_url") or "").strip() or None
         ent.city = row.get("city")
         ent.lat = row.get("lat")
         ent.lng = row.get("lng")

@@ -359,6 +359,8 @@ export interface LlmDeveloperCard {
   logo_url?: string | null;
   website_url?: string | null;
   hf_url?: string | null;
+  linkedin_url?: string | null;
+  github_url?: string | null;
   city?: string | null;
   model_count: number;
   curated: boolean;
@@ -389,6 +391,8 @@ export interface LlmDeveloperDetail {
   logo_url?: string | null;
   website_url?: string | null;
   hf_url?: string | null;
+  linkedin_url?: string | null;
+  github_url?: string | null;
   city?: string | null;
   lat?: number | null;
   lng?: number | null;

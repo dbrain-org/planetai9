@@ -64,7 +64,12 @@ def _http_get_json(url: str, *, timeout: float = 12.0) -> Any | None:
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
             return json.loads(resp.read().decode("utf-8"))
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, json.JSONDecodeError) as exc:
+    except (
+        urllib.error.URLError,
+        urllib.error.HTTPError,
+        TimeoutError,
+        json.JSONDecodeError,
+    ) as exc:
         log.warning("llmradar fetch failed %s: %s", url, exc)
         return None
 
@@ -246,4 +251,6 @@ def year_counts(models: list[RadarModel]) -> list[dict[str, Any]]:
 
 
 def open_weight_count(models: list[RadarModel]) -> int:
-    return sum(1 for m in models if (m.openness or "").lower() in {"open_weight", "open-weight", "open"})
+    return sum(
+        1 for m in models if (m.openness or "").lower() in {"open_weight", "open-weight", "open"}
+    )

@@ -238,6 +238,8 @@ class LlmDeveloperCard(BaseModel):
     logo_url: str | None = None
     website_url: str | None = None
     hf_url: str | None = None
+    linkedin_url: str | None = None
+    github_url: str | None = None
     city: str | None = None
     model_count: int = 0
     curated: bool = False
@@ -268,6 +270,8 @@ class LlmDeveloperDetail(BaseModel):
     logo_url: str | None = None
     website_url: str | None = None
     hf_url: str | None = None
+    linkedin_url: str | None = None
+    github_url: str | None = None
     city: str | None = None
     lat: float | None = None
     lng: float | None = None

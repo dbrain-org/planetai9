@@ -87,6 +87,8 @@ export default async function UreticiDetailPage({
           {(() => {
             const web = detail.website_url?.trim() || null;
             const hf = detail.hf_url?.trim() || null;
+            const linkedin = detail.linkedin_url?.trim() || null;
+            const github = detail.github_url?.trim() || null;
             const same = Boolean(web && hf && web === hf);
             return (
               <>
@@ -111,6 +113,26 @@ export default async function UreticiDetailPage({
                     className="btn-ghost inline-flex items-center gap-1.5 text-[13px]"
                   >
                     Hugging Face <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                )}
+                {github && (
+                  <a
+                    href={github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-ghost inline-flex items-center gap-1.5 text-[13px]"
+                  >
+                    GitHub <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                )}
+                {linkedin && (
+                  <a
+                    href={linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-ghost inline-flex items-center gap-1.5 text-[13px]"
+                  >
+                    LinkedIn <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 )}
               </>
