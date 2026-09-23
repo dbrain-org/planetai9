@@ -5,6 +5,7 @@ import {
   loadAuthorQueue,
   loadNewsQueue,
   loadQueue,
+  loadUniversiteQueue,
   loadVerivatanQueue,
 } from "@/lib/admin";
 
@@ -21,6 +22,7 @@ export default async function AdminPage() {
   const news = authed ? await loadNewsQueue(token) : [];
   const authors = authed ? await loadAuthorQueue(token) : [];
   const shares = authed ? await loadVerivatanQueue(token) : [];
+  const courses = authed ? await loadUniversiteQueue(token) : [];
   return (
     <div className="mx-auto max-w-3xl">
       <header className="mb-8">
@@ -29,8 +31,8 @@ export default async function AdminPage() {
           Yönetim Paneli
         </h1>
         <p className="mt-2 text-[14px] text-ink-2 dark:text-d-ink-2">
-          Haberleri, yazar başvurularını, VeriVatan paylaşımlarını ve TAKYAP gönderilerini buradan
-          onayla veya düzenle.
+          Haberleri, yazar başvurularını, VeriVatan / Üniversite paylaşımlarını ve TAKYAP
+          gönderilerini buradan onayla veya düzenle.
         </p>
       </header>
       <AdminPanel
@@ -39,6 +41,7 @@ export default async function AdminPage() {
         news={news}
         authors={authors}
         shares={shares}
+        courses={courses}
       />
     </div>
   );

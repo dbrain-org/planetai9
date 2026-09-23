@@ -1,13 +1,22 @@
-import { ArrowUpRight } from "lucide-react";
-import Link from "next/link";
 import { DataShareForm } from "@/components/DataShareForm";
+import { ResourceLinkCard } from "@/components/ResourceLinkCard";
 import { SectionHeader } from "@/components/SectionHeader";
 import { apiSafe } from "@/lib/api";
 import { getLocale } from "@/lib/i18n";
-import { DATA_KIND_LABEL, kindLabel } from "@/lib/turkey";
+import { DATA_CATEGORIES, DATA_KIND_LABEL, kindLabel } from "@/lib/turkey";
 import type { CuratedLink, OpenDatasetCard } from "@/lib/types";
 
 export const revalidate = 60;
+
+/** Map legacy curated kinds onto current VeriVatan sections. */
+function normalizeKind(kind: string): string {
+  if (kind === "siber_hukuk") return "hukuk";
+  if (kind === "portal" || kind === "istatistik" || kind === "yerel" || kind === "akademik") {
+    return kind === "akademik" ? "genel" : "kurumsal";
+  }
+  if (kind === "nlp") return "corpus";
+  return kind;
+}
 
 export default async function TurkiyePage() {
   const locale = await getLocale();
@@ -20,6 +29,18 @@ export default async function TurkiyePage() {
   ]);
 
   const note = (l: CuratedLink) => (tr ? l.note_tr : l.note_en) ?? "";
+  const knownKeys = new Set<string>(DATA_CATEGORIES.map((c) => c.key));
+
+  const curatedBy = (key: string) =>
+    trData.filter((d) => normalizeKind(d.kind) === key);
+  const openBy = (key: string) =>
+    producerData.filter((d) => (d.category || "genel") === key);
+
+  const otherCurated = trData.filter((d) => !knownKeys.has(normalizeKind(d.kind)));
+  const otherOpen = producerData.filter((d) => !knownKeys.has(d.category || "genel"));
+
+  let sectionIdx = 0;
+  const nextIndex = () => String(++sectionIdx).padStart(2, "0");
 
   return (
     <div className="space-y-16">
@@ -32,89 +53,89 @@ export default async function TurkiyePage() {
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
           {tr
-            ? "Türkiye'deki açık veri kaynakları ve Türkçe veri setleri."
-            : "Open data sources and Turkish datasets from Türkiye."}
+            ? "Türkiye'deki açık veri kaynakları ve üretici veri setleri: kurumsal, corpus, SFT, finans, medya, hukuk, güvenlik."
+            : "Open data and producer datasets from Türkiye: institutional, corpus, SFT, finance, media, legal, security."}
         </p>
       </header>
 
-      <section>
-        <SectionHeader
-          index="01"
-          kicker={tr ? "Kaynaklar" : "Sources"}
-          title={tr ? "Açık Veri Kaynakları" : "Open Data Sources"}
-        />
-        <p className="-mt-3 mb-7 max-w-2xl text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
-          {tr
-            ? "Kamu portalları, istatistik servisleri ve açık araştırma veri setleri."
-            : "Public portals, statistics services and open research datasets."}
-        </p>
+      {DATA_CATEGORIES.map((cat) => {
+        const curated = curatedBy(cat.key);
+        const open = openBy(cat.key);
+        const total = curated.length + open.length;
+        if (total === 0) return null;
+        return (
+          <section key={cat.key} id={cat.key}>
+            <SectionHeader
+              index={nextIndex()}
+              kicker={tr ? "Sınıf" : "Class"}
+              title={tr ? cat.titleTr : cat.titleEn}
+              action={
+                <span className="!font-medium tabular-nums !text-ink-2 dark:!text-d-ink-2">
+                  {total} {tr ? "kaynak" : "resources"}
+                </span>
+              }
+            />
+            <p className="-mt-3 mb-8 max-w-2xl text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+              {tr ? cat.leadTr : cat.leadEn}
+            </p>
+            <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+              {curated.map((d) => (
+                <ResourceLinkCard
+                  key={d.id}
+                  href={d.url}
+                  name={d.name}
+                  note={note(d)}
+                  badge={kindLabel(DATA_KIND_LABEL, d.kind, locale)}
+                />
+              ))}
+              {open.map((d) => (
+                <ResourceLinkCard
+                  key={d.url}
+                  href={d.url}
+                  name={d.name}
+                  badge={tr ? "Üretici" : "Producer"}
+                  meta={
+                    d.downloads > 0
+                      ? `${d.producer_name} · ${d.downloads.toLocaleString(tr ? "tr-TR" : "en")} DL`
+                      : d.producer_name
+                  }
+                />
+              ))}
+            </div>
+          </section>
+        );
+      })}
 
-        {trData.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {trData.map((d) => (
-              <a
-                key={d.id}
-                href={d.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="card card-hover group bg-paper p-5 dark:bg-d-paper"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <span className="badge">{kindLabel(DATA_KIND_LABEL, d.kind, locale)}</span>
-                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted transition-colors group-hover:text-accent" />
-                </div>
-                <h4 className="mt-2 text-[15px] font-bold tracking-tight2 text-ink group-hover:text-accent dark:text-d-ink">
-                  {d.name}
-                </h4>
-                <p className="mt-2 text-[13px] leading-relaxed text-ink-2 dark:text-d-ink-2">
-                  {note(d)}
-                </p>
-              </a>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[13px] text-muted">{tr ? "Henüz kart yok." : "No cards yet."}</p>
-        )}
-      </section>
-
-      {producerData.length > 0 && (
+      {(otherCurated.length > 0 || otherOpen.length > 0) && (
         <section>
           <SectionHeader
-            index="02"
-            kicker={tr ? "Üreticiler" : "Producers"}
-            title={tr ? "Açık veri setleri" : "Open datasets"}
+            index={nextIndex()}
+            kicker={tr ? "Sınıf" : "Class"}
+            title={tr ? "Diğer" : "Other"}
+            action={
+              <span className="!font-medium tabular-nums !text-ink-2 dark:!text-d-ink-2">
+                {otherCurated.length + otherOpen.length} {tr ? "kaynak" : "resources"}
+              </span>
+            }
           />
-          <p className="-mt-3 mb-7 max-w-2xl text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
-            {tr
-              ? "Türkiye LLM üreticilerinin Hugging Face’te paylaştığı açık veri setleri."
-              : "Open datasets published on Hugging Face by Türkiye LLM producers."}
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {producerData.map((d) => (
-              <div key={d.url} className="card bg-paper p-5 dark:bg-d-paper">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="badge">{tr ? "Veri" : "Data"}</span>
-                  <a href={d.url} target="_blank" rel="noopener noreferrer" aria-label={d.name}>
-                    <ArrowUpRight className="h-4 w-4 shrink-0 text-muted transition-colors hover:text-accent" />
-                  </a>
-                </div>
-                <a
-                  href={d.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 block text-[15px] font-bold tracking-tight2 text-ink hover:text-accent dark:text-d-ink"
-                >
-                  {d.name}
-                </a>
-                <p className="mt-2 text-[13px] leading-relaxed text-ink-2 dark:text-d-ink-2">
-                  <Link href={`/turkiye-llm/ureticiler/${d.producer_slug}`} className="hover:text-accent">
-                    {d.producer_name}
-                  </Link>
-                  {d.downloads > 0
-                    ? ` · ${d.downloads.toLocaleString(tr ? "tr-TR" : "en")} DL`
-                    : ""}
-                </p>
-              </div>
+          <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            {otherCurated.map((d) => (
+              <ResourceLinkCard
+                key={d.id}
+                href={d.url}
+                name={d.name}
+                note={note(d)}
+                badge={kindLabel(DATA_KIND_LABEL, d.kind, locale)}
+              />
+            ))}
+            {otherOpen.map((d) => (
+              <ResourceLinkCard
+                key={d.url}
+                href={d.url}
+                name={d.name}
+                badge={tr ? "Üretici" : "Producer"}
+                meta={d.producer_name}
+              />
             ))}
           </div>
         </section>
@@ -122,39 +143,26 @@ export default async function TurkiyePage() {
 
       <section>
         <SectionHeader
-          index={producerData.length > 0 ? "03" : "02"}
+          index={nextIndex()}
           kicker={tr ? "Topluluk" : "Community"}
           title={tr ? "Türkçe veri paylaşımı" : "Turkish data sharing"}
         />
         <p className="-mt-3 mb-7 max-w-2xl text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
           {tr
-            ? "Türkçe veri seti ve corpus paylaşımlarını sen de öner — editörlerimiz inceledikten sonra burada yayınlanır."
-            : "Suggest Turkish datasets and corpora — they appear here after our editors review them."}
+            ? "Türkçe veri seti ve corpus paylaşımlarını sen de öner. Sınıf seçip gönder; editörlerimiz inceledikten sonra burada yayınlanır."
+            : "Suggest Turkish datasets and corpora. Pick a class; they appear here after editors review."}
         </p>
 
         {trShare.length > 0 && (
-          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mb-10 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
             {trShare.map((o) => (
-              <a
+              <ResourceLinkCard
                 key={o.id}
                 href={o.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="card card-hover group p-5"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <span className="badge">{tr ? "Paylaşım" : "Shared"}</span>
-                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted transition-colors group-hover:text-accent" />
-                </div>
-                <h4 className="mt-2 text-[15px] font-bold tracking-tight2 text-ink group-hover:text-accent dark:text-d-ink">
-                  {o.name}
-                </h4>
-                {note(o) && (
-                  <p className="mt-2 text-[13px] leading-relaxed text-ink-2 dark:text-d-ink-2">
-                    {note(o)}
-                  </p>
-                )}
-              </a>
+                name={o.name}
+                note={note(o)}
+                badge={kindLabel(DATA_KIND_LABEL, o.kind, locale)}
+              />
             ))}
           </div>
         )}

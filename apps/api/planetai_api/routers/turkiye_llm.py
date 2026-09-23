@@ -13,9 +13,17 @@ from sqlalchemy.orm import Session
 
 from planetai_api import cache, schemas, serializers
 from planetai_api.db import get_db, get_lang
-from planetai_api.hf_catalog import HfCatalog, catalog_for
+from planetai_api.hf_catalog import (
+    HfCatalog,
+    catalog_for,
+    catalogs_for,
+    classify_dataset,
+    hf_author,
+    model_share_count,
+)
 from planetai_api.radar_client import (
     aggregate_orgs,
+    base_model_counts,
     fetch_turkish_models,
     open_weight_count,
     technique_counts,
@@ -228,6 +236,7 @@ def _developer_card(
     github_url: str | None = None,
     city: str | None = None,
     curated: bool = False,
+    dataset_count: int = 0,
 ) -> schemas.LlmDeveloperCard:
     return schemas.LlmDeveloperCard(
         slug=slug,
@@ -241,8 +250,41 @@ def _developer_card(
         github_url=github_url,
         city=city,
         model_count=model_count,
+        dataset_count=dataset_count,
         curated=curated,
     )
+
+
+def _count_with_hf(radar_count: int, hf_url: str | None, catalogs: dict[str, HfCatalog]) -> int:
+    """Prefer Hugging Face public model count when higher than Radar."""
+    author = hf_author(hf_url)
+    if not author:
+        return radar_count
+    catalog = catalogs.get(author.casefold())
+    if catalog is None:
+        return radar_count
+    return max(radar_count, model_share_count(catalog))
+
+
+def _dataset_count(hf_url: str | None, catalogs: dict[str, HfCatalog]) -> int:
+    author = hf_author(hf_url)
+    if not author:
+        return 0
+    catalog = catalogs.get(author.casefold())
+    return len(catalog.datasets) if catalog else 0
+
+
+def _collect_hf_urls(
+    *,
+    curated: list[models.LlmDeveloper],
+    orgs: list | dict,
+) -> list[str | None]:
+    urls: list[str | None] = [d.hf_url for d in curated]
+    org_iter = orgs.values() if isinstance(orgs, dict) else orgs
+    for org in org_iter:
+        c = _match_curated(curated, slug=org.slug, name=org.name)
+        urls.append((c.hf_url if c else None) or org.hf_url)
+    return urls
 
 
 @router.get("/overview", response_model=schemas.TurkiyeLlmOverview)
@@ -250,7 +292,7 @@ def overview(
     db: Session = Depends(get_db),
     lang: str | None = Depends(get_lang),
 ) -> schemas.TurkiyeLlmOverview:
-    cache_key = f"turkiye-llm:overview:{lang or 'tr'}"
+    cache_key = f"turkiye-llm:overview:v6:{lang or 'tr'}"
     hit = cache.get(cache_key)
     if isinstance(hit, dict):
         return schemas.TurkiyeLlmOverview.model_validate(hit)
@@ -259,35 +301,39 @@ def overview(
     orgs = aggregate_orgs(models_list)
     curated = _curated_published(db)
     curated_by_slug = {d.slug: d for d in curated}
+    # Enrich counts for a wide org set so HF-heavy producers rank correctly.
+    hf_catalogs = catalogs_for(_collect_hf_urls(curated=curated, orgs=orgs[:80]))
 
     top: list[schemas.LlmDeveloperCard] = []
     seen: set[str] = set()
-    for org in orgs[:36]:
+    for org in orgs[:80]:
         c = _match_curated(curated, slug=org.slug, name=org.name)
         slug = c.slug if c else org.slug
         if slug in seen:
             continue
         seen.add(slug)
+        hf_url = (c.hf_url if c else None) or org.hf_url
         top.append(
             _developer_card(
                 slug=slug,
                 name=c.display_name if c else org.name,
-                model_count=org.model_count,
+                model_count=_count_with_hf(org.model_count, hf_url, hf_catalogs),
                 kind=c.kind if c else "org",
                 bio=c.bio if c else None,
                 logo_url=c.logo_url if c else None,
                 website_url=(c.website_url if c else None) or org.website_url,
-                hf_url=(c.hf_url if c else None) or org.hf_url,
+                hf_url=hf_url,
                 linkedin_url=c.linkedin_url if c else None,
                 github_url=c.github_url if c else None,
                 city=c.city if c else None,
                 curated=c is not None,
+                dataset_count=_dataset_count(hf_url, hf_catalogs),
             )
         )
         if c:
             curated_by_slug.pop(c.slug, None)
 
-    # Curated-only producers with no Radar models yet still appear (after top).
+    # Curated-only producers with no Radar models yet still appear.
     for d in curated:
         if d.slug in seen:
             continue
@@ -295,7 +341,7 @@ def overview(
             _developer_card(
                 slug=d.slug,
                 name=d.display_name,
-                model_count=0,
+                model_count=_count_with_hf(0, d.hf_url, hf_catalogs),
                 kind=d.kind,
                 bio=d.bio,
                 logo_url=d.logo_url,
@@ -305,11 +351,14 @@ def overview(
                 github_url=d.github_url,
                 city=d.city,
                 curated=True,
+                dataset_count=_dataset_count(d.hf_url, hf_catalogs),
             )
         )
         seen.add(d.slug)
-        if len(top) >= 36:
-            break
+
+    # Most active first: models, then datasets (open contribution), then name.
+    top.sort(key=lambda c: (-c.model_count, -(c.dataset_count or 0), c.display_name.casefold()))
+    top = top[:24]
 
     pins: list[schemas.LlmMapPin] = []
     for d in curated:
@@ -339,6 +388,7 @@ def overview(
         ),
         by_technique=[schemas.LlmChartBucket(**b) for b in technique_counts(models_list)],
         by_year=[schemas.LlmYearBucket(**b) for b in year_counts(models_list)],
+        by_base_model=[schemas.LlmBaseModelBucket(**b) for b in base_model_counts(models_list)],
         top_producers=top[:24],
         map_pins=pins,
         news=news,
@@ -358,24 +408,27 @@ def list_developers(
     models_list = fetch_turkish_models(limit=1000)
     orgs = {o.slug: o for o in aggregate_orgs(models_list)}
     curated = _curated_published(db)
+    hf_catalogs = catalogs_for(_collect_hf_urls(curated=curated, orgs=orgs))
 
     cards: dict[str, schemas.LlmDeveloperCard] = {}
     for org in orgs.values():
         c = _match_curated(curated, slug=org.slug, name=org.name)
         slug = c.slug if c else org.slug
+        hf_url = (c.hf_url if c else None) or org.hf_url
         cards[slug] = _developer_card(
             slug=slug,
             name=c.display_name if c else org.name,
-            model_count=org.model_count,
+            model_count=_count_with_hf(org.model_count, hf_url, hf_catalogs),
             kind=c.kind if c else "org",
             bio=c.bio if c else None,
             logo_url=c.logo_url if c else None,
             website_url=(c.website_url if c else None) or org.website_url,
-            hf_url=(c.hf_url if c else None) or org.hf_url,
+            hf_url=hf_url,
             linkedin_url=c.linkedin_url if c else None,
             github_url=c.github_url if c else None,
             city=c.city if c else None,
             curated=c is not None,
+            dataset_count=_dataset_count(hf_url, hf_catalogs),
         )
 
     for d in curated:
@@ -391,7 +444,7 @@ def list_developers(
         cards[d.slug] = _developer_card(
             slug=d.slug,
             name=d.display_name,
-            model_count=0,
+            model_count=_count_with_hf(0, d.hf_url, hf_catalogs),
             kind=d.kind,
             bio=d.bio,
             logo_url=d.logo_url,
@@ -401,6 +454,7 @@ def list_developers(
             github_url=d.github_url,
             city=d.city,
             curated=True,
+            dataset_count=_dataset_count(d.hf_url, hf_catalogs),
         )
 
     out = list(cards.values())
@@ -416,7 +470,7 @@ def list_developers(
     if sort == "name":
         out.sort(key=lambda c: c.display_name.casefold())
     else:
-        out.sort(key=lambda c: (-c.model_count, c.display_name.casefold()))
+        out.sort(key=lambda c: (-c.model_count, -(c.dataset_count or 0), c.display_name.casefold()))
     return out
 
 
@@ -453,6 +507,7 @@ def get_developer(slug: str, db: Session = Depends(get_db)) -> schemas.LlmDevelo
         schemas.LlmModelRow(
             name=m.name,
             technique=m.technique,
+            base_model=m.base_model,
             published_at=m.published_at,
             downloads=m.downloads,
             source_url=m.source_url,
@@ -463,7 +518,8 @@ def get_developer(slug: str, db: Session = Depends(get_db)) -> schemas.LlmDevelo
 
     display_name = curated.display_name if curated else (org.name if org else slug)
     hf_url = (curated.hf_url if curated else None) or (org.hf_url if org else None)
-    hf = _hf_out(catalog_for(hf_url))
+    catalog = catalog_for(hf_url)
+    hf = _hf_out(catalog)
     return schemas.LlmDeveloperDetail(
         slug=curated.slug if curated else (org.slug if org else slug),
         display_name=display_name,
@@ -478,7 +534,7 @@ def get_developer(slug: str, db: Session = Depends(get_db)) -> schemas.LlmDevelo
         city=curated.city if curated else None,
         lat=float(curated.lat) if curated and curated.lat is not None else None,
         lng=float(curated.lng) if curated and curated.lng is not None else None,
-        model_count=len(model_rows),
+        model_count=max(len(model_rows), model_share_count(catalog)),
         models=model_rows,
         hf=hf,
         comments=[],
@@ -521,6 +577,7 @@ def open_datasets(db: Session = Depends(get_db)) -> list[schemas.OpenDatasetCard
                 downloads=item.downloads,
                 producer_slug=slug,
                 producer_name=name,
+                category=classify_dataset(item.name, item.url),
             )
             for item in catalog_for(hf_url).datasets
         ]

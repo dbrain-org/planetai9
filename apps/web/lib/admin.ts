@@ -72,3 +72,14 @@ export async function loadVerivatanQueue(token: string | null): Promise<CuratedS
     return [];
   }
 }
+
+export async function loadUniversiteQueue(token: string | null): Promise<CuratedShareItem[]> {
+  if (!token) return [];
+  try {
+    const res = await adminFetch("/curated/education/manage", token);
+    if (!res.ok) return [];
+    return (await res.json()) as CuratedShareItem[];
+  } catch {
+    return [];
+  }
+}

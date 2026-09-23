@@ -53,7 +53,7 @@ export function AuthorApplyForm({ locale }: { locale: Locale }) {
       <div className="flex flex-col items-center gap-3 rounded-[22px] border border-line bg-paper px-6 py-10 text-center dark:border-d-line dark:bg-d-paper">
         <CheckCircle2 className="h-10 w-10 text-success" />
         <p className="max-w-sm text-[14px] text-ink-2 dark:text-d-ink-2">
-          {L("Başvurun alındı — teşekkürler!", "Application received — thank you!")}
+          {L("Başvurun alındı. Teşekkürler!", "Application received. Thank you!")}
         </p>
       </div>
     );

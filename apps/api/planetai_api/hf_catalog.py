@@ -26,6 +26,32 @@ _SKIP_AUTHORS = {"datasets", "models", "spaces", "docs", "blog"}
 _TTS = {"text-to-speech", "text-to-audio", "automatic-speech-recognition"}
 _CACHE_TTL = 6 * 3600
 
+# VeriVatan open-dataset categories (name/url heuristics). Order = priority.
+_CATEGORY_RULES: list[tuple[str, str]] = [
+    (
+        r"cyber|cve|security|siber|guvenlik|guardrail|hate.?speech|offenseval|cybench",
+        "guvenlik",
+    ),
+    (r"legal|hukuk|mevzuat|\blaw\b|court|mizan", "hukuk"),
+    (r"financ|fiqa|borsa|bank|ekonomi|kripto|crypto", "finans"),
+    (r"news|haber|sozcu|front.?page|bilcat|misinformation", "medya"),
+    (
+        r"medic|health|saglik|clinic|deprem|earthquake|olympiad|tubitak.?science",
+        "sektorel",
+    ),
+    (
+        r"corpus|pretrain|web.?corpus|wikipedia|vikipedi|kitap|oscar|cultura|fineweb|hplt",
+        "corpus",
+    ),
+    (
+        r"sft|instruct|instruction|alpaca|finetune|fine.?tun|cot|atlas|prompts|"
+        r"embed|nli|sts|squad|tquad|ner|msmarco|benchmark|bench|gsm8k|aime|gpqa|"
+        r"quora|snli|stsb|absa|wmt|simcse|contrastive|treebank|qa\b|arguana|"
+        r"scifact|scidocs|nfcorpus|dolphin|ttc4900|atis",
+        "sft",
+    ),
+]
+
 
 @dataclass(slots=True)
 class HfItem:
@@ -41,6 +67,15 @@ class HfCatalog:
     llm: list[HfItem]
     tts: list[HfItem]
     datasets: list[HfItem]
+
+
+def classify_dataset(name: str, url: str = "") -> str:
+    """Map a dataset name/URL to a VeriVatan category slug."""
+    text = f"{name} {url}".casefold()
+    for pattern, kind in _CATEGORY_RULES:
+        if re.search(pattern, text, re.IGNORECASE):
+            return kind
+    return "genel"
 
 
 def hf_author(url: str | None) -> str | None:
@@ -67,6 +102,29 @@ def catalog_for(hf_url: str | None) -> HfCatalog:
     catalog = _fetch(author)
     cache.set(key, _to_cache(catalog), _CACHE_TTL)
     return catalog
+
+
+def model_share_count(catalog: HfCatalog) -> int:
+    """Public model repos (LLM + TTS), excluding datasets."""
+    return len(catalog.llm) + len(catalog.tts)
+
+
+def catalogs_for(hf_urls: list[str | None]) -> dict[str, HfCatalog]:
+    """Fetch catalogs for many HF profile URLs in parallel (cached per author)."""
+    authors = {a for u in hf_urls if (a := hf_author(u))}
+    if not authors:
+        return {}
+    out: dict[str, HfCatalog] = {}
+
+    def one(author: str) -> tuple[str, HfCatalog]:
+        return author.casefold(), catalog_for(f"https://huggingface.co/{author}")
+
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=min(8, len(authors))) as pool:
+        for key, catalog in pool.map(one, authors):
+            out[key] = catalog
+    return out
 
 
 def _fetch(author: str) -> HfCatalog:

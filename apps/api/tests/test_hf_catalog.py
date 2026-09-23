@@ -1,4 +1,17 @@
-from planetai_api.hf_catalog import HfCatalog, _fetch, hf_author
+from planetai_api.hf_catalog import HfCatalog, HfItem, _fetch, hf_author, model_share_count
+
+
+def test_classify_dataset():
+    from planetai_api.hf_catalog import classify_dataset
+
+    assert classify_dataset("Cybersecurity-Dataset-Fenrir-v2.1") == "guvenlik"
+    assert classify_dataset("legal_nli_TR_V1") == "hukuk"
+    assert classify_dataset("Turkish-Finance-SFT-Dataset") == "finans"
+    assert classify_dataset("sozcu-news-2014") == "medya"
+    assert classify_dataset("Cosmos-Turkish-Corpus-v1.0") == "corpus"
+    assert classify_dataset("Turkish-SFT-Dataset-v1.0") == "sft"
+    assert classify_dataset("deprem-tweet-dataset") == "sektorel"
+    assert classify_dataset("mystery-xyz") == "genel"
 
 
 def test_hf_author_from_profile_url():
@@ -7,6 +20,15 @@ def test_hf_author_from_profile_url():
     assert hf_author("https://huggingface.co/datasets") is None
     assert hf_author(None) is None
     assert hf_author("https://github.com/alicankiraz1") is None
+
+
+def test_model_share_count():
+    catalog = HfCatalog(
+        llm=[HfItem("a", "https://huggingface.co/x/a", "llm", 1)],
+        tts=[HfItem("b", "https://huggingface.co/x/b", "tts", 2)],
+        datasets=[HfItem("c", "https://huggingface.co/datasets/x/c", "dataset", 3)],
+    )
+    assert model_share_count(catalog) == 2
 
 
 def test_fetch_splits_llm_tts_and_datasets(monkeypatch):

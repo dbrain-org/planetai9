@@ -1,102 +1,933 @@
-# Editorial link cards for the "Türkiye'de Yapay Zekâ" page.
-# Bootstrap only: seeded into an empty `curated_links` collection. Once rows exist,
-# edit them from the /yazar studio (Türkiye tab) — the DB is then the source of truth.
+# VeriVatan (tr_data) + ekosistem + Üniversite.
+# tr_data kinds: kurumsal | corpus | sft | finans | medya | hukuk | guvenlik | sektorel | genel
+# education kinds: herkes | derin | meslek
+# YAML dışı tr_data / education kartları seed’te kapatılır.
 
 tr_data:
-  - name: TCMB EVDS
-    kind: istatistik
-    url: https://evds2.tcmb.gov.tr
-    note_tr: "Merkez Bankası Elektronik Veri Dağıtım Sistemi — makroekonomik ve finansal seriler, API."
-    note_en: "Central Bank's Electronic Data Delivery System — macro & financial time series, with an API."
-  - name: TÜİK Veri Portalı
-    kind: istatistik
-    url: https://data.tuik.gov.tr
-    note_tr: "Türkiye İstatistik Kurumu'nun resmi istatistik ve mikro veri servisi."
-    note_en: "Official statistics and micro-data from the Turkish Statistical Institute."
-  - name: İBB Açık Veri Portalı
-    kind: yerel
-    url: https://data.ibb.gov.tr
-    note_tr: "İstanbul Büyükşehir Belediyesi — ulaşım, çevre ve şehir verisi."
-    note_en: "Istanbul metropolitan municipality — transport, environment and city data."
-  - name: AperTA (ULAKBİM)
-    kind: akademik
-    url: https://aperta.ulakbim.gov.tr
-    note_tr: "TÜBİTAK ULAKBİM Açık Erişim ve Açık Bilim platformu; araştırma veri setleri."
-    note_en: "TÜBİTAK's open-access / open-science platform with research datasets."
-  - name: TDD — Turkish Data Depository
-    kind: nlp
-    url: https://tdd.ai
-    note_tr: "Türkçe doğal dil işleme için derlenmiş veri setleri ve araçlar."
-    note_en: "Curated datasets and tools for Turkish NLP."
-  - name: Hugging Face — Türkçe veri setleri
-    kind: nlp
-    url: "https://huggingface.co/datasets?language=language:tr"
-    note_tr: "Topluluk tarafından paylaşılan Türkçe metin, konuşma ve görüntü veri setleri."
-    note_en: "Community-shared Turkish text, speech and vision datasets."
-  - name: Mukayese / TQuAD / BOUN Treebank
-    kind: nlp
-    url: https://github.com/boun-tabi
-    note_tr: "Boğaziçi TABI Lab — Türkçe için karşılaştırma (benchmark) ve etiketli veri."
-    note_en: "Boğaziçi TABI Lab — Turkish benchmarks and annotated corpora."
-  - name: Kaggle — Türkiye toplulukları
-    kind: portal
-    url: "https://www.kaggle.com/datasets?search=turkey"
-    note_tr: "Türkiye odaklı açık veri setleri ve yarışma verileri."
-    note_en: "Türkiye-focused open datasets and competition data."
-  - name: FineWeb2-HQ (Türkçe)
-    kind: nlp
-    url: https://huggingface.co/datasets/epfml/FineWeb2-HQ
-    note_tr: "tur_Latn — 8,58M belge / 100 GB. XLM-RoBERTa kalite filtresi, en yüksek %10. Lisans: ODC-By. Yaygınlık: orta."
-    note_en: "tur_Latn — 8.58M docs / 100 GB. XLM-RoBERTa quality filter, top 10%. License: ODC-By. Prevalence: medium."
-  - name: HPLT 3.0
-    kind: nlp
-    url: https://huggingface.co/datasets/HPLT/HPLT3.0
-    note_tr: "Kaliteye sıralı geniş internet verisi — 149,98B token (Gemma 3). PII etiketli. Lisans: CC0. Yaygınlık: orta."
-    note_en: "Quality-ranked broad web data — 149.98B tokens (Gemma 3). PII labeled. License: CC0. Prevalence: medium."
-  - name: CulturaX
-    kind: nlp
-    url: https://huggingface.co/datasets/uonlp/CulturaX
-    note_tr: "mC4 + OSCAR — Türkçe 64,3B token. Hashing ile benzer kopyalar azaltılmış. Lisans: ODC-By. Yaygınlık: yüksek."
-    note_en: "mC4 + OSCAR — Turkish 64.3B tokens. Near-duplicates reduced via hashing. License: ODC-By. Prevalence: high."
-  - name: Cosmos Turkish
-    kind: nlp
-    url: https://huggingface.co/datasets/alperngll/Cosmos-Turkish-Corpus-v1.0
-    note_tr: "Haber, forum, Vikipedi, genel internet — 9,08M belge / ~15B token. Lisans: CC BY 4.0. Yaygınlık: düşük."
-    note_en: "News, forums, Wikipedia, general web — 9.08M docs / ~15B tokens. License: CC BY 4.0. Prevalence: low."
-  - name: Türkçe Vikipedi
-    kind: nlp
-    url: https://dumps.wikimedia.org/trwiki/
-    note_tr: "Ansiklopedik ve izlenebilir dump’lar. Alan kapsamı sınırlı; ölçek yeniden ölçülmeli. Lisans: CC BY-SA. Yaygınlık: yüksek."
-    note_en: "Encyclopedic, traceable dumps. Limited domain; scale needs re-measurement. License: CC BY-SA. Prevalence: high."
-  - name: vngrs-web-corpus
-    kind: nlp
-    url: https://huggingface.co/datasets/vngrs-ai/vngrs-web-corpus
-    note_tr: "OSCAR + mC4 Türkçe — 50,3M sayfa / 141,8 GB / 25,33B token (VBART). Lisans: CC BY-NC-SA 4.0."
-    note_en: "Turkish OSCAR + mC4 — 50.3M pages / 141.8 GB / 25.33B tokens (VBART). License: CC BY-NC-SA 4.0."
-
+- name: TCMB EVDS
+  kind: kurumsal
+  url: https://evds2.tcmb.gov.tr
+  note_tr: Merkez Bankası Elektronik Veri Dağıtım Sistemi. Makroekonomik ve finansal seriler, API.
+  note_en: Central Bank's Electronic Data Delivery System. Macro & financial time series, with an API.
+- name: TÜİK Veri Portalı
+  kind: kurumsal
+  url: https://data.tuik.gov.tr
+  note_tr: Türkiye İstatistik Kurumu'nun resmi istatistik ve mikro veri servisi.
+  note_en: Official statistics and micro-data from the Turkish Statistical Institute.
+- name: TÜİK Coğrafi İstatistik Portalı
+  kind: kurumsal
+  url: https://cip.tuik.gov.tr
+  note_tr: TÜİK göstergelerini harita üzerinde görselleştiren coğrafi istatistik portalı.
+  note_en: Geographic statistics portal mapping TURKSTAT indicators.
+- name: Resmi İstatistik Portalı
+  kind: kurumsal
+  url: https://www.resmiistatistik.gov.tr
+  note_tr: Resmi İstatistik Programı. Kurumlara ve konulara göre resmi istatistik kataloğu.
+  note_en: Official Statistics Programme. Catalog of official statistics by institution and topic.
+- name: KAP
+  kind: kurumsal
+  url: https://www.kap.org.tr
+  note_tr: Kamuyu Aydınlatma Platformu. Şirket bildirimleri, finansal tablolar ve fon duyuruları.
+  note_en: Public Disclosure Platform. Company filings, financial statements, and fund notices.
+- name: Borsa İstanbul DataStore
+  kind: kurumsal
+  url: https://datastore.borsaistanbul.com
+  note_tr: Borsa İstanbul. Piyasa ve endeks verilerine erişim için kurumsal veri mağazası.
+  note_en: Borsa Istanbul. Institutional data store for market and index data.
+- name: BDDK
+  kind: kurumsal
+  url: https://www.bddk.org.tr
+  note_tr: Bankacılık Düzenleme ve Denetleme Kurumu. Bankacılık sektörü istatistik ve bültenleri.
+  note_en: Banking Regulation and Supervision Agency. Banking-sector statistics and bulletins.
+- name: TBB Veri
+  kind: kurumsal
+  url: https://www.tbb.org.tr
+  note_tr: Türkiye Bankalar Birliği. Sektörel raporlar ve bankacılık veri yayınları.
+  note_en: Banks Association of Türkiye. Sector reports and banking data releases.
+- name: EPİAŞ Şeffaflık
+  kind: kurumsal
+  url: https://seffaflik.epias.com.tr
+  note_tr: Enerji piyasası şeffaflık platformu. Elektrik/doğalgaz verileri ve REST API.
+  note_en: Energy-market transparency platform. Electricity/gas data and REST API.
+- name: TEİAŞ
+  kind: kurumsal
+  url: https://www.teias.gov.tr
+  note_tr: Türkiye Elektrik İletim A.Ş.. Üretim karışımı ve iletim sistemi istatistikleri.
+  note_en: Turkish Electricity Transmission Corp.. Generation mix and grid statistics.
+- name: Sağlık Bakanlığı Açık Veri
+  kind: kurumsal
+  url: https://acikveri.saglik.gov.tr
+  note_tr: T.C. Sağlık Bakanlığı. Anonimleştirilmiş klinik ve sağlık AI veri setleri.
+  note_en: Ministry of Health. Anonymized clinical and health-AI datasets.
+- name: YÖK Atlas
+  kind: kurumsal
+  url: https://yokatlas.yok.gov.tr
+  note_tr: Yükseköğretim Kurulu. Üniversite, program ve yerleştirme göstergeleri.
+  note_en: Council of Higher Education. University, program, and placement indicators.
+- name: YÖK İstatistik
+  kind: kurumsal
+  url: https://istatistik.yok.gov.tr
+  note_tr: Yükseköğretim Bilgi Yönetim Sistemi. Öğrenci, personel ve kurum istatistikleri.
+  note_en: Higher Education Information System. Student, staff, and institution statistics.
+- name: MGM İstatistikler
+  kind: kurumsal
+  url: https://mgm.gov.tr/veridegerlendirme/il-ve-ilceler-istatistik.aspx
+  note_tr: Meteoroloji Genel Müdürlüğü. Il ve ilçe bazlı iklim / hava istatistikleri.
+  note_en: Turkish State Meteorological Service. Province and district climate statistics.
+- name: Ulusal Hava Kalitesi
+  kind: kurumsal
+  url: https://sim.csb.gov.tr
+  note_tr: Çevre, Şehircilik ve İklim Değişikliği Bakanlığı. Hava kalitesi izleme ve raporlama.
+  note_en: Ministry of Environment. Air-quality monitoring and reporting.
+- name: TUCBS
+  kind: kurumsal
+  url: https://tucbs.gov.tr
+  note_tr: Türkiye Ulusal Coğrafi Bilgi Sistemi. Kamu coğrafi veri katmanları ve servisler.
+  note_en: National Geographic Information System. Public geospatial layers and services.
+- name: ULASAV
+  kind: kurumsal
+  url: https://ulasav.csb.gov.tr
+  note_tr: Ulusal Akıllı Şehir Açık Veri Platformu. Akıllı şehir ve yerel yönetim veri setleri.
+  note_en: National Smart City Open Data Platform. Smart-city and local-government datasets.
+- name: AperTA (ULAKBİM)
+  kind: kurumsal
+  url: https://aperta.ulakbim.gov.tr
+  note_tr: TÜBİTAK ULAKBİM Açık Erişim ve Açık Bilim platformu; araştırma veri setleri.
+  note_en: TÜBİTAK's open-access / open-science platform with research datasets.
+- name: YSK Açık Veri Portalı
+  kind: kurumsal
+  url: https://acikveri.ysk.gov.tr
+  note_tr: Yüksek Seçim Kurulu. Seçim sonuçları ve istatistikleri (Excel / JSON).
+  note_en: Supreme Election Council. Election results and statistics (Excel / JSON).
+- name: İBB Açık Veri Portalı
+  kind: kurumsal
+  url: https://data.ibb.gov.tr
+  note_tr: İstanbul Büyükşehir Belediyesi. Ulaşım, çevre ve şehir verisi.
+  note_en: Istanbul metropolitan municipality. Transport, environment and city data.
+- name: İzmir Açık Veri Portalı
+  kind: kurumsal
+  url: https://acikveri.bizizmir.com
+  note_tr: İzmir Büyükşehir Belediyesi. Şehir hizmetleri ve açık veri setleri, API.
+  note_en: Izmir metropolitan municipality. City services and open datasets, with API.
+- name: Ankara Şeffaf Portal
+  kind: kurumsal
+  url: https://seffaf.ankara.bel.tr
+  note_tr: Ankara Büyükşehir Belediyesi. Şeffaflık ve açık veri panosu.
+  note_en: Ankara metropolitan municipality. Transparency and open-data dashboard.
+- name: Bursa Açık Yeşil
+  kind: kurumsal
+  url: https://acikyesil.bursa.bel.tr
+  note_tr: Bursa Büyükşehir Belediyesi. Hal fiyatları, meclis, altyapı ve coğrafi veri.
+  note_en: Bursa metropolitan municipality. Market prices, council, infrastructure, and geo data.
+- name: Balıkesir Açık Veri
+  kind: kurumsal
+  url: https://acikveri.balikesir.bel.tr
+  note_tr: Balıkesir Büyükşehir Belediyesi açık veri portalı.
+  note_en: Balıkesir metropolitan municipality open-data portal.
+- name: FineWeb2-HQ (Türkçe)
+  kind: corpus
+  url: https://huggingface.co/datasets/epfml/FineWeb2-HQ
+  note_tr: 'tur_Latn. 8,58M belge / 100 GB. XLM-RoBERTa kalite filtresi, en yüksek %10. Lisans: ODC-By.'
+  note_en: 'tur_Latn. 8.58M docs / 100 GB. XLM-RoBERTa quality filter, top 10%. License: ODC-By.'
+- name: HPLT 3.0
+  kind: corpus
+  url: https://huggingface.co/datasets/HPLT/HPLT3.0
+  note_tr: 'Kaliteye sıralı geniş internet verisi. 149,98B token (Gemma 3). PII etiketli. Lisans: CC0.'
+  note_en: 'Quality-ranked broad web data. 149.98B tokens (Gemma 3). PII labeled. License: CC0.'
+- name: CulturaX
+  kind: corpus
+  url: https://huggingface.co/datasets/uonlp/CulturaX
+  note_tr: 'mC4 + OSCAR. Türkçe 64,3B token. Hashing ile benzer kopyalar azaltılmış. Lisans: ODC-By.'
+  note_en: 'mC4 + OSCAR. Turkish 64.3B tokens. Near-duplicates reduced via hashing. License: ODC-By.'
+- name: Cosmos Turkish
+  kind: corpus
+  url: https://huggingface.co/datasets/alperngll/Cosmos-Turkish-Corpus-v1.0
+  note_tr: 'Haber, forum, Vikipedi, genel internet. 9,08M belge / ~15B token. Lisans: CC BY 4.0.'
+  note_en: 'News, forums, Wikipedia, general web. 9.08M docs / ~15B tokens. License: CC BY 4.0.'
+- name: Türkçe Vikipedi
+  kind: corpus
+  url: https://dumps.wikimedia.org/trwiki/
+  note_tr: 'Ansiklopedik ve izlenebilir dump’lar. Lisans: CC BY-SA.'
+  note_en: 'Encyclopedic, traceable dumps. License: CC BY-SA.'
+- name: vngrs-web-corpus
+  kind: corpus
+  url: https://huggingface.co/datasets/vngrs-ai/vngrs-web-corpus
+  note_tr: 'OSCAR + mC4 Türkçe. 50,3M sayfa / 141,8 GB / 25,33B token (VBART). Lisans: CC BY-NC-SA 4.0.'
+  note_en: 'Turkish OSCAR + mC4. 50.3M pages / 141.8 GB / 25.33B tokens (VBART). License: CC BY-NC-SA 4.0.'
+- name: Mukayese / TQuAD / BOUN Treebank
+  kind: sft
+  url: https://github.com/boun-tabi
+  note_tr: Boğaziçi TABI Lab. Türkçe benchmark ve etiketli veri (QA, treebank).
+  note_en: Boğaziçi TABI Lab. Turkish benchmarks and annotated corpora (QA, treebank).
+- name: merve/turkish_instructions
+  kind: sft
+  url: https://huggingface.co/datasets/merve/turkish_instructions
+  note_tr: Türkçe instruction-tuning seti. SFT / supervised fine-tuning için yaygın kullanılan kaynak.
+  note_en: Turkish instruction-tuning set. Widely used for SFT / supervised fine-tuning.
+- name: tascib/turkish-instruction
+  kind: sft
+  url: https://huggingface.co/datasets/tascib/turkish-instruction
+  note_tr: Birleştirilmiş ve temizlenmiş büyük ölçekli Türkçe instruction corpus (Sabancı).
+  note_en: Large-scale cleaned/merged Turkish instruction corpus (Sabancı).
+- name: Turkish Finance SFT (AlicanKiraz0)
+  kind: finans
+  url: https://huggingface.co/datasets/AlicanKiraz0/Turkish-Finance-SFT-Dataset
+  note_tr: Türkçe finans asistanı SFT. Kripto, borsa, analiz ve regülasyon soru-cevapları.
+  note_en: Turkish finance-assistant SFT. Crypto, markets, analysis, and regulation Q&A.
+- name: finance-reasoning-turkish
+  kind: finans
+  url: https://huggingface.co/datasets/emre/finance-reasoning-turkish
+  note_tr: Türkçe finans ileri muhakeme / QA veri seti (akademik kullanım).
+  note_en: Turkish finance advanced-reasoning / QA dataset (academic use).
+- name: legal_nli_TR_V1
+  kind: hukuk
+  url: https://huggingface.co/datasets/Turkish-NLI/legal_nli_TR_V1
+  note_tr: Türkçe hukuki doğal dil çıkarımı (NLI) veri seti.
+  note_en: Turkish legal natural language inference (NLI) dataset.
+- name: turkish-legal-mevzuat
+  kind: hukuk
+  url: https://huggingface.co/datasets/boranyzgc/turkish-legal-mevzuat
+  note_tr: Türkçe mevzuat metinleri. Hukuk LLM / RAG çalışmaları için.
+  note_en: Turkish statute texts. For legal LLM / RAG work.
+- name: Turkish Cyber Security Controls
+  kind: guvenlik
+  url: https://huggingface.co/datasets/logicBombExe/turkish_cyber_security_controls_dataset
+  note_tr: NIST SP 800-53 odaklı Türkçe siber güvenlik kontrol instruction seti.
+  note_en: Turkish cybersecurity controls instruction set (NIST SP 800-53 oriented).
+- name: Turkish Cyber Security Controls Benchmark
+  kind: guvenlik
+  url: https://huggingface.co/datasets/logicBombExe/turkish_cyber_security_controls_benchmark
+  note_tr: Türkçe siber güvenlik kontrol seçimi / denetim çoktan seçmeli benchmark.
+  note_en: Turkish cybersecurity control-selection / audit multiple-choice benchmark.
+- name: TDD · Turkish Data Depository
+  kind: genel
+  url: https://tdd.ai
+  note_tr: Türkçe doğal dil işleme için derlenmiş veri setleri ve araçlar.
+  note_en: Curated datasets and tools for Turkish NLP.
+- name: Hugging Face. Türkçe veri setleri
+  kind: genel
+  url: https://huggingface.co/datasets?language=language:tr
+  note_tr: Topluluk tarafından paylaşılan Türkçe metin, konuşma ve görüntü veri setleri.
+  note_en: Community-shared Turkish text, speech and vision datasets.
+- name: Kaggle · Türkiye toplulukları
+  kind: genel
+  url: https://www.kaggle.com/datasets?search=turkey
+  note_tr: Türkiye odaklı açık veri setleri ve yarışma verileri.
+  note_en: Türkiye-focused open datasets and competition data.
 tr_ecosystem:
-  - name: VNGRS
-    kind: şirket
-    url: https://vngrs.com
-    note_tr: "Açık Türkçe web corpus (vngrs-web-corpus) ve sıfırdan pretrain edilmiş Kumru modelleri."
-    note_en: "Open Turkish web corpus (vngrs-web-corpus) and from-scratch Kumru language models."
-  - name: Hugging Face
-    kind: şirket
-    url: "https://huggingface.co/datasets?language=language:tr"
-    note_tr: "Türkçe metin, konuşma ve görüntü veri setlerinin paylaşıldığı açık platform."
-    note_en: "Open platform hosting Turkish text, speech and vision datasets."
-  - name: Turkish Data Depository (TDD)
-    kind: şirket
-    url: https://tdd.ai
-    note_tr: "Türkçe NLP için derlenmiş açık veri setleri ve araçlar yayınlar."
-    note_en: "Publishes curated open datasets and tools for Turkish NLP."
-  - name: Kumru (VNGRS)
-    kind: model
-    url: https://huggingface.co/vngrs-ai/Kumru-2B
-    note_tr: "Açık ağırlıklı Türkçe LLM (Apache 2.0) — eğitim corpus’u ve model kartı kamuya açık."
-    note_en: "Open-weight Turkish LLM (Apache 2.0) — training corpus and model card are public."
-  - name: Peak / Hazelcast
-    kind: şirket
-    url: https://hazelcast.com
-    note_tr: "Gerçek zamanlı veri altyapısı; açık kaynak çekirdek ve veri işleme araçları."
-    note_en: "Real-time data infrastructure; open-source core and data processing tools."
+- name: VNGRS
+  kind: şirket
+  url: https://vngrs.com
+  note_tr: Açık Türkçe web corpus (vngrs-web-corpus) ve sıfırdan pretrain edilmiş Kumru modelleri.
+  note_en: Open Turkish web corpus (vngrs-web-corpus) and from-scratch Kumru language models.
+- name: Hugging Face
+  kind: şirket
+  url: https://huggingface.co/datasets?language=language:tr
+  note_tr: Türkçe metin, konuşma ve görüntü veri setlerinin paylaşıldığı açık platform.
+  note_en: Open platform hosting Turkish text, speech and vision datasets.
+- name: Turkish Data Depository (TDD)
+  kind: şirket
+  url: https://tdd.ai
+  note_tr: Türkçe NLP için derlenmiş açık veri setleri ve araçlar yayınlar.
+  note_en: Publishes curated open datasets and tools for Turkish NLP.
+- name: Kumru (VNGRS)
+  kind: model
+  url: https://huggingface.co/vngrs-ai/Kumru-2B
+  note_tr: Açık ağırlıklı Türkçe LLM (Apache 2.0). Eğitim corpus’u ve model kartı kamuya açık.
+  note_en: Open-weight Turkish LLM (Apache 2.0). Training corpus and model card are public.
+- name: Peak / Hazelcast
+  kind: şirket
+  url: https://hazelcast.com
+  note_tr: Gerçek zamanlı veri altyapısı; açık kaynak çekirdek ve veri işleme araçları.
+  note_en: Real-time data infrastructure; open-source core and data processing tools.
+education:
+- name: BTK · Yapay Zekâya Giriş
+  kind: herkes
+  url: https://www.btkakademi.gov.tr/portal/course/yapay-zekaya-giris-29193
+  note_tr: Temel kavramlar, ML/DL, NLP ve üretken yapay zekâya giriş. Ücretsiz.
+  note_en: Foundations of AI, ML/DL, NLP, and generative AI. Free.
+- name: BTK · Yapay Zekâ ve Makine Öğrenmesi 101
+  kind: herkes
+  url: https://www.btkakademi.gov.tr/portal/course/yapay-zeka-ve-makine-ogrenmesi-101-37568
+  note_tr: Yapay zekâ ve makine öğrenmesine ilk adım.
+  note_en: First step into AI and machine learning.
+- name: BTK · Veri Bilimine Giriş
+  kind: herkes
+  url: https://www.btkakademi.gov.tr/portal/course/veri-bilimine-giris-35390
+  note_tr: Veri bilimi kavramları, süreçler ve kariyer yollarına genel bakış.
+  note_en: Overview of data-science concepts, processes, and career paths.
+- name: BTK · Üretken Yapay Zekâ
+  kind: herkes
+  url: https://www.btkakademi.gov.tr/portal/course/uretken-yapay-zeka-56934
+  note_tr: Üretken yapay zekâya giriş. Modeller ve kullanım alanları.
+  note_en: Intro to generative AI. Models and use cases.
+- name: BTK · ChatGPT ve Üretken Yapay Zekâ
+  kind: herkes
+  url: https://www.btkakademi.gov.tr/portal/course/chatgpt-ve-uretken-yapay-zeka-56935
+  note_tr: ChatGPT ve üretken araçlarla günlük/meslekî kullanım.
+  note_en: Everyday and professional use of ChatGPT and generative tools.
+- name: BTK · Yapay Zekâ Etik ve Güvenlik
+  kind: herkes
+  url: https://www.btkakademi.gov.tr/portal/course/yapay-zeka-etik-ve-guvenlik-56933
+  note_tr: AI etiği, güvenlik riskleri ve sorumlu kullanım.
+  note_en: AI ethics, security risks, and responsible use.
+- name: Token & BPE. Yapay Zekâ Metni Nasıl Görür?
+  kind: herkes
+  url: https://www.youtube.com/watch?v=HwZ9yV0XYDk
+  note_tr: Türkçe. Tokenizasyon ve BPE’nin LLM’lerde nasıl çalıştığını sade anlatım.
+  note_en: Turkish. Clear explainer of tokenization and BPE in LLMs.
+- name: Google · Generative AI for Beginners
+  kind: herkes
+  url: https://www.cloudskillsboost.google/paths/118
+  note_tr: Başlangıç üretken yapay zekâ yolu. Cloud Skills Boost.
+  note_en: Beginner generative-AI path. Cloud Skills Boost.
+- name: Google · Introduction to Generative AI
+  kind: herkes
+  url: https://www.cloudskillsboost.google/paths/17
+  note_tr: Google Cloud üretken AI giriş yolu.
+  note_en: Google Cloud intro path to generative AI.
+- name: Google · Introduction to Large Language Models
+  kind: herkes
+  url: https://www.cloudskillsboost.google/paths/55
+  note_tr: Büyük dil modellerine giriş. Google Cloud.
+  note_en: Intro to large language models. Google Cloud.
+- name: Microsoft Learn. Üretken yapay zekâya giriş
+  kind: herkes
+  url: https://learn.microsoft.com/tr-tr/training/paths/introduction-generative-ai/
+  note_tr: Türkçe Microsoft Learn yolu. Üretken AI temelleri.
+  note_en: Turkish Microsoft Learn path. Generative AI basics.
+- name: Microsoft Learn. Azure’da yapay zekâya başlangıç
+  kind: herkes
+  url: https://learn.microsoft.com/tr-tr/training/paths/get-started-with-artificial-intelligence-on-azure/
+  note_tr: Azure AI servislerine giriş. Türkçe Learn yolu.
+  note_en: Intro to Azure AI services. Turkish Learn path.
+- name: Hugging Face. LLM Course
+  kind: herkes
+  url: https://huggingface.co/learn/llm-course
+  note_tr: Açık LLM kursu. Transformer’lar, fine-tuning, yayınlama.
+  note_en: Open LLM course. Transformers, fine-tuning, publishing.
+- name: Hugging Face. NLP Course
+  kind: herkes
+  url: https://huggingface.co/learn/nlp-course
+  note_tr: HF NLP kursu. Tokenizer, modeller, pipeline’lar.
+  note_en: HF NLP course. Tokenizers, models, pipelines.
+- name: DeepLearning.AI · ChatGPT Prompt Engineering
+  kind: herkes
+  url: https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/
+  note_tr: Geliştiriciler için prompt engineering kısa kursu.
+  note_en: Short course on prompt engineering for developers.
+- name: TYZT Eğitim Külliyatı (tüm bootcampler)
+  kind: herkes
+  url: https://github.com/Turkish-AI-Community/egitimlerimiz
+  note_tr: Türkiye Yapay Zeka Topluluğu. Açık bootcamp listesi.
+  note_en: Turkish AI Community. Open bootcamp index.
+- name: İÜ Bootcamp. Veri Nedir?
+  kind: herkes
+  url: https://www.youtube.com/watch?v=5L53oWXXsBU
+  note_tr: İstanbul Üni. Data Club. Veri kavramına giriş (Gün 1).
+  note_en: Istanbul Univ. Data Club. Intro to data (Day 1).
+- name: İÜ Bootcamp. Veri Biliminin Temelleri
+  kind: herkes
+  url: https://www.youtube.com/watch?v=XF2srr8bwo8
+  note_tr: İstanbul Üni.. Veri bilimi temelleri (Gün 2).
+  note_en: Istanbul Univ.. Data-science foundations (Day 2).
+- name: İÜ Bootcamp. Generative AI Temelleri
+  kind: herkes
+  url: https://www.youtube.com/watch?v=5M5PpuaVkls
+  note_tr: İstanbul Üni.. Üretken AI ve LLM’lere giriş (Gün 8).
+  note_en: Istanbul Univ.. Generative AI & LLM intro (Day 8).
+- name: Zero2End · Kick-Off
+  kind: herkes
+  url: https://www.youtube.com/watch?v=2bnm0hC8lmo
+  note_tr: MultiGroup Zero2End ML Bootcamp açılış oturumu.
+  note_en: MultiGroup Zero2End ML Bootcamp kick-off.
+- name: Zero2End · Veri Kavramına Giriş (Panel)
+  kind: herkes
+  url: https://www.youtube.com/watch?v=0_VL5iE6dKM
+  note_tr: Klasik ve modern veri bilimi ekosistemi paneli.
+  note_en: Panel on classical and modern data-science ecosystems.
+- name: Zero2End · Python’a Giriş ve Veri Kütüphaneleri
+  kind: herkes
+  url: https://www.youtube.com/watch?v=geVl-FCMblY
+  note_tr: Python ve temel veri kütüphaneleri. Uygulamalı.
+  note_en: Python and core data libraries. Hands-on.
+- name: 'Andrej Karpathy. Neural Networks: Zero to Hero'
+  kind: herkes
+  url: https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ
+  note_tr: Sıfırdan sinir ağları. Dünya çapında referans seri.
+  note_en: Neural nets from scratch. Widely cited reference series.
+- name: fast.ai · Practical Deep Learning
+  kind: herkes
+  url: https://course.fast.ai/
+  note_tr: Uygulamalı derin öğrenme. Ücretsiz fast.ai kursu.
+  note_en: Practical deep learning. Free fast.ai course.
+- name: BTK · Makine Öğrenmesi (teori)
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/makine-ogrenmesi-30123
+  note_tr: Gözetimli, gözetimsiz ve pekiştirmeli öğrenme; model seçimi.
+  note_en: Supervised, unsupervised, reinforcement learning; model selection.
+- name: BTK · Python ile Makine Öğrenmesi
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/python-ile-makine-oegrenmesi-11800
+  note_tr: Sıfırdan ML. Regresyon, sınıflandırma, kümeleme.
+  note_en: ML from scratch. Regression, classification, clustering.
+- name: BTK · Veri Bilimi için Python ve TensorFlow
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/veri-bilimi-icin-python-ve-tensorflow-11705
+  note_tr: NumPy, Pandas ve TensorFlow ile model kurma.
+  note_en: Building models with NumPy, Pandas, and TensorFlow.
+- name: BTK · TensorFlow ile Derin Öğrenme
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/tensorflow-ile-derin-ogrenme-11801
+  note_tr: TensorFlow ile derin öğrenme uygulamaları.
+  note_en: Deep-learning applications with TensorFlow.
+- name: BTK · Derin Öğrenmeye Giriş
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/derin-ogrenmeye-giris-35507
+  note_tr: ANN, CNN, RNN/LSTM, GAN, transformers’a giriş.
+  note_en: Intro to ANN, CNN, RNN/LSTM, GANs, transformers.
+- name: BTK · Keras ile Derin Öğrenmeye Giriş
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/keras-ile-derin-ogrenmeye-giris-10599
+  note_tr: Keras ile derin öğrenme temelleri ve uygulamalar.
+  note_en: Deep-learning basics and practice with Keras.
+- name: BTK · Keras ile Derin Öğrenme Algoritmaları
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/keras-ile-derin-ogrenme-algoritmalari-37613
+  note_tr: ANN/CNN/LSTM/GAN/transformers. Keras pratikleri.
+  note_en: ANN/CNN/LSTM/GAN/transformers. Keras practice.
+- name: BTK · PyTorch ile Derin Öğrenme Algoritmaları
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/pytorch-ile-derin-ogrenme-algoritmalari-44053
+  note_tr: PyTorch ile ANN, CNN, RNN, GAN, ResNet, transformers.
+  note_en: ANN, CNN, RNN, GAN, ResNet, transformers with PyTorch.
+- name: BTK · Doğal Dil İşleme
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/dogal-dil-isleme-40852
+  note_tr: NLP temelleri, transformers, chatbot ve çeviri pratikleri.
+  note_en: NLP foundations, transformers, chatbot and translation practice.
+- name: BTK · Derin Öğrenme ile NLP Pratikleri
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/derin-ogrenme-ile-dogal-dil-isleme-pratikleri-56932
+  note_tr: RNN/LSTM, Transformer, GPT, LLaMA, RAG. Uygulamalı NLP.
+  note_en: RNN/LSTM, Transformers, GPT, LLaMA, RAG. Applied NLP.
+- name: BTK · Yapay Zekâ ile Metin Analizi
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/yapay-zeka-ile-metin-analizi-37569
+  note_tr: Metin sınıflandırma, duygu analizi ve NLP pratikleri.
+  note_en: Text classification, sentiment analysis, and NLP practice.
+- name: BTK · LLM ve Prompt Engineering
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/llm-ve-prompt-engineering-56936
+  note_tr: Büyük dil modelleri ve etkili prompt tasarımı.
+  note_en: Large language models and effective prompt design.
+- name: BTK · RAG Tabanlı Sohbet Botları
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/erisim-destekli-uretim-rag-tabanli-sohbet-botlari-57900
+  note_tr: RAG, vektör DB, Gradio ile sohbet botu geliştirme.
+  note_en: Build chatbots with RAG, vector DBs, and Gradio.
+- name: BTK · Bilgisayarlı Görü ile Nesne Tespiti
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/bilgisayarli-goru-ile-nesne-tespiti-35000
+  note_tr: Bilgisayarlı görü ve nesne tespiti uygulamaları.
+  note_en: Computer vision and object-detection applications.
+- name: BTK · YOLOv11 ile Bilgisayarlı Görü
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/yolov11-ile-bilgisayarli-goru-pratikleri-60314
+  note_tr: YOLOv11, Roboflow, Colab ile CV pratikleri.
+  note_en: CV practice with YOLOv11, Roboflow, and Colab.
+- name: BTK · R ile Veri Bilimine Giriş
+  kind: derin
+  url: https://www.btkakademi.gov.tr/portal/course/r-ile-veri-bilimine-giris-13050
+  note_tr: R dili ile veri bilimi temelleri.
+  note_en: Data-science foundations with R.
+- name: Frightera · Makine Öğrenmesi Kursu
+  kind: derin
+  url: https://youtu.be/iLACR5cNeuw
+  note_tr: Türkçe YouTube ML kursu. Ön işleme, özellik, modelleme.
+  note_en: Turkish YouTube ML course. Preprocessing, features, modeling.
+- name: Noktalı Virgül. Sıfırdan AI & Derin Öğrenme
+  kind: derin
+  url: https://github.com/Cengineer00/noktali-virgul-ai-lectures
+  note_tr: Sıfırdan GPT, sinir ağı ve karar ağacı. YouTube + kod.
+  note_en: GPT, neural nets, decision trees from scratch. YouTube + code.
+- name: Transformer · Sıfırdan, Satır Satır (Türkçe)
+  kind: derin
+  url: https://www.youtube.com/watch?v=t1aCIbhRk4U
+  note_tr: Transformer mimarisini tek GPU’da sıfırdan kodlama.
+  note_en: Coding a Transformer from scratch on a single GPU.
+- name: Hugging Face. Computer Vision Course
+  kind: derin
+  url: https://huggingface.co/learn/computer-vision-course
+  note_tr: HF bilgisayarlı görü kursu. Modeller ve pipeline’lar.
+  note_en: HF computer-vision course. Models and pipelines.
+- name: Hugging Face. Audio Course
+  kind: derin
+  url: https://huggingface.co/learn/audio-course
+  note_tr: HF ses/ASR kursu. Konuşma modelleri.
+  note_en: HF audio/ASR course. Speech models.
+- name: Hugging Face. Agents Course
+  kind: derin
+  url: https://huggingface.co/learn/agents-course
+  note_tr: HF AI ajanları kursu. Araç kullanımı ve orkestrasyon.
+  note_en: HF AI-agents course. Tool use and orchestration.
+- name: DeepLearning.AI · Building Systems with ChatGPT
+  kind: derin
+  url: https://www.deeplearning.ai/short-courses/building-systems-with-chatgpt/
+  note_tr: ChatGPT API ile sistem kurma kısa kursu.
+  note_en: Short course on building systems with the ChatGPT API.
+- name: DeepLearning.AI · LangChain for LLM Apps
+  kind: derin
+  url: https://www.deeplearning.ai/short-courses/langchain-for-llm-application-development/
+  note_tr: LangChain ile LLM uygulama geliştirme.
+  note_en: Build LLM apps with LangChain.
+- name: DeepLearning.AI · Finetuning Large Language Models
+  kind: derin
+  url: https://www.deeplearning.ai/short-courses/finetuning-large-language-models/
+  note_tr: LLM fine-tuning kısa kursu.
+  note_en: Short course on fine-tuning LLMs.
+- name: DeepLearning.AI · How Transformer LLMs Work
+  kind: derin
+  url: https://www.deeplearning.ai/short-courses/how-transformer-llms-work/
+  note_tr: Transformer LLM’lerin çalışma biçimi.
+  note_en: How transformer LLMs work.
+- name: Google · Generative AI for Developers
+  kind: herkes
+  url: https://www.cloudskillsboost.google/course_templates/537
+  note_tr: Geliştiriciler için üretken AI. Google Cloud.
+  note_en: Generative AI for developers. Google Cloud.
+- name: Microsoft Learn. Makine öğrenmesi modelleri oluşturma
+  kind: derin
+  url: https://learn.microsoft.com/tr-tr/training/paths/create-machine-learn-models/
+  note_tr: Azure ML ile model oluşturma. Türkçe Learn.
+  note_en: Build ML models with Azure. Turkish Learn path.
+- name: Microsoft Learn. Azure bilgisayarlı görü
+  kind: derin
+  url: https://learn.microsoft.com/tr-tr/training/paths/explore-computer-vision-microsoft-azure/
+  note_tr: Azure CV servisleri. Türkçe Learn yolu.
+  note_en: Azure computer-vision services. Turkish Learn path.
+- name: İÜ Bootcamp. ML Matematik Temelleri
+  kind: derin
+  url: https://www.youtube.com/watch?v=AqhDreA4Kr4
+  note_tr: Makine öğrenmesi modellerinin matematik temelleri.
+  note_en: Mathematical foundations of ML models.
+- name: İÜ Bootcamp. Regresyon Modelleri
+  kind: derin
+  url: https://www.youtube.com/watch?v=TLzUhuMg1JI
+  note_tr: Regresyon modelleri. Teori ve uygulama.
+  note_en: Regression models. Theory and practice.
+- name: İÜ Bootcamp. Sınıflandırmaya Giriş
+  kind: derin
+  url: https://www.youtube.com/watch?v=UrMqJQL_QzI
+  note_tr: Sınıflandırma modellerine giriş.
+  note_en: Intro to classification models.
+- name: İÜ Bootcamp. Sınıflandırma Uygulama
+  kind: derin
+  url: https://www.youtube.com/watch?v=CFRRpx_FiQk
+  note_tr: Sınıflandırma modelleri uygulamalı oturum.
+  note_en: Hands-on classification models session.
+- name: İÜ Bootcamp. Derin Öğrenme Temelleri
+  kind: derin
+  url: https://www.youtube.com/watch?v=u3fH8Z02RWA
+  note_tr: Derin öğrenme temelleri ve konseptler.
+  note_en: Deep-learning foundations and concepts.
+- name: Zero2End · Olasılık, İstatistik & Lineer Cebir
+  kind: derin
+  url: https://www.youtube.com/watch?v=yH1QCgItkM4
+  note_tr: ML için olasılık, istatistik ve lineer cebir.
+  note_en: Probability, statistics, and linear algebra for ML.
+- name: Zero2End · Model için Veri Hazırlama (EDA)
+  kind: derin
+  url: https://www.youtube.com/watch?v=L3jZxf7KMtg
+  note_tr: EDA ve model için veri hazırlama.
+  note_en: EDA and data prep for modeling.
+- name: Zero2End · Sınıflandırma Modelleri
+  kind: derin
+  url: https://www.youtube.com/watch?v=YVsTSw-t9TY
+  note_tr: Sınıflandırma modelleri. Zero2End dersi.
+  note_en: Classification models. Zero2End lesson.
+- name: Zero2End · Ranking
+  kind: derin
+  url: https://www.youtube.com/watch?v=2NuyB8Gt2oI
+  note_tr: Ranking modelleri ve uygulamalar.
+  note_en: Ranking models and applications.
+- name: Zero2End · Regresyon Modelleri
+  kind: derin
+  url: https://www.youtube.com/watch?v=loPUbsJH3_Q
+  note_tr: Regresyon modelleri. Zero2End dersi.
+  note_en: Regression models. Zero2End lesson.
+- name: Zero2End · Gözetimsiz Öğrenme
+  kind: derin
+  url: https://www.youtube.com/watch?v=NcDTUUuZ02w
+  note_tr: Gözetimsiz öğrenme yöntemleri.
+  note_en: Unsupervised learning methods.
+- name: Zero2End · Model Seçimi ve Optimizasyon
+  kind: derin
+  url: https://www.youtube.com/watch?v=YG2P_5ZOFWQ
+  note_tr: Model seçimi, optimizasyon ve değerlendirme.
+  note_en: Model selection, optimization, and evaluation.
+- name: TYZT · AGÜ From Model to Agent
+  kind: derin
+  url: https://youtube.com/playlist?list=PLr1CkC0uCFepy8BkmKbsJ9Uw2OEIgGUtm
+  note_tr: Modelden ajan’a. AGÜ HSD bootcamp.
+  note_en: From model to agent. AGÜ HSD bootcamp.
+- name: TYZT · Sakarya Üni. Computer Vision 101
+  kind: derin
+  url: https://youtube.com/playlist?list=PLr1CkC0uCFeq_Z1h95y4DX5l8NHaq5GMq
+  note_tr: Bilgisayarlı görü 101. Sakarya YZT bootcamp.
+  note_en: Computer vision 101. Sakarya YZT bootcamp.
+- name: TYZT · YTÜ Hands-on AI
+  kind: derin
+  url: https://youtube.com/playlist?list=PLr1CkC0uCFeqHvzfYLeBnemwrawfemNRm
+  note_tr: Uygulamalı yapay zekâ. YTÜ VBK bootcamp.
+  note_en: Hands-on AI. YTÜ VBK bootcamp.
+- name: AGÜ HSD Bootcamp. GitHub materyalleri
+  kind: derin
+  url: https://github.com/Turkish-AI-Community/hsd-agu-egitim
+  note_tr: From Model to Agent bootcamp kod ve notları.
+  note_en: From Model to Agent bootcamp code and notes.
+- name: Sakarya CV 101. GitHub materyalleri
+  kind: derin
+  url: https://github.com/Turkish-AI-Community/sakarya-uni-yapay-zeka-toplulugu-computer-vision-101
+  note_tr: Computer Vision 101 bootcamp materyalleri.
+  note_en: Computer Vision 101 bootcamp materials.
+- name: YTÜ Hands-on AI. GitHub materyalleri
+  kind: derin
+  url: https://github.com/Turkish-AI-Community/ytu-vbk-hands-on-ai
+  note_tr: YTÜ Hands-on AI bootcamp materyalleri.
+  note_en: YTÜ Hands-on AI bootcamp materials.
+- name: Google Cloud Skills Boost. Generative AI kataloğu
+  kind: herkes
+  url: https://www.cloudskillsboost.google/catalog?keywords=generative%20ai
+  note_tr: Google Cloud Skills Boost üretken AI kurs kataloğu.
+  note_en: Google Cloud Skills Boost generative-AI catalog.
+- name: Microsoft Learn. AI hub (TR)
+  kind: herkes
+  url: https://learn.microsoft.com/tr-tr/training/browse/?products=azure&roles=ai-engineer&resource_type=learning%20path
+  note_tr: Microsoft Learn AI mühendisi öğrenme yolları (Türkçe arayüz).
+  note_en: Microsoft Learn AI-engineer learning paths (Turkish UI).
+- name: scikit-learn User Guide
+  kind: derin
+  url: https://scikit-learn.org/stable/user_guide.html
+  note_tr: scikit-learn resmi kullanıcı kılavuzu. ML referansı.
+  note_en: Official scikit-learn user guide. ML reference.
+- name: PyTorch Tutorials
+  kind: derin
+  url: https://pytorch.org/tutorials/
+  note_tr: Resmî PyTorch eğitimleri. Temelden ileriye.
+  note_en: Official PyTorch tutorials. Beginner to advanced.
+- name: TensorFlow Tutorials
+  kind: derin
+  url: https://www.tensorflow.org/tutorials
+  note_tr: Resmî TensorFlow eğitimleri.
+  note_en: Official TensorFlow tutorials.
+- name: spaCy Course (NLP)
+  kind: derin
+  url: https://course.spacy.io/
+  note_tr: spaCy resmi NLP kursu. Üretim odaklı.
+  note_en: Official spaCy NLP course. Production-oriented.
+- name: LangChain Docs. Tutorials
+  kind: derin
+  url: https://python.langchain.com/docs/tutorials/
+  note_tr: LangChain resmi tutorial’ları. RAG ve ajanlar.
+  note_en: Official LangChain tutorials. RAG and agents.
+- name: LlamaIndex Docs. Learn
+  kind: derin
+  url: https://docs.llamaindex.ai/en/stable/understanding/
+  note_tr: LlamaIndex öğrenme yolu. RAG ve veri bağlama.
+  note_en: LlamaIndex learning path. RAG and data connectors.
+- name: Papers With Code. Methods
+  kind: derin
+  url: https://paperswithcode.com/methods
+  note_tr: Güncel yöntemler ve kod. Araştırma/uygulama köprüsü.
+  note_en: Current methods and code. Research-to-practice bridge.
+- name: Microsoft Learn. Azure dil çözümleri
+  kind: derin
+  url: https://learn.microsoft.com/tr-tr/training/paths/develop-language-solutions-azure-ai/
+  note_tr: Microsoft Learn. Azure dil çözümleri. Microsoft Learn yolu.
+  note_en: Microsoft Learn. Azure dil çözümleri. Microsoft Learn path.
+- name: Anthropic · Prompt engineering overview
+  kind: derin
+  url: https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: OpenAI · Prompt engineering guide
+  kind: derin
+  url: https://platform.openai.com/docs/guides/prompt-engineering
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: OpenAI · Fine-tuning guide
+  kind: derin
+  url: https://platform.openai.com/docs/guides/fine-tuning
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: Google AI. Gemini prompting strategies
+  kind: derin
+  url: https://ai.google.dev/gemini-api/docs/prompting-strategies
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: Prompting Guide (DAIR.AI)
+  kind: herkes
+  url: https://www.promptingguide.ai/
+  note_tr: Herkese açık giriş / temel öğrenme kaynağı.
+  note_en: Open beginner / foundational learning resource.
+- name: Coursera · Andrew Ng Machine Learning
+  kind: derin
+  url: https://www.coursera.org/learn/machine-learning
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: Coursera · Deep Learning Specialization
+  kind: derin
+  url: https://www.coursera.org/specializations/deep-learning
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: Coursera · Generative AI for Everyone
+  kind: herkes
+  url: https://www.coursera.org/learn/generative-ai-for-everyone
+  note_tr: Herkese açık giriş / temel öğrenme kaynağı.
+  note_en: Open beginner / foundational learning resource.
+- name: edX · Artificial Intelligence catalog
+  kind: herkes
+  url: https://www.edx.org/learn/artificial-intelligence
+  note_tr: Herkese açık giriş / temel öğrenme kaynağı.
+  note_en: Open beginner / foundational learning resource.
+- name: Stanford CS231n. Deep Learning for Computer Vision
+  kind: derin
+  url: https://cs231n.stanford.edu/
+  note_tr: Stanford CS231n. Deep Learning for Computer Vision. Üniversite ders kaydı / materyal.
+  note_en: Stanford CS231n. Deep Learning for Computer Vision. University lecture / materials.
+- name: Stanford CS224n. NLP with Deep Learning
+  kind: derin
+  url: https://cs224n.stanford.edu/
+  note_tr: Stanford CS224n. NLP with Deep Learning. Üniversite ders kaydı / materyal.
+  note_en: Stanford CS224n. NLP with Deep Learning. University lecture / materials.
+- name: Geoffrey Hinton. Neural Networks lectures
+  kind: derin
+  url: https://www.cs.toronto.edu/~hinton/coursera_lectures.html
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: Stanford CS224N YouTube playlist
+  kind: derin
+  url: https://www.youtube.com/playlist?list=PLoROMvodv4rMiGQp3WXShtMGgzqpfVfbU
+  note_tr: Stanford CS224N YouTube playlist. Üniversite ders kaydı / materyal.
+  note_en: Stanford CS224N YouTube playlist. University lecture / materials.
+- name: Stanford CS231n YouTube playlist
+  kind: derin
+  url: https://www.youtube.com/playlist?list=PL3FW7Lu3i5JvHM8ljYj-zLfQRF3EO8sYv
+  note_tr: Stanford CS231n YouTube playlist. Üniversite ders kaydı / materyal.
+  note_en: Stanford CS231n YouTube playlist. University lecture / materials.
+- name: MIT 6.S191. Intro to Deep Learning
+  kind: derin
+  url: https://www.youtube.com/playlist?list=PLtBw6njQRU-rwp5__7C0oIVt26ZgjG9NI
+  note_tr: MIT 6.S191. Intro to Deep Learning. Üniversite ders kaydı / materyal.
+  note_en: MIT 6.S191. Intro to Deep Learning. University lecture / materials.
+- name: 3Blue1Brown · Neural Networks
+  kind: herkes
+  url: https://www.youtube.com/playlist?list=PLfFghEzofWRI78X298J-sa5XkJ0mpi6WU
+  note_tr: Herkese açık giriş / temel öğrenme kaynağı.
+  note_en: Open beginner / foundational learning resource.
+- name: 3Blue1Brown · Linear Algebra
+  kind: herkes
+  url: https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi
+  note_tr: Herkese açık giriş / temel öğrenme kaynağı.
+  note_en: Open beginner / foundational learning resource.
+- name: 3Blue1Brown · Probability
+  kind: herkes
+  url: https://www.youtube.com/playlist?list=PLZHQObOWTQDMsr9K-rj53DwVRMYO3t5Yr
+  note_tr: Herkese açık giriş / temel öğrenme kaynağı.
+  note_en: Open beginner / foundational learning resource.
+- name: ISLP · Introduction to Statistical Learning
+  kind: derin
+  url: https://www.statlearning.com/
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: Dive into Deep Learning (d2l.ai)
+  kind: derin
+  url: https://d2l.ai/
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: TDD.ai · Turkish NLP resources
+  kind: derin
+  url: https://tdd.ai/
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: Hugging Face Transformers docs
+  kind: derin
+  url: https://huggingface.co/docs/transformers/index
+  note_tr: Hugging Face Transformers docs. Resmi dokümantasyon / öğrenme.
+  note_en: Hugging Face Transformers docs. Official docs / learning.
+- name: Hugging Face PEFT (LoRA) docs
+  kind: derin
+  url: https://huggingface.co/docs/peft/index
+  note_tr: Hugging Face PEFT (LoRA) docs. Resmi dokümantasyon / öğrenme.
+  note_en: Hugging Face PEFT (LoRA) docs. Official docs / learning.
+- name: Hugging Face TRL (SFT/RLHF) docs
+  kind: derin
+  url: https://huggingface.co/docs/trl/index
+  note_tr: Hugging Face TRL (SFT/RLHF) docs. Resmi dokümantasyon / öğrenme.
+  note_en: Hugging Face TRL (SFT/RLHF) docs. Official docs / learning.
+- name: Hugging Face Evaluate docs
+  kind: derin
+  url: https://huggingface.co/docs/evaluate/index
+  note_tr: Hugging Face Evaluate docs. Resmi dokümantasyon / öğrenme.
+  note_en: Hugging Face Evaluate docs. Official docs / learning.
+- name: Gemini API docs
+  kind: derin
+  url: https://ai.google.dev/gemini-api/docs
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: LlamaIndex documentation
+  kind: derin
+  url: https://docs.llamaindex.ai/en/stable/
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: Pinecone Learn. vector DB / RAG
+  kind: derin
+  url: https://www.pinecone.io/learn/
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: Weaviate docs
+  kind: derin
+  url: https://weaviate.io/developers/weaviate
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: Qdrant docs
+  kind: derin
+  url: https://qdrant.tech/documentation/
+  note_tr: Teknik derinleşme. Model, NLP, DL veya LLM uygulaması.
+  note_en: Technical depth. Models, NLP, DL, or LLM practice.
+- name: Kaggle Learn. Intro to Machine Learning
+  kind: herkes
+  url: https://www.kaggle.com/learn/intro-to-machine-learning
+  note_tr: Intro to Machine Learning. Kaggle Learn mikro kursu.
+  note_en: Intro to Machine Learning. Kaggle Learn micro-course.
+- name: Kaggle Learn. Intermediate ML
+  kind: derin
+  url: https://www.kaggle.com/learn/intermediate-machine-learning
+  note_tr: Intermediate ML. Kaggle Learn mikro kursu.
+  note_en: Intermediate ML. Kaggle Learn micro-course.
+- name: Kaggle Learn. Pandas
+  kind: herkes
+  url: https://www.kaggle.com/learn/pandas
+  note_tr: Pandas. Kaggle Learn mikro kursu.
+  note_en: Pandas. Kaggle Learn micro-course.
+- name: Kaggle Learn. Data Visualization
+  kind: herkes
+  url: https://www.kaggle.com/learn/data-visualization
+  note_tr: Data Visualization. Kaggle Learn mikro kursu.
+  note_en: Data Visualization. Kaggle Learn micro-course.
+- name: Kaggle Learn. Intro to Deep Learning
+  kind: derin
+  url: https://www.kaggle.com/learn/intro-to-deep-learning
+  note_tr: Intro to Deep Learning. Kaggle Learn mikro kursu.
+  note_en: Intro to Deep Learning. Kaggle Learn micro-course.
+- name: Kaggle Learn. Computer Vision
+  kind: derin
+  url: https://www.kaggle.com/learn/computer-vision
+  note_tr: Computer Vision. Kaggle Learn mikro kursu.
+  note_en: Computer Vision. Kaggle Learn micro-course.
+- name: Kaggle Learn. Feature Engineering
+  kind: derin
+  url: https://www.kaggle.com/learn/feature-engineering
+  note_tr: Feature Engineering. Kaggle Learn mikro kursu.
+  note_en: Feature Engineering. Kaggle Learn micro-course.
+- name: Kaggle Learn. ML Explainability
+  kind: derin
+  url: https://www.kaggle.com/learn/machine-learning-explainability
+  note_tr: ML Explainability. Kaggle Learn mikro kursu.
+  note_en: ML Explainability. Kaggle Learn micro-course.
+- name: Kaggle Learn. Intro to AI Ethics
+  kind: herkes
+  url: https://www.kaggle.com/learn/intro-to-ai-ethics
+  note_tr: Intro to AI Ethics. Kaggle Learn mikro kursu.
+  note_en: Intro to AI Ethics. Kaggle Learn micro-course.
+- name: Kaggle Learn. Time Series
+  kind: derin
+  url: https://www.kaggle.com/learn/time-series
+  note_tr: Time Series. Kaggle Learn mikro kursu.
+  note_en: Time Series. Kaggle Learn micro-course.
+- name: Kaggle Learn. Python
+  kind: herkes
+  url: https://www.kaggle.com/learn/python
+  note_tr: Python. Kaggle Learn mikro kursu.
+  note_en: Python. Kaggle Learn micro-course.
+- name: Kaggle Learn. Intro to Programming
+  kind: herkes
+  url: https://www.kaggle.com/learn/intro-to-programming
+  note_tr: Intro to Programming. Kaggle Learn mikro kursu.
+  note_en: Intro to Programming. Kaggle Learn micro-course.
+- name: Coursera · AI for Medicine Specialization
+  kind: meslek
+  url: https://www.coursera.org/specializations/ai-for-medicine
+  note_tr: Sağlık. Tıpta yapay zekâ uzmanlık yolu (görüntü, tanı, prognostik).
+  note_en: Healthcare. AI for Medicine specialization (imaging, diagnosis, prognosis).
+- name: WHO · Ethics & Governance of AI for Health
+  kind: meslek
+  url: https://www.who.int/publications/i/item/9789240029200
+  note_tr: Sağlık. DSÖ yapay zekâ etik ve yönetişim rehberi.
+  note_en: Healthcare. WHO guidance on ethics and governance of AI for health.
+- name: YouTube · AI in Healthcare (overview)
+  kind: meslek
+  url: https://www.youtube.com/watch?v=8j0UDiN7go4
+  note_tr: Sağlık. Sağlıkta yapay zekâya genel bakış videosu.
+  note_en: Healthcare. Overview video on AI in healthcare.
+- name: YouTube · AI for Medicine playlist
+  kind: meslek
+  url: https://www.youtube.com/playlist?list=PLtmWHNX-gukUMW2NRs_mcb0X8lGJXVv4I
+  note_tr: Sağlık. Tıpta AI ders / konuşma oynatma listesi.
+  note_en: Healthcare. AI-for-medicine lecture playlist.
+- name: TBB TV. Yapay Zekâ ve Hukuk
+  kind: meslek
+  url: https://www.youtube.com/watch?v=M38w0R9KvFQ
+  note_tr: 'Hukuk. Türkiye Barolar Birliği: yapay zekâ, avukatlık ve yargı.'
+  note_en: 'Legal. Turkish Bar Association: AI, advocacy, and the judiciary.'
+- name: Coursera · AI and Law
+  kind: meslek
+  url: https://www.coursera.org/learn/ai-law
+  note_tr: Hukuk. Yapay zekâ ve hukuk kesişimi kursu.
+  note_en: Legal. Course on the intersection of AI and law.
+- name: YouTube · AI and Law talk
+  kind: meslek
+  url: https://www.youtube.com/watch?v=L2j_6o1p3sA
+  note_tr: Hukuk. Yapay zekâ ve hukuk üzerine konuşma.
+  note_en: Legal. Talk on AI and law.
+- name: Webinar · Finansta Yapay Zekâ (IDP / bankacılık)
+  kind: meslek
+  url: https://www.youtube.com/watch?v=kQcb6PBtZW0
+  note_tr: Finans. Bankacılıkta akıllı belge işleme ve AI ölçekleme webinarı.
+  note_en: Finance. Webinar on intelligent document processing and AI at scale in banking.
+- name: YouTube · AI in Finance
+  kind: meslek
+  url: https://www.youtube.com/watch?v=1r-F3FIONl8
+  note_tr: Finans. Finans sektöründe yapay zekâya genel bakış.
+  note_en: Finance. Overview of AI in the financial sector.
+- name: AlicanKiraz0 · Turkish Finance SFT Dataset (bağlam)
+  kind: meslek
+  url: https://huggingface.co/datasets/AlicanKiraz0/Turkish-Finance-SFT-Dataset
+  note_tr: Finans. Türkçe finans asistanı SFT veri seti (meslekî LLM örneği).
+  note_en: Finance. Turkish finance-assistant SFT dataset (domain LLM example).
+- name: Google · AI for Educators
+  kind: meslek
+  url: https://grow.google/ai-for-educators/
+  note_tr: Eğitim. Öğretmenler için Google üretken AI kaynakları.
+  note_en: Education. Google generative-AI resources for educators.
+- name: Zero2End · Final Proje Yayını
+  kind: meslek
+  url: https://www.youtube.com/watch?v=laNHrV-stR0
+  note_tr: Kariyer. Sektör projesi ve meslekî uygulama oturumu.
+  note_en: Career. Industry project and applied practice session.
+- name: TYZT · Akdeniz Üni. Manage The Data
+  kind: meslek
+  url: https://www.youtube.com/playlist?list=PLr1CkC0uCFepp04VDDKOiMgYkmryL-7q0
+  note_tr: İş hayatında veri yönetimi. Meslekî dönüşüm bootcamp’i.
+  note_en: Data management at work. Career-shift bootcamp.
+- name: enesmanan · Credit Risk Model (finans örneği)
+  kind: meslek
+  url: https://github.com/enesmanan/credit-risk-model
+  note_tr: Finans. Uçtan uca kredi riski ML proje örneği.
+  note_en: Finance. End-to-end credit-risk ML project example.
+- name: MultiGroup · Zero2End ML Bootcamp (repo)
+  kind: meslek
+  url: https://github.com/Developer-MultiGroup/Zero2End-ML-Bootcamp
+  note_tr: Meslekî yol. Sektör konuklarıyla ML bootcamp materyalleri.
+  note_en: Career path. ML bootcamp materials with industry guests.

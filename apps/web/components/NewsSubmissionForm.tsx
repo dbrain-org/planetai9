@@ -199,8 +199,8 @@ export function NewsSubmissionForm({
             required
             full
             hint={L(
-              "Kartlarda ve haber sayfasında görünen kısa özet — 1–2 cümle, tam yazın.",
-              "Short dek shown on cards and the article page — 1–2 full sentences.",
+              "Kartlarda ve haber sayfasında görünen kısa özet. 1–2 cümle, tam yazın.",
+              "Short dek shown on cards and the article page. 1–2 full sentences.",
             )}
           >
             <textarea

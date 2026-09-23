@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 _settings = get_settings()
 
 _HF_ORG = re.compile(r"^https?://huggingface\.co/([^/]+)/", re.I)
-_CACHE_KEY = "turkiye-llm:turkish-models:v1"
+_CACHE_KEY = "turkiye-llm:turkish-models:v3"
 
 
 @dataclass(slots=True)
@@ -40,6 +40,7 @@ class RadarModel:
     source_url: str | None
     website_url: str | None
     openness: str | None = None
+    base_model: str | None = None
 
 
 @dataclass(slots=True)
@@ -116,6 +117,18 @@ def _normalize_item(raw: dict[str, Any]) -> RadarModel | None:
     openness = raw.get("openness")
     if openness is not None:
         openness = str(openness)
+    base_model = raw.get("base_model")
+    if isinstance(base_model, list):
+        base_model = next((str(x).strip() for x in base_model if x), None)
+    elif base_model is not None:
+        base_model = str(base_model).strip() or None
+        if base_model and base_model.startswith("[") and base_model.endswith("]"):
+            try:
+                parsed = json.loads(base_model.replace("'", '"'))
+                if isinstance(parsed, list) and parsed:
+                    base_model = str(parsed[0]).strip() or None
+            except json.JSONDecodeError:
+                base_model = base_model.strip("[]'\" ") or None
     return RadarModel(
         name=name,
         organization=org,
@@ -126,6 +139,7 @@ def _normalize_item(raw: dict[str, Any]) -> RadarModel | None:
         source_url=source_url,
         website_url=website,
         openness=openness,
+        base_model=base_model,
     )
 
 
@@ -181,6 +195,7 @@ def fetch_turkish_models(*, limit: int = 1000, use_cache: bool = True) -> list[R
                 "source_url": m.source_url,
                 "website_url": m.website_url,
                 "openness": m.openness,
+                "base_model": m.base_model,
             }
         )
 
@@ -227,6 +242,67 @@ def technique_counts(models: list[RadarModel]) -> list[dict[str, Any]]:
         label = (m.technique or "Diğer").strip() or "Diğer"
         c[label] += 1
     return [{"label": k, "count": v} for k, v in c.most_common(12)]
+
+
+_BASE_FAMILIES: list[tuple[str, str]] = [
+    ("qwen", "Qwen"),
+    ("llama", "Llama"),
+    ("mistral", "Mistral"),
+    ("mixtral", "Mistral"),
+    ("gemma", "Gemma"),
+    ("phi-", "Phi"),
+    ("phi2", "Phi"),
+    ("phi3", "Phi"),
+    ("deepseek", "DeepSeek"),
+    ("bert", "BERT"),
+    ("roberta", "RoBERTa"),
+    ("electra", "ELECTRA"),
+    ("t5", "T5"),
+    ("gpt", "GPT"),
+    ("whisper", "Whisper"),
+    ("e5", "E5"),
+    ("bge", "BGE"),
+    ("nomic", "Nomic"),
+    ("falcon", "Falcon"),
+    ("yi-", "Yi"),
+    ("vicuna", "Vicuna"),
+    ("command", "Command"),
+]
+
+
+def _base_family(base: str) -> str:
+    """Normalize HF base_model id to a display family (Qwen, Llama, …)."""
+    raw = base.strip()
+    leaf = raw.split("/")[-1] if "/" in raw else raw
+    low = leaf.casefold()
+    full = raw.casefold()
+    for needle, label in _BASE_FAMILIES:
+        if needle in low or needle in full:
+            return label
+    # Turkish / local continued pretrains — keep leaf prefix readable
+    if "turkish" in low or "turk" in low or "tr-" in low or low.startswith("tr"):
+        return "Türkçe (yerel)"
+    return leaf.split("-")[0][:28] or raw[:28]
+
+
+def base_model_counts(models: list[RadarModel], *, limit: int = 20) -> list[dict[str, Any]]:
+    """Aggregate fine-tune bases by family; keep the most common concrete id as example."""
+    family_n: Counter[str] = Counter()
+    example_n: dict[str, Counter[str]] = defaultdict(Counter)
+    for m in models:
+        if not m.base_model:
+            continue
+        base = m.base_model.strip()
+        if not base:
+            continue
+        fam = _base_family(base)
+        family_n[fam] += 1
+        example_n[fam][base] += 1
+    out: list[dict[str, Any]] = []
+    for fam, count in family_n.most_common(limit):
+        example = example_n[fam].most_common(1)[0][0]
+        out.append({"label": fam, "count": count, "example": example})
+    return out
 
 
 def year_counts(models: list[RadarModel]) -> list[dict[str, Any]]:

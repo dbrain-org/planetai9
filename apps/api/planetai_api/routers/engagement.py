@@ -346,15 +346,55 @@ def delete_comment(
 
 
 def _developer_or_404(db: Session, slug: str) -> models.LlmDeveloper:
+    """Resolve a producer row for comments — curated seed or auto stub from Radar."""
+    from planetai_api.radar_client import aggregate_orgs, fetch_turkish_models
+
+    needle = (slug or "").strip()
+    if not needle:
+        raise HTTPException(404, "üretici bulunamadı")
+
     dev = db.scalar(
         select(models.LlmDeveloper).where(
-            models.LlmDeveloper.slug == slug,
+            models.LlmDeveloper.slug == needle,
             models.LlmDeveloper.published.is_(True),
         )
     )
-    if dev is None:
+    if dev is not None:
+        return dev
+
+    models_list = fetch_turkish_models(limit=1000)
+    orgs = {o.slug.casefold(): o for o in aggregate_orgs(models_list)}
+    org = orgs.get(needle.casefold())
+    if org is None:
         raise HTTPException(404, "üretici bulunamadı")
-    return dev
+
+    # Auto-publish a lightweight profile so comments work for Radar-only producers.
+    ent = models.LlmDeveloper(
+        slug=org.slug,
+        display_name=org.name,
+        kind="org",
+        website_url=org.website_url,
+        hf_url=org.hf_url,
+        radar_slug=org.slug,
+        published=True,
+        sort_order=9000,
+    )
+    db.add(ent)
+    try:
+        db.commit()
+    except Exception:  # noqa: BLE001 — concurrent create race
+        db.rollback()
+        again = db.scalar(
+            select(models.LlmDeveloper).where(
+                models.LlmDeveloper.slug == org.slug,
+                models.LlmDeveloper.published.is_(True),
+            )
+        )
+        if again is None:
+            raise HTTPException(404, "üretici bulunamadı") from None
+        return again
+    db.refresh(ent)
+    return ent
 
 
 def _pack_developer_comments(

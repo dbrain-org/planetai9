@@ -315,7 +315,7 @@ export interface Stats {
 
 export interface CuratedLink {
   id: string;
-  collection: "tr_data" | "tr_share" | "tr_ecosystem";
+  collection: "tr_data" | "tr_share" | "tr_ecosystem" | "education";
   name: string;
   url: string;
   kind: string;
@@ -335,6 +335,12 @@ export interface LlmKpi {
 export interface LlmChartBucket {
   label: string;
   count: number;
+}
+
+export interface LlmBaseModelBucket {
+  label: string;
+  count: number;
+  example?: string | null;
 }
 
 export interface LlmYearBucket {
@@ -363,12 +369,14 @@ export interface LlmDeveloperCard {
   github_url?: string | null;
   city?: string | null;
   model_count: number;
+  dataset_count?: number;
   curated: boolean;
 }
 
 export interface LlmModelRow {
   name: string;
   technique?: string | null;
+  base_model?: string | null;
   published_at?: string | null;
   downloads: number;
   source_url?: string | null;
@@ -403,6 +411,7 @@ export interface OpenDatasetCard {
   downloads: number;
   producer_slug: string;
   producer_name: string;
+  category?: string;
 }
 
 export interface LlmDeveloperDetail {
@@ -429,6 +438,7 @@ export interface TurkiyeLlmOverview {
   kpi: LlmKpi;
   by_technique: LlmChartBucket[];
   by_year: LlmYearBucket[];
+  by_base_model?: LlmBaseModelBucket[];
   top_producers: LlmDeveloperCard[];
   map_pins: LlmMapPin[];
   news: EventCard[];

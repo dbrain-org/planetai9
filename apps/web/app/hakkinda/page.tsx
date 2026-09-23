@@ -21,7 +21,7 @@ export const revalidate = 86400;
 export const metadata = {
   title: "Biz Kimiz",
   description:
-    "PlanetAI9 — Türkiye'nin yapay zekâ medya platformu. Haberler, model takibi, açık kaynak ve teknoloji politikaları.",
+    "PlanetAI9. Türkiye'nin yapay zekâ medya platformu. Haberler, model takibi, açık kaynak ve teknoloji politikaları.",
 };
 
 const FEATURES = [
@@ -151,7 +151,7 @@ export default async function AboutPage() {
 
   const p1 = tr
     ? "Türkiye'nin ve Türkçe konuşan izleyicinin penceresinden yapay zekâ, açık kaynak modeller, veri egemenliği ve teknoloji politikaları. PlanetAI9; haberleri, model duyurularını, araçları ve sektördeki kırılma noktalarını tek bir yerde toplar."
-    : "AI, open-source models, data sovereignty and tech policy — from the perspective of Türkiye and the Turkish-speaking audience. PlanetAI9 brings together the news, model announcements, tools and the industry's inflection points in one place.";
+    : "AI, open-source models, data sovereignty and tech policy, from the perspective of Türkiye and the Turkish-speaking audience. PlanetAI9 brings together the news, model announcements, tools and the industry's inflection points in one place.";
   const p2 = tr
     ? "Yeni içerikler için PlanetAI9 YouTube kanalına abone olmayı unutmayın."
     : "Subscribe to the PlanetAI9 YouTube channel for new content.";

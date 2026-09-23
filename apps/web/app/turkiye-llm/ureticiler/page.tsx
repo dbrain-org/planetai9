@@ -9,10 +9,10 @@ import Link from "next/link";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Üreticiler — Türkiye LLM",
+  title: "Üreticiler. Türkiye LLM",
   description: "Türkçe dil modeli üreticileri.",
   openGraph: {
-    title: "Üreticiler — Türkiye LLM | PlanetAI9",
+    title: "Üreticiler. Türkiye LLM | PlanetAI9",
     description: "Türkçe dil modeli üreticileri.",
     url: "/turkiye-llm/ureticiler",
   },
@@ -38,7 +38,7 @@ export default async function UreticilerPage() {
         </h1>
         <p className="mt-3 max-w-2xl text-[15px] text-ink-2 dark:text-d-ink-2">
           {tr
-            ? `${developers.length} üretici — LLM Radar’daki Türkçe modellerden.`
+            ? `${developers.length} üretici. LLM Radar’daki Türkçe modellerden.`
             : `${developers.length} producers from Turkish-signal models on LLM Radar.`}
         </p>
       </header>

@@ -150,7 +150,7 @@ function Editor({
         throw new Error(
           typeof b.detail === "string"
             ? b.detail
-            : "Kaydedilemedi — başlık en az 4, metin en az birkaç cümle olmalı.",
+            : "Kaydedilemedi. Başlık en az 4, metin en az birkaç cümle olmalı.",
         );
       }
       onDone();
@@ -227,7 +227,7 @@ function Editor({
               value={form.dek}
               onChange={set("dek")}
               rows={1}
-              placeholder="Spot cümle — opsiyonel"
+              placeholder="Spot cümle (opsiyonel)"
               className="mt-3 w-full resize-none border-0 bg-transparent p-0 text-[16px] leading-snug text-ink-2 outline-none placeholder:text-muted/50 dark:text-d-ink-2"
               style={{ fontFamily: SERIF }}
             />

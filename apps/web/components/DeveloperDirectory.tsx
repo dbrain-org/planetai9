@@ -61,6 +61,9 @@ export function DeveloperDirectory({
             </div>
             <p className="mt-auto text-[12px] text-muted">
               {d.model_count} {tr ? "model" : "models"}
+              {(d.dataset_count ?? 0) > 0
+                ? ` · ${d.dataset_count} ${tr ? "veri" : "datasets"}`
+                : ""}
               {d.city ? ` · ${d.city}` : ""}
             </p>
           </Link>

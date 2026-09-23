@@ -16,8 +16,9 @@ from planetai_api.routers.marketplace import require_admin
 router = APIRouter()
 _settings = get_settings()
 
-COLLECTIONS = {"tr_data", "tr_share", "tr_ecosystem"}
+COLLECTIONS = {"tr_data", "tr_share", "tr_ecosystem", "education"}
 SHARE_COLLECTION = "tr_share"
+EDUCATION_COLLECTION = "education"
 
 
 class LinkOut(BaseModel):
@@ -159,10 +160,24 @@ def delete_link(
     db.commit()
 
 
+_DATA_KINDS = {
+    "kurumsal",
+    "corpus",
+    "sft",
+    "finans",
+    "medya",
+    "hukuk",
+    "guvenlik",
+    "sektorel",
+    "genel",
+}
+
+
 class ShareSubmitIn(BaseModel):
     name: str = Field(min_length=2, max_length=200)
     url: str = Field(min_length=8, max_length=600)
     note: str = Field(min_length=8, max_length=600)
+    kind: str = Field(default="genel", max_length=30)
     submitter_name: str = Field(min_length=2, max_length=120)
     submitter_email: str | None = Field(default=None, max_length=200)
     license: str | None = Field(default=None, max_length=120)
@@ -175,9 +190,12 @@ class ShareSubmitIn(BaseModel):
 def submit_data_share(
     request: Request, payload: ShareSubmitIn, db: Session = Depends(get_db)
 ) -> dict:
-    """Public tip for VeriVatan §02 — lands disabled until an admin approves."""
+    """Public tip for VeriVatan — lands disabled until an admin approves."""
     name = payload.name.strip()
     url = payload.url.strip()
+    kind = (payload.kind or "genel").strip().lower()
+    if kind not in _DATA_KINDS:
+        raise HTTPException(400, f"kind must be one of: {', '.join(sorted(_DATA_KINDS))}")
     if db.scalar(
         select(models.CuratedLink.id).where(
             models.CuratedLink.collection == SHARE_COLLECTION,
@@ -218,7 +236,7 @@ def submit_data_share(
         collection=SHARE_COLLECTION,
         name=name,
         url=url,
-        kind="paylaşım",
+        kind=kind,
         note_tr=note,
         note_en=note_en,
         sort_order=order,
@@ -240,15 +258,104 @@ def set_share_status(
     _: None = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> LinkOut:
+    return _set_pending_status(db, SHARE_COLLECTION, link_id, payload.enabled)
+
+
+class EducationSubmitIn(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    url: str = Field(min_length=8, max_length=600)
+    note: str = Field(min_length=8, max_length=600)
+    kind: str = Field(default="herkes", max_length=30)
+    submitter_name: str = Field(min_length=2, max_length=120)
+    submitter_email: str | None = Field(default=None, max_length=200)
+    organization: str | None = Field(default=None, max_length=160)
+    level: str | None = Field(default=None, max_length=80)
+    language: str | None = Field(default=None, max_length=40)
+
+
+_EDU_KINDS = {"herkes", "derin", "meslek"}
+
+
+@router.post("/curated/education/submit", status_code=201)
+@limiter.limit(_settings.rate_limit_submit)
+def submit_education(
+    request: Request, payload: EducationSubmitIn, db: Session = Depends(get_db)
+) -> dict:
+    """Public tip for /universite — lands disabled until an admin approves."""
+    name = payload.name.strip()
+    url = payload.url.strip()
+    if db.scalar(
+        select(models.CuratedLink.id).where(
+            models.CuratedLink.collection == EDUCATION_COLLECTION,
+            models.CuratedLink.name == name,
+        )
+    ):
+        raise HTTPException(409, "bu isimde bir kayıt zaten var")
+
+    kind = (payload.kind or "herkes").strip().lower()
+    if kind not in _EDU_KINDS:
+        kind = "herkes"
+    note = payload.note.strip()
+    who = payload.submitter_name.strip()
+    mail = (payload.submitter_email or "").strip()
+    org = (payload.organization or "").strip()
+    level = (payload.level or "").strip()
+    lang = (payload.language or "").strip()
+    meta_bits = [
+        b
+        for b in (
+            who and f"Gönderen: {who}",
+            mail and f"E-posta: {mail}",
+            org and f"Kurum: {org}",
+            level and f"Seviye: {level}",
+            lang and f"Dil: {lang}",
+        )
+        if b
+    ]
+    note_en = " · ".join(meta_bits) if meta_bits else None
+
+    order = (
+        db.scalar(
+            select(func.coalesce(func.max(models.CuratedLink.sort_order), -1) + 1).where(
+                models.CuratedLink.collection == EDUCATION_COLLECTION
+            )
+        )
+        or 0
+    )
+    row = models.CuratedLink(
+        collection=EDUCATION_COLLECTION,
+        name=name,
+        url=url,
+        kind=kind,
+        note_tr=note,
+        note_en=note_en,
+        sort_order=order,
+        enabled=False,
+    )
+    db.add(row)
+    db.commit()
+    return {"ok": True, "status": "pending"}
+
+
+@router.post("/curated/education/{link_id}/status", response_model=LinkOut)
+def set_education_status(
+    link_id: uuid.UUID,
+    payload: ShareStatusIn,
+    _: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> LinkOut:
+    return _set_pending_status(db, EDUCATION_COLLECTION, link_id, payload.enabled)
+
+
+def _set_pending_status(db: Session, collection: str, link_id: uuid.UUID, enabled: bool) -> LinkOut:
     row = db.get(models.CuratedLink, link_id)
-    if row is None or row.collection != SHARE_COLLECTION:
+    if row is None or row.collection != collection:
         raise HTTPException(404, "kayıt bulunamadı")
-    row.enabled = payload.enabled
-    if payload.enabled:
-        # Newly approved shares float to the top of the public section.
+    row.enabled = enabled
+    if enabled:
         min_order = db.scalar(
             select(func.coalesce(func.min(models.CuratedLink.sort_order), 0)).where(
-                models.CuratedLink.collection == SHARE_COLLECTION,
+                models.CuratedLink.collection == collection,
                 models.CuratedLink.enabled.is_(True),
             )
         )

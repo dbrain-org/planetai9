@@ -151,8 +151,8 @@ export function MarketplaceForm({
               </Field>
               <Field
                 label={L(
-                  "Kaynak kod (GitHub) — zorunlu, açık kaynak",
-                  "Source code (GitHub) — required, open source",
+                  "Kaynak kod (GitHub; zorunlu, açık kaynak",
+                  "Source code (GitHub; required, open source",
                 )}
               >
                 <input

@@ -7,7 +7,7 @@ export const revalidate = 3600;
 export const metadata = {
   title: "Kaynaklar & Güven",
   description:
-    "PlanetAI9 haber kaynakları ve güven ağırlıkları — her haber orijinal yayıncıya bağlanır.",
+    "PlanetAI9 haber kaynakları ve güven ağırlıkları. Her haber orijinal yayıncıya bağlanır.",
 };
 
 const TYPE_LABEL: Record<string, { tr: string; en: string }> = {

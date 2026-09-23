@@ -1,10 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, ChevronDown, Database, Send } from "lucide-react";
+import { CheckCircle2, ChevronDown, GraduationCap, Send } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
-export function DataShareForm({ locale }: { locale: Locale }) {
+const KINDS = [
+  { value: "herkes", tr: "Herkes İçin AI", en: "AI for everyone" },
+  { value: "derin", tr: "Derin eğitimler", en: "Deep tracks" },
+  { value: "meslek", tr: "Meslekler değişiyor", en: "Jobs are changing" },
+] as const;
+
+export function EducationShareForm({ locale }: { locale: Locale }) {
   const tr = locale === "tr";
   const L = (a: string, b: string) => (tr ? a : b);
   const [open, setOpen] = useState(false);
@@ -18,27 +24,33 @@ export function DataShareForm({ locale }: { locale: Locale }) {
     const name = String(fd.get("name") ?? "").trim();
     const url = String(fd.get("url") ?? "").trim();
     const submitter = String(fd.get("submitter_name") ?? "").trim();
-    if (name.length < 2 || url.length < 8 || submitter.length < 2) {
+    const note = String(fd.get("note") ?? "").trim();
+    if (name.length < 2 || url.length < 8 || submitter.length < 2 || note.length < 8) {
       setState("error");
-      setMsg(L("Ad, bağlantı ve gönderen adı zorunlu.", "Name, URL and submitter name are required."));
+      setMsg(
+        L(
+          "Ad, bağlantı, açıklama ve gönderen adı zorunlu.",
+          "Name, URL, note and submitter name are required.",
+        ),
+      );
       return;
     }
     setState("sending");
     setMsg("");
     try {
-      const res = await fetch("/api/verivatan/share", {
+      const res = await fetch("/api/universite/share", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           name,
           url,
-          kind: String(fd.get("kind") ?? "genel"),
-          note: String(fd.get("note") ?? "").trim() || undefined,
+          note,
+          kind: String(fd.get("kind") ?? "herkes"),
           submitter_name: submitter,
           submitter_email: String(fd.get("submitter_email") ?? "").trim() || undefined,
-          license: String(fd.get("license") ?? "").trim() || undefined,
-          data_format: String(fd.get("data_format") ?? "").trim() || undefined,
           organization: String(fd.get("organization") ?? "").trim() || undefined,
+          level: String(fd.get("level") ?? "").trim() || undefined,
+          language: String(fd.get("language") ?? "").trim() || undefined,
         }),
       });
       if (!res.ok) {
@@ -60,8 +72,8 @@ export function DataShareForm({ locale }: { locale: Locale }) {
         <CheckCircle2 className="h-10 w-10 text-success" />
         <p className="max-w-sm text-[14px] text-ink-2 dark:text-d-ink-2">
           {L(
-            "Teşekkürler. Önerin inceleme kuyruğuna alındı.",
-            "Thanks. Your suggestion is in the review queue.",
+            "Teşekkürler. Eğitimin inceleme kuyruğuna alındı.",
+            "Thanks. Your course is in the review queue.",
           )}
         </p>
       </div>
@@ -77,17 +89,17 @@ export function DataShareForm({ locale }: { locale: Locale }) {
         className="flex w-full items-center gap-4 px-5 py-5 text-left transition hover:bg-wash/60 sm:px-7 dark:hover:bg-d-wash/40"
       >
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink text-white dark:bg-white dark:text-ink">
-          <Database className="h-5 w-5" />
+          <GraduationCap className="h-5 w-5" />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[16px] font-extrabold tracking-tight3 text-ink dark:text-d-ink sm:text-[18px]">
             {L(
-              "Türkçe veri seti veya corpus önermek ister misiniz?",
-              "Want to suggest a Turkish dataset or corpus?",
+              "Açık bir eğitim duyurmak ister misiniz?",
+              "Want to announce an open course?",
             )}
           </span>
           <span className="mt-0.5 block text-[13px] text-ink-2 dark:text-d-ink-2">
-            {open ? L("Formu kapat", "Close form") : L("Paylaşım formunu aç", "Open submission form")}
+            {open ? L("Formu kapat", "Close form") : L("Duyuru formunu aç", "Open announcement form")}
           </span>
         </span>
         <ChevronDown
@@ -97,10 +109,13 @@ export function DataShareForm({ locale }: { locale: Locale }) {
 
       <div className={`grid transition-[grid-template-rows] duration-300 ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
         <div className="overflow-hidden">
-          <form onSubmit={onSubmit} className="grid gap-4 border-t border-line px-5 py-6 sm:grid-cols-2 sm:px-7 dark:border-d-line">
+          <form
+            onSubmit={onSubmit}
+            className="grid gap-4 border-t border-line px-5 py-6 sm:grid-cols-2 sm:px-7 dark:border-d-line"
+          >
             <label className="block sm:col-span-2">
               <span className="mb-1.5 block text-[13px] font-semibold">
-                {L("Veri kaynağı / proje adı", "Dataset / project name")} *
+                {L("Eğitim / program adı", "Course / program name")} *
               </span>
               <input name="name" required minLength={2} maxLength={200} className="field" />
             </label>
@@ -108,37 +123,38 @@ export function DataShareForm({ locale }: { locale: Locale }) {
               <span className="mb-1.5 block text-[13px] font-semibold">URL *</span>
               <input name="url" type="url" required className="field" placeholder="https://" />
             </label>
-            <label className="block sm:col-span-2">
-              <span className="mb-1.5 block text-[13px] font-semibold">{L("Sınıf", "Class")} *</span>
-              <select name="kind" className="field" defaultValue="genel">
-                <option value="kurumsal">{L("Kurumsal", "Institutional")}</option>
-                <option value="corpus">{L("LLM corpus", "LLM corpus")}</option>
-                <option value="sft">{L("Finetuning / SFT", "Finetuning / SFT")}</option>
-                <option value="finans">{L("Finans", "Finance")}</option>
-                <option value="medya">{L("Medya & haber", "Media & news")}</option>
-                <option value="hukuk">{L("Hukuk", "Legal")}</option>
-                <option value="guvenlik">{L("Güvenlik", "Security")}</option>
-                <option value="sektorel">{L("Diğer sektörel", "Other sectoral")}</option>
-                <option value="genel">{L("Genel", "General")}</option>
+            <label className="block">
+              <span className="mb-1.5 block text-[13px] font-semibold">{L("Hat", "Track")}</span>
+              <select name="kind" className="field" defaultValue="herkes">
+                {KINDS.map((k) => (
+                  <option key={k.value} value={k.value}>
+                    {tr ? k.tr : k.en}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="block">
-              <span className="mb-1.5 block text-[13px] font-semibold">{L("Lisans", "License")}</span>
-              <input name="license" maxLength={120} placeholder="CC BY, MIT, Apache-2.0..." className="field" />
+              <span className="mb-1.5 block text-[13px] font-semibold">{L("Seviye", "Level")}</span>
+              <input
+                name="level"
+                maxLength={80}
+                placeholder={L("Başlangıç, orta, ileri…", "Beginner, intermediate…")}
+                className="field"
+              />
             </label>
             <label className="block">
-              <span className="mb-1.5 block text-[13px] font-semibold">{L("Format", "Format")}</span>
-              <input name="data_format" maxLength={120} placeholder="CSV, JSON, Parquet..." className="field" />
+              <span className="mb-1.5 block text-[13px] font-semibold">{L("Dil", "Language")}</span>
+              <input name="language" maxLength={40} placeholder="Türkçe / English" className="field" />
             </label>
-            <label className="block sm:col-span-2">
+            <label className="block">
               <span className="mb-1.5 block text-[13px] font-semibold">
-                {L("Kurum / ekip", "Organization / team")}
+                {L("Kurum / eğitmen", "Org / instructor")}
               </span>
               <input name="organization" maxLength={160} className="field" />
             </label>
             <label className="block sm:col-span-2">
               <span className="mb-1.5 block text-[13px] font-semibold">
-                {L("Kısa açıklama", "Short note")}
+                {L("Kısa açıklama", "Short note")} *
               </span>
               <textarea name="note" rows={3} maxLength={600} className="field resize-y" required />
             </label>
@@ -157,7 +173,7 @@ export function DataShareForm({ locale }: { locale: Locale }) {
                 className="inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-2.5 text-[13px] font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-ink"
               >
                 <Send className="h-4 w-4" />
-                {state === "sending" ? L("Gönderiliyor…", "Sending…") : L("Öner", "Suggest")}
+                {state === "sending" ? L("Gönderiliyor…", "Sending…") : L("Duyur", "Announce")}
               </button>
               {state === "error" && <p className="mt-2 text-[12px] text-live">{msg}</p>}
             </div>

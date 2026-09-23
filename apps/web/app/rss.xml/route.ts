@@ -57,10 +57,10 @@ export async function GET() {
 <?xml-stylesheet type="text/xsl" href="${site}/rss.xsl"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
-<title>PlanetAI9 — Yapay Zekâ Haberleri</title>
+<title>PlanetAI9. Yapay Zekâ Haberleri</title>
 <link>${site}</link>
 <atom:link href="${site}/rss.xml" rel="self" type="application/rss+xml"/>
-<description>Yapay zekâ dünyasındaki gelişmeler, model duyuruları, araçlar ve regülasyonlar — Türkçe.</description>
+<description>Yapay zekâ dünyasındaki gelişmeler, model duyuruları, araçlar ve regülasyonlar. Türkçe.</description>
 <language>tr</language>
 <lastBuildDate>${lastBuild}</lastBuildDate>
 <ttl>60</ttl>

@@ -21,11 +21,11 @@ export async function generateMetadata({
     { revalidate: 180 },
   );
   if (!detail) {
-    return { title: "Üretici — Türkiye LLM" };
+    return { title: "Üretici. Türkiye LLM" };
   }
-  const desc = detail.bio?.slice(0, 160) || `${detail.display_name} — Türkiye LLM üreticisi`;
+  const desc = detail.bio?.slice(0, 160) || `${detail.display_name}. Türkiye LLM üreticisi`;
   return {
-    title: `${detail.display_name} — Türkiye LLM`,
+    title: `${detail.display_name}. Türkiye LLM`,
     description: desc,
     openGraph: {
       title: `${detail.display_name} | Türkiye LLM`,
@@ -136,6 +136,9 @@ export default async function UreticiDetailPage({
               {detail.kind === "person" ? (tr ? "Kişi" : "Person") : tr ? "Kurum" : "Organization"}
               {detail.city ? ` · ${detail.city}` : ""}
               {` · ${detail.model_count} ${tr ? "model" : "models"}`}
+              {(detail.hf?.datasets.length ?? 0) > 0
+                ? ` · ${detail.hf!.datasets.length} ${tr ? "veri" : "datasets"}`
+                : ""}
             </p>
           </div>
         </div>
@@ -218,6 +221,7 @@ export default async function UreticiDetailPage({
                       <p className="truncate text-[14px] font-semibold text-ink dark:text-d-ink">{m.name}</p>
                       <p className="text-[12px] text-muted">
                         {m.technique || (tr ? "Teknik belirtilmemiş" : "Technique n/a")}
+                        {m.base_model ? ` · base: ${m.base_model}` : ""}
                         {m.downloads > 0 ? ` · ${m.downloads.toLocaleString(tr ? "tr-TR" : "en")} DL` : ""}
                       </p>
                     </div>
@@ -243,15 +247,7 @@ export default async function UreticiDetailPage({
         </section>
 
         <section className="mt-12">
-          {detail.curated ? (
-            <CommentSection slug={detail.slug} locale={locale} kind="developer" />
-          ) : (
-            <p className="text-[13px] text-muted">
-              {tr
-                ? "Yorumlar yalnızca kayıtlı üretici sayfalarında açık."
-                : "Comments are open on curated producer pages only."}
-            </p>
-          )}
+          <CommentSection slug={detail.slug} locale={locale} kind="developer" />
         </section>
       </article>
 

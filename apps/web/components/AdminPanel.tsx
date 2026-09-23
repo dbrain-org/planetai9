@@ -384,7 +384,7 @@ function NewsRow({
             checked={isStaff}
             onChange={(e) => setIsStaff(e.target.checked)}
           />
-          Site ekibi haberi (kaynak: PlanetAI9 — Okuyucu Haberleri yazılmaz)
+          Site ekibi haberi (kaynak: PlanetAI9. Okuyucu Haberleri yazılmaz)
         </label>
       )}
 
@@ -514,7 +514,7 @@ function AuthorRow({
         <p className="mt-3 break-all rounded-lg bg-wash px-3 py-2 font-mono text-[12px] text-ink dark:bg-d-wash dark:text-d-ink">
           {issuedKey}
           <span className="mt-1 block font-sans text-[11px] text-muted">
-            Bu anahtarı bir kez gösteriyoruz — yazara ilet.
+            Bu anahtarı bir kez gösteriyoruz. Yazara ilet.
           </span>
         </p>
       )}
@@ -564,16 +564,20 @@ export function AdminPanel({
   news,
   authors,
   shares = [],
+  courses = [],
 }: {
   authed: boolean;
   apps: QueueApp[];
   news: QueueSubmission[];
   authors: AuthorApplication[];
   shares?: CuratedShareItem[];
+  courses?: CuratedShareItem[];
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const [tab, setTab] = useState<"news" | "marketplace" | "authors" | "verivatan">("news");
+  const [tab, setTab] = useState<"news" | "marketplace" | "authors" | "verivatan" | "universite">(
+    "news",
+  );
 
   if (!authed) return <LoginForm />;
 
@@ -634,6 +638,15 @@ export function AdminPanel({
     if (res.ok) startTransition(() => router.refresh());
   }
 
+  async function onCourseAction(id: string, enabled: boolean) {
+    const res = await fetch("/api/admin/universite", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id, enabled }),
+    });
+    if (res.ok) startTransition(() => router.refresh());
+  }
+
   async function logout() {
     await fetch("/api/admin/login", { method: "DELETE" });
     router.refresh();
@@ -647,6 +660,8 @@ export function AdminPanel({
   const otherAuthors = authors.filter((a) => a.status !== "pending");
   const pendingShares = shares.filter((s) => !s.enabled);
   const approvedShares = shares.filter((s) => s.enabled);
+  const pendingCourses = courses.filter((s) => !s.enabled);
+  const approvedCourses = courses.filter((s) => s.enabled);
 
   return (
     <div className="space-y-8">
@@ -656,6 +671,7 @@ export function AdminPanel({
             [
               ["news", "Haberler", pendingNews.length],
               ["verivatan", "VeriVatan", pendingShares.length],
+              ["universite", "Üniversite", pendingCourses.length],
               ["authors", "Yazarlar", pendingAuthors.length],
               ["marketplace", "TAKYAP", pendingApps.length],
             ] as const
@@ -711,65 +727,23 @@ export function AdminPanel({
           )}
         </>
       ) : tab === "verivatan" ? (
-        <>
-          <section>
-            <h2 className="sec-title mb-4">Bekleyen veri paylaşımları</h2>
-            {pendingShares.length === 0 ? (
-              <p className="text-[13px] text-muted">Bekleyen paylaşım yok.</p>
-            ) : (
-              <ul className="space-y-3">
-                {pendingShares.map((s) => (
-                  <li key={s.id} className="card p-4">
-                    <h3 className="text-[15px] font-bold text-ink dark:text-d-ink">{s.name}</h3>
-                    <a
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1 inline-flex items-center gap-1 text-[12px] text-accent"
-                    >
-                      {s.url} <ExternalLink className="h-3 w-3" />
-                    </a>
-                    {s.note_tr && (
-                      <p className="mt-2 text-[12.5px] text-ink-2 dark:text-d-ink-2">{s.note_tr}</p>
-                    )}
-                    {s.note_en && <p className="mt-1 text-[11.5px] text-muted">{s.note_en}</p>}
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button
-                        onClick={() => onShareAction(s.id, true)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-success px-3 py-1.5 text-[12px] font-semibold text-white"
-                      >
-                        <Check className="h-3.5 w-3.5" /> Onayla & yayınla
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-          {approvedShares.length > 0 && (
-            <section>
-              <h2 className="sec-title mb-4">Yayındaki paylaşımlar</h2>
-              <ul className="space-y-3">
-                {approvedShares.map((s) => (
-                  <li key={s.id} className="card p-4">
-                    <h3 className="text-[15px] font-bold">{s.name}</h3>
-                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-[12px] text-accent">
-                      {s.url}
-                    </a>
-                    <div className="mt-3">
-                      <button
-                        onClick={() => onShareAction(s.id, false)}
-                        className="rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold dark:border-d-line"
-                      >
-                        Yayından kaldır
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-        </>
+        <CuratedModeration
+          pendingTitle="Bekleyen veri paylaşımları"
+          approvedTitle="Yayındaki paylaşımlar"
+          emptyPending="Bekleyen paylaşım yok."
+          pending={pendingShares}
+          approved={approvedShares}
+          onAction={onShareAction}
+        />
+      ) : tab === "universite" ? (
+        <CuratedModeration
+          pendingTitle="Bekleyen eğitim duyuruları"
+          approvedTitle="Yayındaki eğitimler"
+          emptyPending="Bekleyen eğitim yok."
+          pending={pendingCourses}
+          approved={approvedCourses}
+          onAction={onCourseAction}
+        />
       ) : tab === "authors" ? (
         <>
           <section>
@@ -832,5 +806,83 @@ export function AdminPanel({
         </>
       )}
     </div>
+  );
+}
+
+function CuratedModeration({
+  pendingTitle,
+  approvedTitle,
+  emptyPending,
+  pending,
+  approved,
+  onAction,
+}: {
+  pendingTitle: string;
+  approvedTitle: string;
+  emptyPending: string;
+  pending: CuratedShareItem[];
+  approved: CuratedShareItem[];
+  onAction: (id: string, enabled: boolean) => void;
+}) {
+  return (
+    <>
+      <section>
+        <h2 className="sec-title mb-4">{pendingTitle}</h2>
+        {pending.length === 0 ? (
+          <p className="text-[13px] text-muted">{emptyPending}</p>
+        ) : (
+          <ul className="space-y-3">
+            {pending.map((s) => (
+              <li key={s.id} className="card p-4">
+                <h3 className="text-[15px] font-bold text-ink dark:text-d-ink">{s.name}</h3>
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-flex items-center gap-1 text-[12px] text-accent"
+                >
+                  {s.url} <ExternalLink className="h-3 w-3" />
+                </a>
+                {s.note_tr && (
+                  <p className="mt-2 text-[12.5px] text-ink-2 dark:text-d-ink-2">{s.note_tr}</p>
+                )}
+                {s.note_en && <p className="mt-1 text-[11.5px] text-muted">{s.note_en}</p>}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => onAction(s.id, true)}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-success px-3 py-1.5 text-[12px] font-semibold text-white"
+                  >
+                    <Check className="h-3.5 w-3.5" /> Onayla & yayınla
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      {approved.length > 0 && (
+        <section>
+          <h2 className="sec-title mb-4">{approvedTitle}</h2>
+          <ul className="space-y-3">
+            {approved.map((s) => (
+              <li key={s.id} className="card p-4">
+                <h3 className="text-[15px] font-bold">{s.name}</h3>
+                <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-[12px] text-accent">
+                  {s.url}
+                </a>
+                <div className="mt-3">
+                  <button
+                    onClick={() => onAction(s.id, false)}
+                    className="rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold dark:border-d-line"
+                  >
+                    Yayından kaldır
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </>
   );
 }

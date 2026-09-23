@@ -236,12 +236,6 @@ def seed_curated_links(db: Session) -> None:
     so prod stays correct after deploy without wiping editor-added cards.
     """
     managed = {
-        "FineWeb2-HQ (Türkçe)",
-        "HPLT 3.0",
-        "CulturaX",
-        "Cosmos Turkish",
-        "Türkçe Vikipedi",
-        "vngrs-web-corpus",
         "Kumru (VNGRS)",
         "VNGRS",
         "Hugging Face",
@@ -249,7 +243,9 @@ def seed_curated_links(db: Session) -> None:
         "Peak / Hazelcast",
     }
     data = config.turkiye()
-    for collection in ("tr_data", "tr_ecosystem"):
+    # tr_data + education: YAML kaynak — kind/url/notlar senkron; YAML dışı kartlar kapatılır.
+    yaml_synced = {"tr_data", "tr_ecosystem", "education"}
+    for collection in ("tr_data", "tr_ecosystem", "education"):
         rows = data.get(collection) or []
         yaml_names = {row["name"] for row in rows}
         existing = {
@@ -258,8 +254,7 @@ def seed_curated_links(db: Session) -> None:
                 select(models.CuratedLink).where(models.CuratedLink.collection == collection)
             ).all()
         }
-        # Veri Vatanı şirket listesini YAML ile hizala — eski ekosistem kartlarını kapat
-        if collection == "tr_ecosystem":
+        if collection in yaml_synced:
             for name, link in existing.items():
                 if name not in yaml_names:
                     link.enabled = False
@@ -268,7 +263,7 @@ def seed_curated_links(db: Session) -> None:
         for i, row in enumerate(rows):
             name = row["name"]
             if name in existing:
-                if name in managed or collection == "tr_ecosystem":
+                if name in managed or collection in yaml_synced:
                     link = existing[name]
                     link.url = row["url"]
                     link.kind = row.get("kind", link.kind)

@@ -216,6 +216,12 @@ class LlmChartBucket(BaseModel):
     count: int
 
 
+class LlmBaseModelBucket(BaseModel):
+    label: str
+    count: int
+    example: str | None = None
+
+
 class LlmYearBucket(BaseModel):
     year: int
     count: int
@@ -242,12 +248,14 @@ class LlmDeveloperCard(BaseModel):
     github_url: str | None = None
     city: str | None = None
     model_count: int = 0
+    dataset_count: int = 0
     curated: bool = False
 
 
 class LlmModelRow(BaseModel):
     name: str
     technique: str | None = None
+    base_model: str | None = None
     published_at: str | None = None
     downloads: int = 0
     source_url: str | None = None
@@ -282,6 +290,7 @@ class OpenDatasetCard(BaseModel):
     downloads: int = 0
     producer_slug: str
     producer_name: str
+    category: str = "genel"
 
 
 class LlmDeveloperDetail(BaseModel):
@@ -308,6 +317,7 @@ class TurkiyeLlmOverview(BaseModel):
     kpi: LlmKpi
     by_technique: list[LlmChartBucket]
     by_year: list[LlmYearBucket]
+    by_base_model: list[LlmBaseModelBucket] = []
     top_producers: list[LlmDeveloperCard]
     map_pins: list[LlmMapPin]
     news: list[EventCard]

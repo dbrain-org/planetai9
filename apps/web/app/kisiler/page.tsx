@@ -10,7 +10,7 @@ export const revalidate = 180;
 
 export const metadata: Metadata = {
   title: "Kişiler",
-  description: "Haberi yapılan ve videoda konuşan isimler — kişi bazlı arşiv.",
+  description: "Haberi yapılan ve videoda konuşan isimler. Kişi bazlı arşiv.",
 };
 
 function initials(name: string): string {
@@ -41,7 +41,7 @@ export default async function KisilerPage() {
         <p className="mt-3 text-[16px] leading-relaxed text-ink-2 dark:text-d-ink-2">
           {tr
             ? "Haberi yapılan, videoda konuşan veya köşe yazan isimler. Her kişinin sayfasında onunla ilgili haber, video, yazı ve görseller bir arada."
-            : "People covered in news, featured in videos, or writing columns — all their PlanetAI9 content in one place."}
+            : "People covered in news, featured in videos, or writing columns. All their PlanetAI9 content in one place."}
         </p>
       </header>
 

@@ -14,6 +14,7 @@ export async function SiteFooter() {
     { label: "VeriVatan", href: "/turkiye" },
     { label: tr ? "Türkiye LLM" : "Türkiye LLM", href: "/turkiye-llm" },
     { label: "TAKYAP", href: "/marketplace" },
+    { label: tr ? "Üniversite" : "University", href: "/universite" },
     { label: tr ? "Yazarlar" : "Authors", href: "/yazarlar" },
     { label: tr ? "Kişiler" : "People", href: "/kisiler" },
   ];
@@ -49,8 +50,8 @@ export async function SiteFooter() {
             </Link>
             <p className="mt-4 text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
               {tr
-                ? "Türkiye'nin yapay zekâ medya platformu — haberler, modeller ve ekosistem sinyalleri tek yerde."
-                : "Türkiye's AI media platform — news, models and ecosystem signals in one place."}
+                ? "Türkiye'nin yapay zekâ medya platformu. Haberler, modeller ve ekosistem sinyalleri tek yerde."
+                : "Türkiye's AI media platform. News, models and ecosystem signals in one place."}
             </p>
             <a
               href="https://llmradar.planetai9.com"
@@ -118,8 +119,8 @@ export async function SiteFooter() {
             </div>
             <p className="mt-5 max-w-[200px] text-[12px] leading-relaxed text-muted">
               {tr
-                ? "PlanetAI9 — Tek Gezegen. Her Yapay Zekâ Sinyali."
-                : "PlanetAI9 — One Planet. Every AI Signal."}
+                ? "PlanetAI9. Tek Gezegen. Her Yapay Zekâ Sinyali."
+                : "PlanetAI9. One Planet. Every AI Signal."}
             </p>
           </div>
         </div>

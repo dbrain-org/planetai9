@@ -108,6 +108,13 @@ html.dark body {
   .article-close {
     @apply text-[16.5px] font-medium leading-[1.85] text-ink dark:text-d-ink;
   }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

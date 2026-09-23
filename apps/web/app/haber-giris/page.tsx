@@ -29,7 +29,7 @@ export default async function HaberGirisPage() {
         {/* hand-drawn style annotation */}
         <div className="pointer-events-none absolute -right-2 top-0 hidden -rotate-6 flex-col items-end text-accent/70 sm:flex">
           <span className="font-serif text-[13px] italic" style={{ fontFamily: "Georgia, serif" }}>
-            {tr ? "Haberin önemli, paylaş!" : "Your story matters — share it!"}
+            {tr ? "Haberin önemli, paylaş!" : "Your story matters. Share it!"}
           </span>
           <svg width="64" height="46" viewBox="0 0 64 46" className="mt-1" fill="none">
             <path

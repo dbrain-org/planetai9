@@ -312,10 +312,12 @@ class CuratedLink(Base, TimestampMixin):
     id: Mapped[uuid.UUID] = uuid_pk()
     collection: Mapped[str] = mapped_column(
         String(30)
-    )  # tr_data | tr_share | tr_ecosystem (legacy)
+    )  # tr_data | tr_share | tr_ecosystem | education
     name: Mapped[str] = mapped_column(String(200))
     url: Mapped[str] = mapped_column(Text)
-    kind: Mapped[str] = mapped_column(String(30))  # sub-label: portal / nlp / şirket / lab …
+    kind: Mapped[str] = mapped_column(
+        String(30)
+    )  # kurumsal|corpus|sft|… / herkes|derin|meslek / şirket|lab …
     note_tr: Mapped[str | None] = mapped_column(Text)
     note_en: Mapped[str | None] = mapped_column(Text)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)

@@ -15,7 +15,7 @@ export const revalidate = 86400;
 export const metadata = {
   title: "Gizlilik Politikası",
   description:
-    "PlanetAI9 gizlilik politikası — toplanan veriler, kullanım, çerezler ve iletişim.",
+    "PlanetAI9 gizlilik politikası. Toplanan veriler, kullanım, çerezler ve iletişim.",
 };
 
 type Section = {
