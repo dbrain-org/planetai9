@@ -92,8 +92,8 @@ export function CommentSection({
 }: {
   slug: string;
   locale?: "tr" | "en";
-  /** News articles use event endpoints; Türkiye LLM producers use developer endpoints. */
-  kind?: "event" | "developer";
+  /** News = event; Türkiye LLM producers = developer; VeriVatan/Üniversite = page. */
+  kind?: "event" | "developer" | "page";
 }) {
   const tr = locale === "tr";
   const [comments, setComments] = useState<Comment[]>([]);
@@ -108,7 +108,9 @@ export function CommentSection({
   const commentsBase =
     kind === "developer"
       ? `/api/engagement/developers/${encodeURIComponent(slug)}/comments`
-      : `/api/engagement/${encodeURIComponent(slug)}/comments`;
+      : kind === "page"
+        ? `/api/engagement/pages/${encodeURIComponent(slug)}/comments`
+        : `/api/engagement/${encodeURIComponent(slug)}/comments`;
 
   const load = useCallback(async () => {
     const res = await fetch(commentsBase, { cache: "no-store" });

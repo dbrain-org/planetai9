@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Masthead } from "@/components/Masthead";
+import { PageCommentsMount } from "@/components/PageCommentsMount";
 import { SiteFooter } from "@/components/SiteFooter";
 import { getLocale } from "@/lib/i18n";
 
@@ -46,7 +47,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="min-h-screen bg-paper font-sans antialiased dark:bg-d-paper">
         <Masthead />
-        <main className="mx-auto max-w-content px-5 py-8 sm:px-8 sm:py-12">{children}</main>
+        <main className="mx-auto max-w-content px-5 py-8 sm:px-8 sm:py-12">
+          {children}
+          <PageCommentsMount locale={locale} />
+        </main>
         <SiteFooter />
       </body>
     </html>

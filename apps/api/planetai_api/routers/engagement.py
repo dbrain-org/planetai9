@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -591,6 +592,219 @@ def delete_developer_comment(
         select(models.DeveloperComment).where(
             models.DeveloperComment.parent_id == c.id,
             models.DeveloperComment.status == "active",
+        )
+    ).all()
+    c.status = "deleted"
+    for kid in kids:
+        kid.status = "deleted"
+    db.commit()
+    return {"ok": True}
+
+
+_PAGE_KEY_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$|^[a-z0-9]$")
+
+
+def _page_key_or_404(page_key: str) -> str:
+    key = (page_key or "").strip().lower()
+    if not _PAGE_KEY_RE.match(key):
+        raise HTTPException(404, "sayfa bulunamadı")
+    return key
+
+
+def _pack_page_comments(
+    db: Session,
+    rows: list,
+    user: models.User | None,
+) -> list[CommentOut]:
+    liked_ids: set = set()
+    if user is not None and rows:
+        ids = [c.id for c, _ in rows]
+        liked_ids = set(
+            db.scalars(
+                select(models.PageCommentLike.comment_id).where(
+                    models.PageCommentLike.user_id == user.id,
+                    models.PageCommentLike.comment_id.in_(ids),
+                )
+            ).all()
+        )
+
+    by_id = {c.id: (c, u) for c, u in rows}
+    known_names = {uu.display_name for _, uu in by_id.values()}
+    out: list[CommentOut] = []
+    for c, u in rows:
+        reply_to: str | None = None
+        if c.parent_id and c.parent_id in by_id:
+            parent_name = by_id[c.parent_id][1].display_name
+            body_l = c.body.lstrip()
+            parent_mention = f"@{parent_name}"
+            if body_l.lower().startswith(parent_mention.lower()):
+                reply_to = parent_name
+            elif body_l.startswith("@"):
+                after = body_l[1:]
+                matched = next(
+                    (
+                        n
+                        for n in sorted(known_names, key=len, reverse=True)
+                        if after.lower() == n.lower() or after.lower().startswith(n.lower() + " ")
+                    ),
+                    None,
+                )
+                reply_to = matched or after.split(None, 1)[0]
+            else:
+                reply_to = parent_name
+        out.append(
+            CommentOut(
+                id=str(c.id),
+                body=c.body,
+                created_at=c.created_at,
+                author_name=u.display_name,
+                is_mine=bool(user and u.id == user.id),
+                parent_id=str(c.parent_id) if c.parent_id else None,
+                reply_to_name=reply_to,
+                like_count=int(c.like_count or 0),
+                liked_by_me=c.id in liked_ids,
+            )
+        )
+    return out
+
+
+@router.get("/pages/{page_key}/comments", response_model=list[CommentOut])
+def list_page_comments(
+    page_key: str,
+    db: Session = Depends(get_db),
+    user: models.User | None = Depends(get_optional_user),
+    limit: int = Query(100, ge=1, le=200),
+) -> list[CommentOut]:
+    key = _page_key_or_404(page_key)
+    rows = db.execute(
+        select(models.PageComment, models.User)
+        .join(models.User, models.User.id == models.PageComment.user_id)
+        .where(
+            models.PageComment.page_key == key,
+            models.PageComment.status == "active",
+        )
+        .order_by(models.PageComment.created_at.asc())
+        .limit(limit)
+    ).all()
+    return _pack_page_comments(db, rows, user)
+
+
+@router.post("/pages/{page_key}/comments", response_model=CommentOut, status_code=201)
+@limiter.limit("20/hour")
+def post_page_comment(
+    request: Request,
+    page_key: str,
+    payload: CommentIn,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_user),
+) -> CommentOut:
+    import uuid as _uuid
+
+    key = _page_key_or_404(page_key)
+    body = " ".join(payload.body.split()).strip()
+    if len(body) < 2:
+        raise HTTPException(422, "yorum çok kısa")
+
+    parent_id = None
+    reply_to_name: str | None = None
+    if payload.parent_id:
+        try:
+            pid = _uuid.UUID(payload.parent_id)
+        except ValueError as exc:
+            raise HTTPException(422, "geçersiz yanıt") from exc
+        parent = db.get(models.PageComment, pid)
+        if parent is None or parent.page_key != key or parent.status != "active":
+            raise HTTPException(404, "yanıtlanacak yorum bulunamadı")
+        parent_id = parent.parent_id or parent.id
+        reply_user = db.get(models.User, parent.user_id)
+        reply_to_name = reply_user.display_name if reply_user else None
+        if reply_to_name:
+            mention = f"@{reply_to_name}"
+            if not body.lower().startswith(mention.lower()):
+                body = f"{mention} {body}"
+
+    c = models.PageComment(
+        id=_uuid.uuid4(),
+        page_key=key,
+        user_id=user.id,
+        parent_id=parent_id,
+        body=body,
+        status="active",
+        like_count=0,
+    )
+    db.add(c)
+    db.commit()
+    db.refresh(c)
+    return CommentOut(
+        id=str(c.id),
+        body=c.body,
+        created_at=c.created_at or datetime.now(UTC),
+        author_name=user.display_name,
+        is_mine=True,
+        parent_id=str(c.parent_id) if c.parent_id else None,
+        reply_to_name=reply_to_name,
+        like_count=0,
+        liked_by_me=False,
+    )
+
+
+@router.post("/pages/{page_key}/comments/{comment_id}/like", response_model=LikeOut)
+@limiter.limit("60/minute")
+def toggle_page_comment_like(
+    request: Request,
+    page_key: str,
+    comment_id: str,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_user),
+) -> LikeOut:
+    import uuid as _uuid
+
+    key = _page_key_or_404(page_key)
+    try:
+        cid = _uuid.UUID(comment_id)
+    except ValueError as exc:
+        raise HTTPException(404, "yorum bulunamadı") from exc
+    c = db.get(models.PageComment, cid)
+    if c is None or c.page_key != key or c.status != "active":
+        raise HTTPException(404, "yorum bulunamadı")
+
+    existing = db.get(models.PageCommentLike, (user.id, c.id))
+    if existing is not None:
+        db.delete(existing)
+        c.like_count = max(0, int(c.like_count or 0) - 1)
+        liked = False
+    else:
+        db.add(models.PageCommentLike(user_id=user.id, comment_id=c.id))
+        c.like_count = int(c.like_count or 0) + 1
+        liked = True
+    db.commit()
+    db.refresh(c)
+    return LikeOut(liked=liked, like_count=int(c.like_count or 0))
+
+
+@router.delete("/pages/{page_key}/comments/{comment_id}")
+def delete_page_comment(
+    page_key: str,
+    comment_id: str,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_user),
+) -> dict:
+    import uuid as _uuid
+
+    key = _page_key_or_404(page_key)
+    try:
+        cid = _uuid.UUID(comment_id)
+    except ValueError as exc:
+        raise HTTPException(404, "yorum bulunamadı") from exc
+    c = db.get(models.PageComment, cid)
+    if c is None or c.page_key != key or c.status != "active":
+        raise HTTPException(404, "yorum bulunamadı")
+    if c.user_id != user.id:
+        raise HTTPException(403, "bu yorumu silemezsiniz")
+    kids = db.scalars(
+        select(models.PageComment).where(
+            models.PageComment.parent_id == c.id,
+            models.PageComment.status == "active",
         )
     ).all()
     c.status = "deleted"

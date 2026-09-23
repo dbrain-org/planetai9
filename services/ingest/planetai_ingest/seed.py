@@ -229,11 +229,12 @@ def seed_marketplace(db: Session) -> None:
 
 
 def seed_curated_links(db: Session) -> None:
-    """Ensure YAML rows exist. Never overwrite cards the /yazar studio already owns —
-    only insert names that are still missing (so prod picks up new FineWeb/Kumru cards).
+    """Ensure YAML rows exist. Never delete or disable editor-added cards.
 
-    Exception: a small set of research corpora we manage in YAML — refresh url/notes
-    so prod stays correct after deploy without wiping editor-added cards.
+    For tr_data / tr_ecosystem / education: upsert YAML names (url/kind/notes).
+    Names only present in the DB (added from /yazar) stay enabled as-is.
+    Other collections: insert missing names only; leave existing rows alone
+    except a small managed research set.
     """
     managed = {
         "Kumru (VNGRS)",
@@ -243,21 +244,16 @@ def seed_curated_links(db: Session) -> None:
         "Peak / Hazelcast",
     }
     data = config.turkiye()
-    # tr_data + education: YAML kaynak — kind/url/notlar senkron; YAML dışı kartlar kapatılır.
+    # These collections treat YAML as the source of truth for matching names.
     yaml_synced = {"tr_data", "tr_ecosystem", "education"}
     for collection in ("tr_data", "tr_ecosystem", "education"):
         rows = data.get(collection) or []
-        yaml_names = {row["name"] for row in rows}
         existing = {
             r.name: r
             for r in db.scalars(
                 select(models.CuratedLink).where(models.CuratedLink.collection == collection)
             ).all()
         }
-        if collection in yaml_synced:
-            for name, link in existing.items():
-                if name not in yaml_names:
-                    link.enabled = False
         max_order = max((r.sort_order for r in existing.values()), default=-1)
         next_order = max_order + 1
         for i, row in enumerate(rows):

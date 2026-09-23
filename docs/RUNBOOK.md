@@ -72,10 +72,10 @@ gerekmez.
 sekmesini görür; topluluk başvurularını oradan onaylar/reddeder. Aynı işi `/yonetim` + admin
 token da yapar. İkisinden biri tanımlıysa `/marketplace/queue` erişilebilir olur.
 
-**Türkiye sayfası kartları** — moderatör yazarlar `/yazar` → "Türkiye" sekmesinden
-"Açık Veri Kaynakları" ve "Ekosistem" kartlarını ekler/düzenler/siler/sıralar (DB tablosu
-`curated_links`). `planetai-ingest seed` eksik YAML kartlarını **ekler**; mevcut kartların
-içeriğine dokunmaz (panel kaynak olmaya devam eder).
+**Türkiye / Üniversite kartları** — moderatör yazarlar `/yazar` üzerinden
+`curated_links` ekler/düzenler. `planetai-ingest seed` YAML’deki isimleri **ekler veya
+günceller**; panelde eklenmiş ve YAML’de olmayan kartları **kapatmaz / silmez**.
+Haberler, yazarlar, marketplace ve okuyucu girdileri seed’den etkilenmez.
 
 **Alternatif — seed** — `infra/seed/editorial.yaml` içindeki `columns:` listesine ekle, sonra `uv run planetai-ingest seed`:
 ```yaml

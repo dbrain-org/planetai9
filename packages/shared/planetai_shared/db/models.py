@@ -626,6 +626,44 @@ class DeveloperCommentLike(Base):
     )
 
 
+class PageComment(Base, TimestampMixin):
+    """Logged-in comments on static catalog pages (VeriVatan, Üniversite, …)."""
+
+    __tablename__ = "page_comments"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    page_key: Mapped[str] = mapped_column(String(40))  # verivatan | universite
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    parent_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("page_comments.id", ondelete="CASCADE")
+    )
+    body: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(12), default="active")  # active | deleted
+    like_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    user: Mapped[User] = relationship()
+
+    __table_args__ = (
+        Index("ix_page_comments_page", "page_key", "created_at"),
+        Index("ix_page_comments_user", "user_id"),
+        Index("ix_page_comments_parent", "parent_id"),
+    )
+
+
+class PageCommentLike(Base):
+    __tablename__ = "page_comment_likes"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    comment_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("page_comments.id", ondelete="CASCADE"), primary_key=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class IngestRun(Base):
     """Bookkeeping for scheduler visibility / healthz."""
 
