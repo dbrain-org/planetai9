@@ -10,6 +10,7 @@ export function Cover({
   rounded = "rounded-xl",
   zoom = false,
   fit = "cover",
+  minWidth = 0,
 }: {
   src: string | null;
   category: string;
@@ -17,6 +18,8 @@ export function Cover({
   rounded?: string;
   zoom?: boolean;
   fit?: "cover" | "contain";
+  /** Drop tiny source images instead of upscaling them into a blurry cover. */
+  minWidth?: number;
 }) {
   const hue = catColor(category);
   return (
@@ -29,7 +32,7 @@ export function Cover({
       ) : (
         <div className="absolute inset-0 h-full w-full bg-wash dark:bg-d-wash" />
       )}
-      {src && <CoverImg src={src} zoom={zoom} fit={fit} />}
+      {src && <CoverImg src={src} zoom={zoom} fit={fit} minWidth={minWidth} />}
     </div>
   );
 }

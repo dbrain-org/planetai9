@@ -97,13 +97,20 @@ function phrasesFor(entities: EntityRef[]): PhraseHit[] {
   });
 }
 
-/** Turn known person / company / institution names inside plain text into links. */
-export function linkifyEntities(text: string, entities: EntityRef[]): ReactNode[] {
+/** Turn known person / company / institution names inside plain text into links.
+ *  Each entity is linked at most once (first hit). Pass the same `linked` Set across
+ *  paragraphs so an article doesn't re-link the same name 50 times. */
+export function linkifyEntities(
+  text: string,
+  entities: EntityRef[],
+  linked?: Set<string>,
+): ReactNode[] {
   if (!text || entities.length === 0) return [text];
 
   const ranked = phrasesFor(entities);
   if (ranked.length === 0) return [text];
 
+  const used = linked ?? new Set<string>();
   const byLower = new Map(ranked.map((h) => [h.phrase.toLowerCase(), h.entity]));
   const pattern = new RegExp(
     `(${ranked.map((h) => h.phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`,
@@ -118,7 +125,8 @@ export function linkifyEntities(text: string, entities: EntityRef[]): ReactNode[
     const raw = match[0] ?? "";
     if (start > last) parts.push(text.slice(last, start));
     const ent = byLower.get(raw.toLowerCase());
-    if (ent) {
+    if (ent && !used.has(ent.slug)) {
+      used.add(ent.slug);
       const isPerson = ent.type === "person";
       const isOrg = ent.type === "company" || ent.type === "institution";
       parts.push(

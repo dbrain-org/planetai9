@@ -28,20 +28,17 @@ _WORD = re.compile(r"[a-z0-9çğıöşü]")
 # Turkish possessives / clitics after a name: "Sam Altman'a", "Jensen Huang'ın"
 _NAME_SUFFIX = re.compile(r"^[''`](?:a|e|ı|i|u|ü|ın|in|un|ün|da|de|ta|te|dan|den)?(?:\b|$)")
 
+# One name token: "Sam", "Fei-Fei", "Wojcicki" (hyphen / apostrophe ok after first letter)
+_NAME_TOKEN = r"[A-ZÇĞİÖŞÜ][A-Za-zÇĞİÖŞÜçğıöşü''\-]*"
+_NAME_PHRASE = rf"({_NAME_TOKEN}(?:\s+{_NAME_TOKEN})+)"
+
 # "Kemal Kar ile" — strongest TR guest signal
-_GUEST_ILE = re.compile(
-    r"(?<![A-Za-zÇĞİÖŞÜçğıöşü])"
-    r"([A-ZÇĞİÖŞÜ][a-zçğıöşü]+(?:\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü''\-]+)+)"
-    r"\s+ile\b"
-)
+_GUEST_ILE = re.compile(rf"(?<![A-Za-zÇĞİÖŞÜçğıöşü]){_NAME_PHRASE}\s+ile\b")
 # Video title guest: "Susan Wojcicki: …" (name at start, then colon)
-_VIDEO_TITLE_GUEST = re.compile(
-    r"^([A-ZÇĞİÖŞÜ][a-zçğıöşü]+(?:\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü''\-]+)+)\s*:"
-)
+_VIDEO_TITLE_GUEST = re.compile(rf"^{_NAME_PHRASE}\s*:")
 # News headline verbs: "Sam Altman apologizes …" / "Dario Amodei warns …"
 _NEWS_VERB_PERSON = re.compile(
-    r"(?:^|[\s\"“«])"
-    r"([A-ZÇĞİÖŞÜ][a-zçğıöşü]+(?:\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü''\-]+)+)"
+    rf"(?:^|[\s\"“«]){_NAME_PHRASE}"
     r"\s+(?:says?|said|announces?|announced|warns?|warned|apologizes?|apologized|"
     r"claims?|claimed|reveals?|revealed|denies|denied|admits?|admitted)\b"
 )
@@ -212,9 +209,9 @@ _STOP_TOKENS = frozenset(
 
 # Role titles that often precede a real person name in TR news copy.
 _TR_ROLE_PERSON = re.compile(
-    r"(?:Bakan(?:ı|imiz|ımız)|Başkan(?:ı|imiz|ımız)|Cumhurbaşkanı|"
-    r"Prof\.?\s*Dr\.?|Doç\.?\s*Dr\.?|Dr\.?)\s+"
-    r"([A-ZÇĞİÖŞÜ][a-zçğıöşü''\-]+(?:\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü''\-]+){1,2})"
+    rf"(?:Bakan(?:ı|imiz|ımız)|Başkan(?:ı|imiz|ımız)|Cumhurbaşkanı|"
+    rf"Prof\.?\s*Dr\.?|Doç\.?\s*Dr\.?|Dr\.?)\s+"
+    rf"({_NAME_TOKEN}(?:\s+{_NAME_TOKEN}){{1,2}})"
 )
 
 

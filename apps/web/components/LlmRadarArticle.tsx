@@ -19,10 +19,12 @@ function Paragraph({
   text,
   role,
   entities,
+  linked,
 }: {
   text: string;
   role: "lead" | "body" | "bridge" | "callout" | "close";
   entities: EntityRef[];
+  linked: Set<string>;
 }) {
   const cls =
     role === "lead"
@@ -34,7 +36,7 @@ function Paragraph({
           : role === "close"
             ? "article-close"
             : "article-body";
-  return <p className={cls}>{linkifyEntities(text, entities)}</p>;
+  return <p className={cls}>{linkifyEntities(text, entities, linked)}</p>;
 }
 
 function roleFor(p: string, index: number, total: number): "lead" | "body" | "bridge" | "callout" | "close" {
@@ -68,6 +70,7 @@ export function LlmRadarArticle({
     (p) => !/^\/news\/.*\.(svg|png|jpe?g|webp)$/i.test(p.trim()),
   );
   const linkEntities = event.entities.map((e) => e.entity);
+  const linkedOnce = new Set<string>();
 
   return (
     <div className="mx-auto grid max-w-content gap-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
@@ -80,7 +83,7 @@ export function LlmRadarArticle({
         </h1>
         {event.summary && (
           <p className="article-dek mt-4 max-w-[38rem]">
-            {linkifyEntities(event.summary, linkEntities)}
+            {linkifyEntities(event.summary, linkEntities, linkedOnce)}
           </p>
         )}
         <div className="mt-5 border-y border-line py-3 dark:border-d-line">
@@ -104,6 +107,7 @@ export function LlmRadarArticle({
               text={p}
               role={roleFor(p, i, paragraphs.length)}
               entities={linkEntities}
+              linked={linkedOnce}
             />
           ))}
         </div>

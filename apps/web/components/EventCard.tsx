@@ -9,7 +9,13 @@ export function EventCard({ event, locale = "tr" }: { event: EventCardT; locale?
   return (
     <article className="group">
       <Link href={`/news/${event.slug}`} className="block">
-        <Cover src={event.image_url} category={event.category} className="aspect-[16/10]" zoom />
+        <Cover
+          src={event.image_url}
+          category={event.category}
+          className="aspect-[16/10]"
+          zoom
+          minWidth={400}
+        />
         <h3 className="mt-3.5 text-[16px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
           {event.title}
         </h3>
@@ -35,6 +41,7 @@ export function NewsListItem({ event, locale = "tr" }: { event: EventCardT; loca
           category={event.category}
           className="hidden h-28 w-40 shrink-0 sm:block"
           zoom
+          minWidth={240}
         />
         <div className="min-w-0 flex-1">
           <h3 className="text-[18px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">

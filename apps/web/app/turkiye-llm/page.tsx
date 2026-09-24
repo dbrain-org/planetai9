@@ -56,6 +56,20 @@ function BarChart({ items }: { items: { label: string; count: number }[] }) {
   );
 }
 
+/** Prefer a lead with a non-community thumbnail so the hero isn't a blurry Reddit preview. */
+function orderNewsForLead(news: EventCard[]): EventCard[] {
+  if (news.length <= 1) return news;
+  const community = /reddit|redd\.it|local.?llama|hacker.?news/i;
+  const score = (e: EventCard) => {
+    if (!e.image_url) return 0;
+    if (community.test(e.top_source?.name ?? "") || community.test(e.image_url)) return 1;
+    return 2;
+  };
+  const best = news.reduce((a, b) => (score(b) > score(a) ? b : a));
+  if (score(best) <= score(news[0])) return news;
+  return [best, ...news.filter((e) => e.slug !== best.slug)];
+}
+
 function NewsLead({ event, locale, readMore }: { event: EventCard; locale: "tr" | "en"; readMore: string }) {
   return (
     <article className="group">
@@ -66,6 +80,7 @@ function NewsLead({ event, locale, readMore }: { event: EventCard; locale: "tr" 
           className="aspect-[16/10]"
           rounded="rounded-card"
           zoom
+          minWidth={480}
         />
         <Meta
           summary={event.summary}
@@ -101,6 +116,7 @@ function NewsTile({ event, locale }: { event: EventCard; locale: "tr" | "en" }) 
             className="h-[88px] w-[118px] shrink-0 sm:h-[96px] sm:w-[128px]"
             rounded="rounded-xl"
             zoom
+            minWidth={160}
           />
         ) : (
           <span
@@ -137,7 +153,7 @@ export default async function TurkiyeLlmPage() {
     count: y.count,
   }));
 
-  const [lead, ...rest] = data.news;
+  const [lead, ...rest] = orderNewsForLead(data.news);
   const sideNews = rest.slice(0, 5);
 
   return (

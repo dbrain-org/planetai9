@@ -56,6 +56,7 @@ export function HeroBlock({
             className="aspect-[16/9]"
             rounded="rounded-card"
             fit="contain"
+            minWidth={480}
           />
           <Meta
             summary={lead.summary}

@@ -25,16 +25,19 @@ function resolveSrc(src: string): string {
   return src;
 }
 
-/** <img> that removes itself on load failure so the parent's gradient placeholder shows through. */
+/** <img> that removes itself on load failure / tiny sources so the gradient placeholder shows. */
 export function CoverImg({
   src,
   zoom = false,
   fit = "cover",
+  minWidth = 0,
 }: {
   src: string;
   zoom?: boolean;
   /** cover = fill & crop; contain = show full image (no crop). */
   fit?: "cover" | "contain";
+  /** Hide the image if its intrinsic width is below this (avoids blurry upscales). */
+  minWidth?: number;
 }) {
   const [failed, setFailed] = useState(false);
   if (failed) return null;
@@ -46,6 +49,11 @@ export function CoverImg({
       loading="lazy"
       referrerPolicy="no-referrer"
       onError={() => setFailed(true)}
+      onLoad={(e) => {
+        if (minWidth > 0 && e.currentTarget.naturalWidth < minWidth) {
+          setFailed(true);
+        }
+      }}
       className={`absolute inset-0 h-full w-full transition-transform duration-500 ${
         fit === "contain" ? "object-contain" : "object-cover"
       } ${zoom && fit === "cover" ? "group-hover:scale-105" : ""}`}

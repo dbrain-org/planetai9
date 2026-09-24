@@ -54,6 +54,7 @@ people:
   - { slug: yann-lecun,      name: Yann LeCun,       parent: meta-ai,         aliases: [] }
   - { slug: jensen-huang,    name: Jensen Huang,     parent: nvidia,          aliases: [] }
   - { slug: elon-musk,       name: Elon Musk,        parent: xai,             aliases: [] }
+  - { slug: fei-fei-li,      name: Fei-Fei Li,       parent: stanford,        aliases: ["Fei Fei Li", "FeiFei Li", "Li Fei-Fei", "Li Fei Fei"] }
   # PlanetAI9 kanal konukları / konuşmacılar
   - { slug: kemal-kar,          name: Kemal Kar,          tier: 0.45, aliases: [] }
   - { slug: koray-kavukcuoglu,  name: Koray Kavukcuoğlu,  tier: 0.55, aliases: ["Koray Kavukcuoglu"] }

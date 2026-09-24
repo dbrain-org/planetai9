@@ -74,6 +74,24 @@ def test_entity_index_matches_aliases_and_boundaries():
     assert idx.match("the openair festival", "") == []
 
 
+def test_entity_index_matches_hyphenated_person_aliases():
+    idx = EntityIndex(
+        [
+            (
+                "ff",
+                "person",
+                "Fei-Fei Li",
+                ["Fei Fei Li", "FeiFei Li", "Li Fei-Fei"],
+                0.8,
+            ),
+        ]
+    )
+    hits = idx.match("World Labs founder Fei-Fei Li spoke today", "")
+    assert {h.name for h in hits} == {"Fei-Fei Li"}
+    hits2 = idx.match("FeiFei Li joins the panel", "")
+    assert {h.name for h in hits2} == {"Fei-Fei Li"}
+
+
 def test_person_extract_rejects_program_phrases_and_finds_minister():
     from planetai_ingest.pipeline.entities import (
         _looks_like_person_name,
@@ -85,6 +103,12 @@ def test_person_extract_rejects_program_phrases_and_finds_minister():
     assert not _looks_like_person_name("Dynamic Island")
     assert _looks_like_person_name("Mehmet Fatih Kacır")
     assert _looks_like_person_name("Sam Altman")
+    assert _looks_like_person_name("Fei-Fei Li")
+    assert _looks_like_person_name("FeiFei Li")
+
+    assert "Fei-Fei Li" in extract_person_candidates(
+        "Fei-Fei Li announces a new AI initiative", source="news"
+    )
 
     body = (
         "GITEX Ai Türkiye'ye Sanayi ve Teknoloji Bakanımız Mehmet Fatih Kacır "

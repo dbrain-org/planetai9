@@ -32,14 +32,59 @@ def _parsed_datetime(entry) -> datetime | None:
     return None
 
 
+def _media_width(item: dict) -> int:
+    raw = item.get("width")
+    try:
+        return int(raw) if raw is not None else 0
+    except (TypeError, ValueError):
+        return 0
+
+
+def _upgrade_image_url(url: str) -> str:
+    """Bump common CDN size params so we keep a usable cover, not a 140px thumb."""
+    from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+
+    try:
+        parsed = urlparse(url)
+    except ValueError:
+        return url
+    host = (parsed.hostname or "").lower()
+    if not (
+        host.endswith("redd.it")
+        or host.endswith("redditmedia.com")
+        or "preview.redd.it" in host
+        or host.endswith("external-preview.redd.it")
+    ):
+        return url
+    qs = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    try:
+        width = int(qs.get("width") or "0")
+    except ValueError:
+        width = 0
+    if width < 960:
+        qs["width"] = "1080"
+    return urlunparse(parsed._replace(query=urlencode(qs)))
+
+
 def _entry_image(entry) -> str | None:
-    media = entry.get("media_content") or entry.get("media_thumbnail")
-    if media and isinstance(media, list) and media[0].get("url"):
-        return media[0]["url"]
+    candidates: list[tuple[int, str]] = []
+    for key in ("media_content", "media_thumbnail"):
+        media = entry.get(key)
+        if not isinstance(media, list):
+            continue
+        for item in media:
+            url = (item or {}).get("url")
+            if url:
+                candidates.append((_media_width(item), url))
     for link in entry.get("links", []):
         if link.get("rel") == "enclosure" and str(link.get("type", "")).startswith("image"):
-            return link.get("href")
-    return None
+            href = link.get("href")
+            if href:
+                candidates.append((_media_width(link), href))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda c: c[0], reverse=True)
+    return _upgrade_image_url(candidates[0][1])
 
 
 class RssCollector(BaseCollector):
