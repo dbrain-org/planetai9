@@ -334,13 +334,9 @@ export function CommentSection({
         </p>
       )}
 
-      <div>
-        {roots.length === 0 ? (
-          <p className="py-8 text-center text-[14px] text-muted">
-            {tr ? "Henüz yorum yok." : "No comments yet."}
-          </p>
-        ) : (
-          roots.map((c) => {
+      {roots.length > 0 && (
+        <div>
+          {roots.map((c) => {
             const replies = repliesByParent.get(c.id) ?? [];
             const open = expanded.has(c.id);
             return (
@@ -432,9 +428,9 @@ export function CommentSection({
                 )}
               </div>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
     </section>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { ArrowUpRight, Instagram, Linkedin, Youtube } from "lucide-react";
 import { LogoMark } from "./Logo";
 import { getDict, getLocale } from "@/lib/i18n";
+import { PRESENCE_LINKS } from "@/lib/presence";
 
 export async function SiteFooter() {
   const locale = await getLocale();
@@ -26,12 +26,6 @@ export async function SiteFooter() {
     { label: tr ? "Haber Gönder" : "Submit news", href: "/haber-giris" },
   ];
 
-  const socials = [
-    { icon: Youtube, href: "https://www.youtube.com/@planetai9", label: "YouTube" },
-    { icon: Linkedin, href: "https://www.linkedin.com/showcase/planetai9media", label: "LinkedIn" },
-    { icon: Instagram, href: "https://www.instagram.com/planetai9media", label: "Instagram" },
-  ];
-
   return (
     <footer className="mt-20 border-t border-line bg-canvas dark:border-d-line dark:bg-d-canvas">
       <div className="mx-auto max-w-content px-5 pt-14 pb-10 sm:px-8">
@@ -53,14 +47,11 @@ export async function SiteFooter() {
                 ? "Türkiye'nin yapay zekâ medya platformu. Haberler, modeller ve ekosistem sinyalleri tek yerde."
                 : "Türkiye's AI media platform. News, models and ecosystem signals in one place."}
             </p>
-            <a
-              href="https://llmradar.planetai9.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent hover:text-accent-ink"
-            >
-              LLMRadar <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
+            <p className="mt-4 text-[12px] leading-relaxed text-muted">
+              {tr
+                ? "PlanetAI9. Tek Gezegen. Her Yapay Zekâ Sinyali."
+                : "PlanetAI9. One Planet. Every AI Signal."}
+            </p>
           </div>
 
           <div>
@@ -101,27 +92,27 @@ export async function SiteFooter() {
 
           <div>
             <p className="text-[12px] font-bold uppercase tracking-[0.12em] text-muted">
-              {tr ? "Takip et" : "Follow"}
+              {tr ? "Bağlantılar" : "Links"}
             </p>
-            <div className="mt-4 flex gap-2">
-              {socials.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={s.label}
-                  className="grid h-10 w-10 place-items-center rounded-full border border-line bg-paper text-ink-2 transition-all hover:-translate-y-0.5 hover:border-ink hover:text-ink dark:border-d-line dark:bg-d-wash dark:text-d-ink-2 dark:hover:border-d-ink dark:hover:text-d-ink"
-                >
-                  <s.icon className="h-4 w-4" />
-                </a>
+            <ul className="mt-4 space-y-3">
+              {PRESENCE_LINKS.map(({ label, href, Icon }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-2.5 text-[14px] font-medium text-ink transition-colors hover:text-ink dark:text-d-ink"
+                  >
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-line text-ink dark:border-d-line dark:text-d-ink">
+                      <Icon className="h-4 w-4" strokeWidth={1.75} />
+                    </span>
+                    <span className="text-ink-2 transition-colors group-hover:text-ink dark:text-d-ink-2 dark:group-hover:text-d-ink">
+                      {label}
+                    </span>
+                  </a>
+                </li>
               ))}
-            </div>
-            <p className="mt-5 max-w-[200px] text-[12px] leading-relaxed text-muted">
-              {tr
-                ? "PlanetAI9. Tek Gezegen. Her Yapay Zekâ Sinyali."
-                : "PlanetAI9. One Planet. Every AI Signal."}
-            </p>
+            </ul>
           </div>
         </div>
 

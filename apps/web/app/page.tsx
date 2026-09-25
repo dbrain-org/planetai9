@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { EventCard } from "@/components/EventCard";
 import { HeroBlock, type HeroSideEntry } from "@/components/HeroBlock";
 import { RankedNewsList, TrendsCard } from "@/components/HomeRail";
+import { OppyAd } from "@/components/OppyAd";
 import { VideoCard } from "@/components/VideoCard";
 import { apiSafe } from "@/lib/api";
 import { getDict, getLocale } from "@/lib/i18n";
@@ -136,7 +137,7 @@ export default async function HomePage() {
         />
       )}
 
-      {showMain && (
+      {showMain && (featured.length > 0 || showRail) && (
         <section
           className={
             showRail
@@ -144,33 +145,20 @@ export default async function HomePage() {
               : undefined
           }
         >
-          <div className="space-y-8">
-            {featured.length > 0 && (
-              <div>
-                <SectionHead
-                  title={locale === "tr" ? "Öne Çıkanlar" : "Featured"}
-                  href="/news?region=TR&sort=recent"
-                  seeAll={seeAll}
-                />
-                <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
-                  {featured.map((e) => (
-                    <EventCard key={e.slug} event={e} locale={locale} />
-                  ))}
-                </div>
+          {featured.length > 0 && (
+            <div>
+              <SectionHead
+                title={locale === "tr" ? "Öne Çıkanlar" : "Featured"}
+                href="/news?region=TR&sort=recent"
+                seeAll={seeAll}
+              />
+              <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
+                {featured.map((e) => (
+                  <EventCard key={e.slug} event={e} locale={locale} />
+                ))}
               </div>
-            )}
-
-            {moreVideos.length > 0 && (
-              <div>
-                <SectionHead title={t.section.video} href="/videos" seeAll={seeAll} />
-                <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
-                  {moreVideos.map((v) => (
-                    <VideoCard key={v.youtube_id} video={v} locale={locale} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {showRail && (
             <aside className={`space-y-4 ${featured.length > 0 ? "lg:pt-11" : ""}`}>
@@ -200,6 +188,19 @@ export default async function HomePage() {
           )}
         </section>
       )}
+
+      {moreVideos.length > 0 && (
+        <section>
+          <SectionHead title={t.section.video} href="/videos" seeAll={seeAll} />
+          <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+            {moreVideos.map((v) => (
+              <VideoCard key={v.youtube_id} video={v} locale={locale} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <OppyAd locale={locale} />
     </div>
   );
 }
