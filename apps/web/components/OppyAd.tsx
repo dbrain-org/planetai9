@@ -4,7 +4,84 @@ import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/i18n";
 
-const CONTACT = "https://oppy.dbrain.tech/#contact";
+function track(bannerId: string) {
+  fetch(`/api/banners/${encodeURIComponent(bannerId)}/click`, {
+    method: "POST",
+    keepalive: true,
+  }).catch(() => {});
+}
+
+export function ProductBanner({
+  bannerId,
+  href,
+  kicker,
+  title,
+  body,
+  image,
+  imageAlt,
+  locale,
+}: {
+  bannerId: string;
+  href?: string;
+  kicker: string;
+  title: string;
+  body: string;
+  image?: string;
+  imageAlt?: string;
+  locale: Locale;
+}) {
+  const tr = locale === "tr";
+  const className = `grid overflow-hidden rounded-card border border-line bg-paper shadow-raise dark:border-d-line dark:bg-d-canvas ${
+    image ? "md:grid-cols-[1.1fr_0.9fr]" : ""
+  }`;
+  const inner = (
+    <>
+      <span className="flex flex-col justify-between px-6 py-6 sm:px-8 sm:py-7">
+        <span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted">
+            {tr ? "Reklam" : "Ad"} · {kicker}
+          </span>
+          <span className="mt-3 block text-[28px] font-extrabold leading-[1.08] tracking-tight3 text-ink dark:text-d-ink sm:text-[34px]">
+            {title}
+          </span>
+          <span className="mt-3 block max-w-md text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+            {body}
+          </span>
+        </span>
+        {href && (
+          <span className="mt-5 inline-flex w-fit items-center gap-1.5 text-[13px] font-semibold text-ink dark:text-d-ink">
+            {tr ? "İncele" : "Open"}
+            <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </span>
+        )}
+      </span>
+      {image && (
+        <span className="relative min-h-[180px]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt={imageAlt ?? ""} className="absolute inset-0 h-full w-full object-cover" />
+        </span>
+      )}
+    </>
+  );
+
+  if (!href) {
+    return <article className={className}>{inner}</article>;
+  }
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="sponsored noopener noreferrer"
+      onClick={() => track(bannerId)}
+      className={`group ${className}`}
+    >
+      {inner}
+    </a>
+  );
+}
+
+const OPPY = "https://oppy.dbrain.tech";
 
 type Slide = {
   image: string;
@@ -122,8 +199,8 @@ const SLIDES: Record<Locale, Slide[]> = {
   ],
 };
 
-/** Sponsored Oppy carousel, placed after the PlanetAI9 channel block. */
-export function OppyAd({ locale }: { locale: Locale }) {
+/** Üst manşet. Kayan Oppy ilanı, Oppy sayfasına gider. */
+export function OppyBanner({ locale }: { locale: Locale }) {
   const slides = SLIDES[locale];
   const tr = locale === "tr";
   const [index, setIndex] = useState(0);
@@ -184,19 +261,26 @@ export function OppyAd({ locale }: { locale: Locale }) {
                   )}
                 </div>
                 <a
-                  href={CONTACT}
+                  href={OPPY}
                   target="_blank"
                   rel="sponsored noopener noreferrer"
+                  onClick={() => track("home-oppy")}
                   className="mt-6 inline-flex w-fit items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-ink/90 dark:bg-d-ink dark:text-d-paper"
                 >
-                  {tr ? "Strateji görüşmesi" : "Book a strategy call"}
+                  {tr ? "Oppy’yi aç" : "Open Oppy"}
                   <ArrowUpRight className="h-3.5 w-3.5" />
                 </a>
               </div>
-              <div className="relative min-h-[220px] md:min-h-[340px]">
+              <a
+                href={OPPY}
+                target="_blank"
+                rel="sponsored noopener noreferrer"
+                onClick={() => track("home-oppy")}
+                className="relative min-h-[220px] md:min-h-[340px]"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={slide.image} alt={slide.alt} className="absolute inset-0 h-full w-full object-cover" />
-              </div>
+              </a>
             </article>
           ))}
         </div>
@@ -237,5 +321,36 @@ export function OppyAd({ locale }: { locale: Locale }) {
         </div>
       </div>
     </aside>
+  );
+}
+
+/** Türkiye LLM. GAIA AI Gateway ve Alibaba modelleri. */
+export function TurkiyeLlmBanners({ locale }: { locale: Locale }) {
+  const tr = locale === "tr";
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <ProductBanner
+        bannerId="turkiye-llm-gaia"
+        kicker="GAIA"
+        title="GAIA AI Gateway"
+        body={
+          tr
+            ? "Modellere tek kapı. Kurumunuzun kendi altyapısında, sağlayıcıya kilitlenmeden."
+            : "One door to the models. On your own infrastructure, without a provider lock-in."
+        }
+        locale={locale}
+      />
+      <ProductBanner
+        bannerId="turkiye-llm-alibaba"
+        kicker="Alibaba"
+        title={tr ? "Alibaba modelleri" : "Alibaba models"}
+        body={
+          tr
+            ? "Qwen ve diğer Alibaba modelleri."
+            : "Qwen and the other Alibaba models."
+        }
+        locale={locale}
+      />
+    </div>
   );
 }

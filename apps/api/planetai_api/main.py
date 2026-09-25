@@ -14,6 +14,7 @@ from planetai_api.ratelimit import limiter
 from planetai_api.routers import (
     auth,
     authors,
+    banners,
     curated,
     engagement,
     entities,
@@ -73,6 +74,7 @@ async def _security_headers(request: Request, call_next):
 
 
 API_V1 = "/api/v1"
+app.include_router(banners.router, prefix=API_V1, tags=["banners"])
 app.include_router(home.router, prefix=API_V1, tags=["home"])
 app.include_router(events.router, prefix=API_V1, tags=["events"])
 app.include_router(trends.router, prefix=API_V1, tags=["trends"])

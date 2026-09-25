@@ -664,6 +664,20 @@ class PageCommentLike(Base):
     )
 
 
+class BannerClick(Base):
+    """One row per click on a static DBrain product banner."""
+
+    __tablename__ = "banner_clicks"
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    banner_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (Index("ix_banner_clicks_banner", "banner_id", "created_at"),)
+
+
 class IngestRun(Base):
     """Bookkeeping for scheduler visibility / healthz."""
 

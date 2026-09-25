@@ -1,13 +1,4 @@
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  Database,
-  Newspaper,
-  Send,
-  Shield,
-  ShieldCheck,
-  UserRound,
-} from "lucide-react";
 import { getLocale } from "@/lib/i18n";
 
 export const revalidate = 86400;
@@ -15,172 +6,140 @@ export const revalidate = 86400;
 export const metadata = {
   title: "Gizlilik Politikası",
   description:
-    "PlanetAI9 gizlilik politikası. Toplanan veriler, kullanım, çerezler ve iletişim.",
+    "PlanetAI9 kişisel verileri gizlilik öncelikli bir yaklaşımla işler. Toplanan bilgiler, kullanım, paylaşım, çerezler ve haklarınız.",
 };
 
-type Section = {
-  icon: typeof UserRound;
-  titleTr: string;
-  titleEn: string;
-  bodyTr: string;
-  bodyEn: string;
-  href?: string;
+const COLLECT = {
+  tr: [
+    "Ad, e-posta, telefon, şirket ve unvan gibi kimlik ve iletişim verileri.",
+    "İletişim, bülten ve kariyer başvuru formlarıyla gönderilen iletişim verileri.",
+    "Özgeçmiş dosyaları, mesleki geçmiş ve başvuruyla gönderilen yanıtlar gibi kariyer verileri.",
+    "IP adresi, tarayıcı bilgisi, zaman damgaları, çerez tercihleri ve güvenlik kayıtları gibi teknik veriler.",
+  ],
+  en: [
+    "Identity and contact data such as name, email, phone, company and job title.",
+    "Communication data submitted through contact, newsletter and career application forms.",
+    "Career data such as CV files, professional background and answers submitted with applications.",
+    "Technical data such as IP address, browser information, timestamps, cookie preferences and security logs.",
+  ],
 };
 
-const SECTIONS: Section[] = [
-  {
-    icon: UserRound,
-    titleTr: "Toplanan Veriler",
-    titleEn: "Data We Collect",
-    bodyTr:
-      "PlanetAI9, TAKYAP'a uygulama önerirken paylaştığınız iletişim bilgilerini (e-posta) saklar. Site kullanımına dair anonim istatistikler tutulabilir.",
-    bodyEn:
-      "PlanetAI9 stores the contact details (email) you share when submitting an app to TAKYAP. Anonymous usage statistics may be kept.",
-  },
-  {
-    icon: Shield,
-    titleTr: "Kullanım",
-    titleEn: "How We Use It",
-    bodyTr:
-      "Marketplace başvurusunda verdiğiniz e-posta yalnızca gerektiğinde sizinle iletişim için kullanılır; sitede yayınlanmaz ve üçüncü taraflarla paylaşılmaz.",
-    bodyEn:
-      "The email you provide with a Marketplace submission is used only to contact you if needed; it is never published or shared with third parties.",
-  },
-  {
-    icon: Database,
-    titleTr: "Çerezler",
-    titleEn: "Cookies",
-    bodyTr:
-      "Dil tercihi (TR/EN) ve tema seçimi tarayıcınızda çerez/localStorage olarak saklanır. Bu tercihler sunucuya kişisel veri olarak gönderilmez.",
-    bodyEn:
-      "Your language (TR/EN) and theme preference are stored in your browser via cookie/localStorage. These are not sent to the server as personal data.",
-  },
-  {
-    icon: Newspaper,
-    titleTr: "Kaynak İçerik",
-    titleEn: "Source Content",
-    bodyTr:
-      "Haber başlıkları ve kısa özetleri orijinal yayıncılardan alınır; tam metin saklanmaz ve her haber orijinal kaynağa bağlanır.",
-    bodyEn:
-      "Headlines and short summaries come from the original publishers; full text is not stored and every story links back to its source.",
-  },
-  {
-    icon: Send,
-    titleTr: "İletişim",
-    titleEn: "Contact",
-    bodyTr:
-      "Verilerinizin silinmesini istemek için Biz Kimiz sayfasındaki iletişim kanallarından bize ulaşabilirsiniz.",
-    bodyEn: "To request deletion of your data, reach us via the channels on the About page.",
-    href: "/hakkinda#iletisim",
-  },
-];
-
-function OrbitDecor() {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 280 220"
-      className="pointer-events-none absolute -right-2 -top-6 h-[180px] w-[230px] text-line opacity-70 dark:text-d-line sm:right-0 sm:top-0 sm:h-[220px] sm:w-[280px]"
-    >
-      <ellipse
-        cx="168"
-        cy="108"
-        rx="92"
-        ry="78"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-      <ellipse
-        cx="168"
-        cy="108"
-        rx="118"
-        ry="42"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1"
-        transform="rotate(-28 168 108)"
-      />
-      <circle cx="168" cy="108" r="28" fill="none" stroke="currentColor" strokeWidth="1.2" />
-      <circle cx="168" cy="108" r="6" fill="currentColor" opacity="0.35" />
-      <path
-        d="M236 48l3.2 8.2 8.8 1.2-6.6 5.8 1.8 8.6L236 68l-7.2 4.8 1.8-8.6-6.6-5.8 8.8-1.2z"
-        fill="currentColor"
-        opacity="0.45"
-      />
-      <circle cx="78" cy="72" r="2.2" fill="currentColor" opacity="0.4" />
-      <circle cx="248" cy="132" r="1.8" fill="currentColor" opacity="0.35" />
-    </svg>
-  );
-}
+const USE = {
+  tr: [
+    "Taleplere yanıt vermek, hizmet sunmak ve müşteri ilişkilerini yönetmek.",
+    "İş başvurularını değerlendirmek ve adaylarla açık pozisyonlar hakkında iletişim kurmak.",
+    "Web sitesini, sistemleri ve formları güvenli tutmak.",
+    "Bülten ve kampanya güncellemelerini yalnızca pazarlama izni verdiğinizde göndermek.",
+    "Yasal, operasyonel, muhasebe ve uyuşmazlık yönetimi yükümlülüklerini yerine getirmek.",
+  ],
+  en: [
+    "To respond to requests, deliver services and manage customer relationships.",
+    "To evaluate job applications and contact candidates about open roles.",
+    "To keep our website, systems and forms secure.",
+    "To send newsletters and campaign updates only when you give marketing consent.",
+    "To meet legal, operational, accounting and dispute management obligations.",
+  ],
+};
 
 export default async function PrivacyPage() {
   const tr = (await getLocale()) === "tr";
-  const updated = new Date().toLocaleDateString(tr ? "tr-TR" : "en-US", {
-    month: "long",
-    year: "numeric",
-  });
+  const collect = tr ? COLLECT.tr : COLLECT.en;
+  const use = tr ? USE.tr : USE.en;
 
   return (
-    <div className="relative mx-auto max-w-[980px]">
-      <OrbitDecor />
-
-      <header className="relative max-w-2xl">
-        <p className="inline-block text-[12px] font-bold uppercase tracking-[0.16em] text-accent">
-          {tr ? "Değerlerimiz" : "Our Values"}
-          <span className="mt-1.5 block h-px w-full bg-accent/70" />
-        </p>
-        <h1 className="mt-4 text-[36px] font-extrabold tracking-tight3 text-ink dark:text-d-ink sm:text-[44px]">
+    <article className="mx-auto max-w-3xl">
+      <header>
+        <h1 className="text-[36px] font-extrabold tracking-tight3 text-ink dark:text-d-ink sm:text-[44px]">
           {tr ? "Gizlilik Politikası" : "Privacy Policy"}
         </h1>
         <p className="mt-4 text-[16px] leading-relaxed text-ink-2 dark:text-d-ink-2">
           {tr
-            ? "PlanetAI9 olarak kullanıcı güvenini ve veri şeffaflığını temel alıyoruz. Aşağıda neleri sakladığımızı ve nasıl kullandığımızı net biçimde özetliyoruz."
-            : "At PlanetAI9, user trust and data transparency come first. Below is a clear summary of what we store and how we use it."}
+            ? "PlanetAI9 olarak kişisel verileri gizlilik öncelikli bir yaklaşımla korur, yalnızca açık, meşru ve sınırlı amaçlarla işleriz."
+            : "At PlanetAI9, we protect personal data with a privacy-first approach and process it only for clear, legitimate, and limited purposes."}
         </p>
       </header>
 
-      <div className="relative mt-10 grid gap-4 sm:grid-cols-2">
-        {SECTIONS.map((s) => {
-          const Icon = s.icon;
-          const title = tr ? s.titleTr : s.titleEn;
-          const body = tr ? s.bodyTr : s.bodyEn;
-          const inner = (
-            <>
-              <div className="flex items-start justify-between gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#EEF0FF] text-[#5B6CFF] dark:bg-accent/15 dark:text-blue-300">
-                  <Icon className="h-5 w-5" strokeWidth={1.8} />
-                </span>
-                <ArrowUpRight className="h-4 w-4 shrink-0 text-muted" />
-              </div>
-              <h2 className="mt-4 text-[17px] font-bold tracking-tight2 text-ink dark:text-d-ink">
-                {title}
-              </h2>
-              <p className="mt-2 text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">{body}</p>
-            </>
-          );
+      <section className="mt-10">
+        <h2 className="text-[22px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
+          {tr ? "Topladığımız bilgiler" : "Information We Collect"}
+        </h2>
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+          {collect.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </section>
 
-          const className =
-            "rounded-card border border-line bg-paper p-5 shadow-soft transition-all duration-250 hover:-translate-y-0.5 hover:shadow-raise dark:border-d-line dark:bg-d-canvas sm:p-6";
+      <section className="mt-10">
+        <h2 className="text-[22px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
+          {tr ? "Bilgileri nasıl kullanırız" : "How We Use Information"}
+        </h2>
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+          {use.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </section>
 
-          return s.href ? (
-            <Link key={s.titleTr} href={s.href} className={`block ${className}`}>
-              {inner}
-            </Link>
-          ) : (
-            <article key={s.titleTr} className={className}>
-              {inner}
-            </article>
-          );
-        })}
+      <section className="mt-10">
+        <h2 className="text-[22px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
+          {tr ? "Paylaşım ve aktarım" : "Sharing and Transfers"}
+        </h2>
+        <p className="mt-4 text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+          {tr
+            ? "Veriyi gerektiğinde ve ölçülü olmak kaydıyla hizmet sağlayıcılar, danışmanlar, teknik altyapı sağlayıcıları, iş ortakları ve yetkili kamu kurumlarıyla paylaşabiliriz. Uluslararası aktarım gerektiren haller, kullanılmadan önce yürürlükteki veri koruma kurallarına göre değerlendirilir."
+            : "We may share data with service providers, consultants, technical infrastructure providers, business partners and authorized public institutions where necessary and proportionate. Any international transfer requirement is assessed under applicable data protection rules before use."}
+        </p>
+      </section>
 
-        <div className="flex items-end justify-end pb-1 sm:col-start-2">
-          <p className="flex items-center gap-2 border-l-2 border-accent pl-3 text-[13px] font-medium text-ink-2 dark:text-d-ink-2">
-            <ShieldCheck className="h-4 w-4 text-accent" />
-            {tr ? "Son güncelleme" : "Last updated"}: {updated}
-          </p>
-        </div>
-      </div>
-    </div>
+      <section className="mt-10">
+        <h2 className="text-[22px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
+          {tr ? "Çerezler" : "Cookies"}
+        </h2>
+        <p className="mt-4 text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+          {tr
+            ? "Sitenin çalışması için zorunlu çerezler kullanılır. İşlevsel, analitik ve pazarlama çerezleri yalnızca sizin izninizle kullanılır. Tercihlerinizi dilediğiniz zaman "
+            : "Necessary cookies are used to keep the website working. Functional, analytics and marketing cookies are used only with your consent. You can change your preferences from the "}
+          <Link
+            href="/cerezler"
+            className="font-semibold text-ink underline decoration-ink/30 underline-offset-2 dark:text-d-ink"
+          >
+            {tr ? "Çerez Politikası" : "Cookie Policy"}
+          </Link>
+          {tr ? " sayfasından değiştirebilirsiniz." : " page at any time."}
+        </p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-[22px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
+          {tr ? "Haklarınız" : "Your Rights"}
+        </h2>
+        <p className="mt-4 text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+          {tr
+            ? "Uygulanabildiği ölçüde erişim, düzeltme, silme, kısıtlama, aktarımlar hakkında bilgi, otomatik işlemeye itiraz ve hukuka aykırı işlemeden doğan tazminat talep edebilirsiniz. KVKK kapsamındaki Türkiye’ye özgü haklar için "
+            : "You may request access, correction, deletion, restriction, information about transfers, objection to automated processing and compensation for unlawful processing where applicable. For Turkey-specific rights under KVKK, please review our "}
+          <Link
+            href="/kvkk"
+            className="font-semibold text-ink underline decoration-ink/30 underline-offset-2 dark:text-d-ink"
+          >
+            {tr ? "KVKK Aydınlatma Metni" : "KVKK Privacy Notice"}
+          </Link>
+          {tr ? "’ne bakın." : "."}
+        </p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-[22px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
+          {tr ? "İletişim" : "Contact"}
+        </h2>
+        <p className="mt-4 text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+          {tr ? "Gizlilik soruları için " : "For privacy questions, contact us at "}
+          <a href="mailto:info@dbrain.tech" className="font-semibold text-ink dark:text-d-ink">
+            info@dbrain.tech
+          </a>
+          .
+        </p>
+      </section>
+    </article>
   );
 }

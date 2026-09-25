@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
+import { KvkkConsent } from "@/components/KvkkConsent";
 
 const MAX_PHOTOS = 5;
 const MAX_BYTES = 4 * 1024 * 1024;
@@ -323,6 +324,7 @@ export function NewsSubmissionForm({
             />
           </Field>
 
+          <KvkkConsent locale={locale} className="sm:col-span-2" />
           <div className="sm:col-span-2">
             <button
               type="submit"

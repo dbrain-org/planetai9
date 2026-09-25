@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, ChevronDown, GraduationCap, Send } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
+import { KvkkConsent } from "@/components/KvkkConsent";
 
 const KINDS = [
   { value: "herkes", tr: "Herkes İçin AI", en: "AI for everyone" },
@@ -166,6 +167,7 @@ export function EducationShareForm({ locale }: { locale: Locale }) {
               <span className="mb-1.5 block text-[13px] font-semibold">E-posta</span>
               <input name="submitter_email" type="email" className="field" />
             </label>
+            <KvkkConsent locale={locale} className="sm:col-span-2" />
             <div className="sm:col-span-2">
               <button
                 type="submit"

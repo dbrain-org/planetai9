@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
 import { notifyAuthChanged } from "@/components/AuthMenu";
+import { KvkkConsent } from "@/components/KvkkConsent";
 
 type Me = { id: string; email: string; display_name: string };
 type Mode = "login" | "register";
@@ -239,6 +240,8 @@ function LoginFormInner({ locale = "tr" }: { locale?: "tr" | "en" }) {
             placeholder={tr ? "En az 6 karakter" : "At least 6 characters"}
           />
         </label>
+
+        {mode === "register" && <KvkkConsent locale={locale} className="mt-4" />}
 
         {error && (
           <p className="mt-3 text-[13px] text-red-600 dark:text-red-400">{error}</p>

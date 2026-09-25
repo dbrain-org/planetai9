@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { CookieConsent } from "@/components/CookieConsent";
 import { Masthead } from "@/components/Masthead";
 import { PageCommentsMount } from "@/components/PageCommentsMount";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -52,6 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <PageCommentsMount locale={locale} />
         </main>
         <SiteFooter />
+        <CookieConsent locale={locale} />
       </body>
     </html>
   );

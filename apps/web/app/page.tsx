@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { EventCard } from "@/components/EventCard";
 import { HeroBlock, type HeroSideEntry } from "@/components/HeroBlock";
 import { RankedNewsList, TrendsCard } from "@/components/HomeRail";
-import { OppyAd } from "@/components/OppyAd";
+import { OppyBanner } from "@/components/OppyAd";
 import { VideoCard } from "@/components/VideoCard";
 import { apiSafe } from "@/lib/api";
 import { getDict, getLocale } from "@/lib/i18n";
@@ -128,6 +128,8 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-8">
+      <OppyBanner locale={locale} />
+
       {lead && (
         <HeroBlock
           lead={lead}
@@ -199,8 +201,6 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-
-      <OppyAd locale={locale} />
     </div>
   );
 }

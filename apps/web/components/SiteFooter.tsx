@@ -23,6 +23,9 @@ export async function SiteFooter() {
     { label: tr ? "Biz Kimiz" : "About", href: "/hakkinda" },
     { label: tr ? "Kaynaklar & Güven" : "Sources & Trust", href: "/sources" },
     { label: tr ? "Gizlilik Politikası" : "Privacy Policy", href: "/gizlilik" },
+    { label: tr ? "Çerez Politikası" : "Cookie Policy", href: "/cerezler" },
+    { label: tr ? "KVKK" : "KVKK", href: "/kvkk" },
+    { label: tr ? "Kullanım Şartları" : "Terms of Use", href: "/kullanim" },
     { label: tr ? "Haber Gönder" : "Submit news", href: "/haber-giris" },
   ];
 
@@ -51,6 +54,12 @@ export async function SiteFooter() {
               {tr
                 ? "PlanetAI9. Tek Gezegen. Her Yapay Zekâ Sinyali."
                 : "PlanetAI9. One Planet. Every AI Signal."}
+            </p>
+            <p className="mt-4 text-[13px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+              {tr ? "Gizlilik soruları için " : "Privacy questions: "}
+              <a href="mailto:info@dbrain.tech" className="font-semibold text-ink dark:text-d-ink">
+                info@dbrain.tech
+              </a>
             </p>
           </div>
 

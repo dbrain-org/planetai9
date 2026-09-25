@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, ChevronDown, Package, Send } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
+import { KvkkConsent } from "@/components/KvkkConsent";
 
 const CATEGORIES: Record<string, { tr: string; en: string }> = {
   mcp: { tr: "MCP Sunucusu", en: "MCP Server" },
@@ -175,6 +176,7 @@ export function MarketplaceForm({
               <Field label={L("E-posta (yayınlanmaz)", "Email (not published)")} full>
                 <input name="submitter_email" type="email" className="field" />
               </Field>
+              <KvkkConsent locale={locale} className="sm:col-span-2" />
               <div className="sm:col-span-2">
                 <button
                   type="submit"

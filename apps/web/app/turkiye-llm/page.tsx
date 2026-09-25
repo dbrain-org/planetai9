@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Building2, MapPin, UserRound } from "lucide-react";
+import { TurkiyeLlmBanners } from "@/components/OppyAd";
 import { Cover } from "@/components/Cover";
 import { Meta } from "@/components/Meta";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -176,6 +177,8 @@ export default async function TurkiyeLlmPage() {
           </p>
         )}
       </header>
+
+      <TurkiyeLlmBanners locale={locale} />
 
       {/* News top */}
       <section>
