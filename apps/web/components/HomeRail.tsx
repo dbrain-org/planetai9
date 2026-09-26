@@ -1,8 +1,21 @@
 import Link from "next/link";
 import { Eye, Flame, MessageCircle, Play } from "lucide-react";
+import { Cover } from "@/components/Cover";
 import { relativeTime } from "@/lib/format";
 import type { DictT, Locale } from "@/lib/i18n";
 import type { EventCard, TopicTrend, VideoCard } from "@/lib/types";
+
+function RailThumb({ src, category }: { src: string | null; category: string }) {
+  return (
+    <Cover
+      src={src}
+      category={category}
+      rounded="rounded-md"
+      className="mt-0.5 h-11 w-14 shrink-0"
+      minWidth={80}
+    />
+  );
+}
 
 function formatCount(n: number, locale: Locale): string {
   return new Intl.NumberFormat(locale === "tr" ? "tr-TR" : "en-US").format(n);
@@ -53,10 +66,11 @@ export function RankedNewsList({
             metric === "views" ? (e.view_count ?? 0) : (e.comment_count ?? 0);
           return (
             <li key={e.slug}>
-              <Link href={`/news/${e.slug}`} className="group flex gap-2.5 py-2 first:pt-0 last:pb-0">
-                <span className="w-4 shrink-0 text-[12px] font-extrabold tabular-nums text-muted">
+              <Link href={`/news/${e.slug}`} className="group flex gap-2.5 py-2.5 first:pt-0 last:pb-0">
+                <span className="w-4 shrink-0 pt-2 text-[12px] font-extrabold tabular-nums text-muted">
                   {String(i + 1).padStart(2, "0")}
                 </span>
+                <RailThumb src={e.image_url} category={e.category} />
                 <span className="min-w-0">
                   <span className="line-clamp-2 text-[12.5px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
                     {e.title}
@@ -95,7 +109,8 @@ export function TrendsCard({ trends, t }: { trends: TopicTrend[]; t: DictT }) {
           return (
             <li key={tr.topic.slug}>
               <Link href={`/trends/${tr.topic.slug}`} className="group flex gap-2.5">
-                <span className="w-4 shrink-0 text-[13px] font-extrabold text-muted">{i + 1}</span>
+                <span className="w-4 shrink-0 pt-2 text-[13px] font-extrabold text-muted">{i + 1}</span>
+                <RailThumb src={lead?.image_url ?? null} category={lead?.category ?? "genel"} />
                 <span className="min-w-0">
                   <span className="block text-[13px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
                     {tr.topic.name}

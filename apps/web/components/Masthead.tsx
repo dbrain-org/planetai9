@@ -11,6 +11,7 @@ export async function Masthead() {
   const locale = await getLocale();
   const t = await getDict();
 
+  const submit: NavItem = { label: t.nav.submitNews, href: "/haber-giris" };
   const nav: NavItem[] = [
     { label: t.nav.news, href: "/" },
     { label: t.nav.world, href: "/news?region=world" },
@@ -21,13 +22,12 @@ export async function Masthead() {
     { label: t.nav.marketplace, href: "/marketplace" },
     { label: t.nav.university, href: "/universite" },
     { label: t.nav.video, href: "/videos" },
-    { label: t.nav.submitNews, href: "/haber-giris" },
   ];
 
   return (
     <header className="sticky top-0 z-50 border-b border-line/80 bg-paper/85 backdrop-blur-xl dark:border-d-line/80 dark:bg-d-paper/85">
-      <div className="mx-auto flex h-[72px] max-w-content items-center gap-5 px-5 sm:px-8">
-        <Link href="/" className="group flex shrink-0 items-center gap-2.5">
+      <div className="mx-auto flex h-[72px] max-w-content items-center gap-5 px-4 sm:gap-6 sm:px-5 xl:px-8">
+        <Link href="/" className="group relative z-10 flex shrink-0 items-center gap-2.5">
           <LogoMark className="h-8 w-8 transition-transform duration-300 group-hover:scale-[1.04]" />
           <span className="leading-none">
             <span className="block text-[17px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
@@ -39,9 +39,9 @@ export async function Masthead() {
           </span>
         </Link>
 
-        <nav className="no-scrollbar mx-auto hidden min-w-0 items-center gap-0.5 overflow-x-auto lg:flex">
+        <nav className="hidden shrink-0 items-center lg:flex">
           <Suspense fallback={null}>
-            <NavLinks items={nav} />
+            <NavLinks items={[...nav, submit]} />
           </Suspense>
         </nav>
 
@@ -52,9 +52,9 @@ export async function Masthead() {
         </div>
       </div>
 
-      <nav className="no-scrollbar flex gap-0.5 overflow-x-auto border-t border-line/80 px-4 py-2 lg:hidden dark:border-d-line/80">
+      <nav className="flex flex-wrap gap-x-0.5 gap-y-1 border-t border-line/80 px-3 py-2 lg:hidden dark:border-d-line/80">
         <Suspense fallback={null}>
-          <NavLinks items={nav} mobile />
+          <NavLinks items={[...nav, submit]} mobile />
         </Suspense>
       </nav>
     </header>

@@ -28,7 +28,7 @@ function isActive(pathname: string, search: string, href: string): boolean {
 }
 
 const linkBase =
-  "group relative whitespace-nowrap px-2.5 py-1.5 text-[12.5px] font-semibold tracking-tight2 transition-colors";
+  "group relative whitespace-nowrap px-1 py-1.5 text-[11px] font-semibold tracking-tight2 transition-colors xl:px-2 xl:text-[12.5px]";
 
 export function NavLinks({ items, mobile = false }: { items: NavItem[]; mobile?: boolean }) {
   const pathname = usePathname() || "/";
@@ -41,7 +41,7 @@ export function NavLinks({ items, mobile = false }: { items: NavItem[]; mobile?:
         const active = !it.external && isActive(pathname, search, it.href);
         const className = [
           linkBase,
-          mobile ? "rounded-lg px-3 py-1.5" : "",
+          mobile ? "rounded-lg px-2.5 py-1.5 text-[12.5px]" : "",
           active
             ? "text-ink dark:text-d-ink"
             : "text-ink/70 hover:text-ink dark:text-d-ink/70 dark:hover:text-d-ink",
@@ -54,7 +54,7 @@ export function NavLinks({ items, mobile = false }: { items: NavItem[]; mobile?:
           <span
             aria-hidden
             className={[
-              "pointer-events-none absolute inset-x-2.5 -bottom-0.5 h-[2px] rounded-full bg-ink transition-transform duration-300 origin-left dark:bg-d-ink",
+              "pointer-events-none absolute inset-x-1 -bottom-0.5 h-[2px] rounded-full bg-ink transition-transform duration-300 origin-left dark:bg-d-ink xl:inset-x-2",
               active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100",
             ].join(" ")}
           />

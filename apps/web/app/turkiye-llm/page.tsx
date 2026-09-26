@@ -178,8 +178,6 @@ export default async function TurkiyeLlmPage() {
         )}
       </header>
 
-      <TurkiyeLlmBanners locale={locale} />
-
       {/* News top */}
       <section>
         <SectionHeader
@@ -436,6 +434,8 @@ export default async function TurkiyeLlmPage() {
           ))}
         </dl>
       </section>
+
+      <TurkiyeLlmBanners locale={locale} />
     </div>
   );
 }

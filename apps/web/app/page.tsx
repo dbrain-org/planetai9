@@ -128,8 +128,6 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-8">
-      <OppyBanner locale={locale} />
-
       {lead && (
         <HeroBlock
           lead={lead}
@@ -139,12 +137,12 @@ export default async function HomePage() {
         />
       )}
 
-      {showMain && (featured.length > 0 || showRail) && (
+      {showMain && (
         <section
           className={
             showRail
-              ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start lg:gap-7"
-              : undefined
+              ? "grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start lg:gap-x-7 lg:gap-y-8"
+              : "space-y-8"
           }
         >
           {featured.length > 0 && (
@@ -163,7 +161,9 @@ export default async function HomePage() {
           )}
 
           {showRail && (
-            <aside className={`space-y-4 ${featured.length > 0 ? "lg:pt-11" : ""}`}>
+            <aside
+              className={`space-y-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 ${featured.length > 0 ? "lg:pt-11" : ""}`}
+            >
               <p className="hidden text-[11px] font-bold uppercase tracking-[0.12em] text-muted lg:block">
                 {locale === "tr" ? "Gündemdekiler" : "Trending now"}
               </p>
@@ -188,19 +188,23 @@ export default async function HomePage() {
               />
             </aside>
           )}
+
+          {moreVideos.length > 0 && (
+            <section className={showRail ? "lg:col-start-1" : undefined}>
+              <SectionHead title={t.section.video} href="/videos" seeAll={seeAll} />
+              <div
+                className={`grid gap-x-5 gap-y-6 sm:grid-cols-2 ${showRail ? "xl:grid-cols-3" : "lg:grid-cols-4"}`}
+              >
+                {moreVideos.map((v) => (
+                  <VideoCard key={v.youtube_id} video={v} locale={locale} />
+                ))}
+              </div>
+            </section>
+          )}
         </section>
       )}
 
-      {moreVideos.length > 0 && (
-        <section>
-          <SectionHead title={t.section.video} href="/videos" seeAll={seeAll} />
-          <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
-            {moreVideos.map((v) => (
-              <VideoCard key={v.youtube_id} video={v} locale={locale} />
-            ))}
-          </div>
-        </section>
-      )}
+      <OppyBanner locale={locale} />
     </div>
   );
 }

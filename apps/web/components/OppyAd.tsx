@@ -199,7 +199,7 @@ const SLIDES: Record<Locale, Slide[]> = {
   ],
 };
 
-/** Üst manşet. Kayan Oppy ilanı, Oppy sayfasına gider. */
+/** Sayfa sonu. Kayan Oppy ilanı, Oppy sayfasına gider. */
 export function OppyBanner({ locale }: { locale: Locale }) {
   const slides = SLIDES[locale];
   const tr = locale === "tr";
