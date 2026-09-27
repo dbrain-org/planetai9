@@ -71,7 +71,7 @@ def list_events(
     cache_key = None
     if cursor is None:
         cache_key = (
-            "events:v1:"
+            "events:v2:"
             f"{lang or 'tr'}:{category or ''}:{bucket or ''}:{topic or ''}:"
             f"{region or ''}:{window or ''}:{entity or ''}:{source or ''}:"
             f"{origin or ''}:{importance_min}:{impact or ''}:{sort}:{limit}"
@@ -80,7 +80,11 @@ def list_events(
         if cached:
             return schemas.Page.model_validate(cached)
 
-    stmt = select(models.Event).where(models.Event.status == "active")
+    stmt = select(models.Event).where(
+        models.Event.status == "active",
+        models.Event.image_url.isnot(None),
+        models.Event.image_url != "",
+    )
 
     if bucket and bucket in CATEGORY_BUCKET:
         stmt = stmt.where(models.Event.category.in_(CATEGORY_BUCKET[bucket]))

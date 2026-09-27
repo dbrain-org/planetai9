@@ -29,6 +29,7 @@ class LinkOut(BaseModel):
     kind: str
     note_tr: str | None
     note_en: str | None
+    image_url: str | None = None
     sort_order: int
     enabled: bool
 
@@ -52,6 +53,7 @@ def _out(r: models.CuratedLink) -> LinkOut:
         kind=r.kind,
         note_tr=r.note_tr,
         note_en=r.note_en,
+        image_url=r.image_url,
         sort_order=r.sort_order,
         enabled=r.enabled,
     )

@@ -1,5 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
+import { Cover } from "@/components/Cover";
+import { courseCover } from "@/lib/courseCover";
 
 /** Split "Provider · Title" / "Provider - Title" into meta + headline when present. */
 export function splitResourceTitle(name: string): { meta?: string; title: string } {
@@ -17,6 +19,7 @@ export function ResourceLinkCard({
   badge,
   meta,
   footer,
+  image,
 }: {
   href: string;
   name: string;
@@ -26,18 +29,25 @@ export function ResourceLinkCard({
   /** Extra meta under the title row (e.g. producer link text). */
   meta?: ReactNode;
   footer?: ReactNode;
+  image?: string | null;
 }) {
   const split = splitResourceTitle(name);
   const eyebrow = badge ?? split.meta;
   const title = badge ? name : split.title;
+  const cover = image ?? courseCover(href);
 
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative flex h-full flex-col overflow-hidden rounded-card border border-line/90 bg-gradient-to-b from-paper to-[#F6F8FB] p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-accent/35 hover:shadow-raise dark:border-d-line dark:from-d-paper dark:to-[#12161c]"
+      className="group relative flex h-full flex-col overflow-hidden rounded-card border border-line/90 bg-gradient-to-b from-paper to-[#F6F8FB] shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-accent/35 hover:shadow-raise dark:border-d-line dark:from-d-paper dark:to-[#12161c]"
+      data-catalog-item=""
     >
+      {cover ? (
+        <Cover src={cover} category="genel" className="aspect-[16/10]" rounded="rounded-none" />
+      ) : null}
+      <div className="flex flex-1 flex-col p-5">
       <span
         aria-hidden
         className="pointer-events-none absolute inset-y-0 left-0 w-[3px] origin-top scale-y-0 bg-accent transition-transform duration-300 group-hover:scale-y-100"
@@ -66,6 +76,7 @@ export function ResourceLinkCard({
         <span className="flex-1" />
       )}
       {footer && <div className="mt-3 pt-3 text-[12px] text-muted">{footer}</div>}
+      </div>
     </a>
   );
 }

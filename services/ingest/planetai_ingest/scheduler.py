@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
@@ -40,7 +41,13 @@ def run_scheduler() -> None:
     sched.add_job(_trends_job, "interval", minutes=30, id="trends")
     sched.add_job(_top_signals_job, "interval", minutes=15, id="top-signals")
     sched.add_job(seed_run, "interval", hours=24, id="seed-sync")
-    sched.add_job(harvest_catalogs, "interval", hours=6, id="catalogs")
+    sched.add_job(
+        harvest_catalogs,
+        "interval",
+        hours=6,
+        id="catalogs",
+        next_run_time=datetime.now(UTC),
+    )
 
     log.info("scheduler started")
     try:

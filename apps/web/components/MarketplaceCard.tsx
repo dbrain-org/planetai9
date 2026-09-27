@@ -42,6 +42,7 @@ export function MarketplaceCard({ app, locale }: { app: MarketplaceApp; locale: 
       target="_blank"
       rel="noopener noreferrer"
       className="card card-hover group flex flex-col p-5"
+      data-catalog-item=""
     >
       <div className="flex items-start gap-3.5">
         <span

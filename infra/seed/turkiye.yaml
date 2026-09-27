@@ -708,7 +708,8 @@ education:
   note_en: Technical depth. Models, NLP, DL, or LLM practice.
 - name: Stanford CS224N YouTube playlist
   kind: derin
-  url: https://www.youtube.com/playlist?list=PLoROMvodv4rMiGQp3WXShtMGgzqpfVfbU
+  url: https://www.youtube.com/playlist?list=PLoROMvodv4rOaMFbaqxPDoLWjDaRAdP9D
+  image_url: https://i.ytimg.com/vi/DzpHeXVSC5I/hqdefault.jpg
   note_tr: Stanford CS224N YouTube playlist. Üniversite ders kaydı / materyal.
   note_en: Stanford CS224N YouTube playlist. University lecture / materials.
 - name: Stanford CS231n YouTube playlist
@@ -723,17 +724,21 @@ education:
   note_en: MIT 6.S191. Intro to Deep Learning. University lecture / materials.
 - name: 3Blue1Brown · Neural Networks
   kind: herkes
-  url: https://www.youtube.com/playlist?list=PLfFghEzofWRI78X298J-sa5XkJ0mpi6WU
+  url: https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi
+  image_url: https://i.ytimg.com/vi/aircAruvnKk/hqdefault.jpg
   note_tr: Herkese açık giriş / temel öğrenme kaynağı.
   note_en: Open beginner / foundational learning resource.
 - name: 3Blue1Brown · Linear Algebra
   kind: herkes
-  url: https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi
+  url: https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab
+  image_url: https://i.ytimg.com/vi/fNk_zzaMoSs/hqdefault.jpg
   note_tr: Herkese açık giriş / temel öğrenme kaynağı.
   note_en: Open beginner / foundational learning resource.
-- name: 3Blue1Brown · Probability
+- name: 3Blue1Brown · Calculus
+  was: 3Blue1Brown · Probability
   kind: herkes
   url: https://www.youtube.com/playlist?list=PLZHQObOWTQDMsr9K-rj53DwVRMYO3t5Yr
+  image_url: https://i.ytimg.com/vi/WUvTyaaNkzM/hqdefault.jpg
   note_tr: Herkese açık giriş / temel öğrenme kaynağı.
   note_en: Open beginner / foundational learning resource.
 - name: ISLP · Introduction to Statistical Learning
@@ -868,14 +873,15 @@ education:
   note_en: Healthcare. WHO guidance on ethics and governance of AI for health.
 - name: YouTube · AI in Healthcare (overview)
   kind: meslek
-  url: https://www.youtube.com/watch?v=8j0UDiN7go4
-  note_tr: Sağlık. Sağlıkta yapay zekâya genel bakış videosu.
-  note_en: Healthcare. Overview video on AI in healthcare.
+  url: https://www.youtube.com/watch?v=wD1qn2i3Wb4
+  note_tr: Sağlık. Stanford Health Care; sağlıkta yapay zekâya genel bakış videosu.
+  note_en: Healthcare. Stanford Health Care overview video on AI in healthcare.
 - name: YouTube · AI for Medicine playlist
   kind: meslek
-  url: https://www.youtube.com/playlist?list=PLtmWHNX-gukUMW2NRs_mcb0X8lGJXVv4I
-  note_tr: Sağlık. Tıpta AI ders / konuşma oynatma listesi.
-  note_en: Healthcare. AI-for-medicine lecture playlist.
+  url: https://www.youtube.com/playlist?list=PLUl4u3cNGP60B0PQXVQyGNdCyCTDU1Q5j
+  image_url: https://i.ytimg.com/vi/vof7x8r_ZUA/hqdefault.jpg
+  note_tr: Sağlık. MIT 6.S897 Machine Learning for Healthcare ders kayıtları.
+  note_en: Healthcare. MIT 6.S897 Machine Learning for Healthcare lectures.
 - name: TBB TV. Yapay Zekâ ve Hukuk
   kind: meslek
   url: https://www.youtube.com/watch?v=M38w0R9KvFQ
@@ -888,9 +894,9 @@ education:
   note_en: Legal. Course on the intersection of AI and law.
 - name: YouTube · AI and Law talk
   kind: meslek
-  url: https://www.youtube.com/watch?v=L2j_6o1p3sA
-  note_tr: Hukuk. Yapay zekâ ve hukuk üzerine konuşma.
-  note_en: Legal. Talk on AI and law.
+  url: https://www.youtube.com/watch?v=BG6YR0xGMRA
+  note_tr: Hukuk. Stanford Law School; yapay zekâ ve hukuk üzerine konuşma.
+  note_en: Legal. Stanford Law School talk on AI and law.
 - name: Webinar · Finansta Yapay Zekâ (IDP / bankacılık)
   kind: meslek
   url: https://www.youtube.com/watch?v=kQcb6PBtZW0

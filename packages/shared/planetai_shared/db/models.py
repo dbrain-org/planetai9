@@ -320,6 +320,7 @@ class CuratedLink(Base, TimestampMixin):
     )  # kurumsal|corpus|sft|… / herkes|derin|meslek / şirket|lab …
     note_tr: Mapped[str | None] = mapped_column(Text)
     note_en: Mapped[str | None] = mapped_column(Text)
+    image_url: Mapped[str | None] = mapped_column(Text)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
 
