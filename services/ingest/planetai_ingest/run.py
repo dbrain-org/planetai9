@@ -50,6 +50,7 @@ def main(argv: list[str] | None = None) -> int:
         "backfill-people",
         help="link seeded people + companies/orgs onto existing events (title/summary/body)",
     )
+    sub.add_parser("catalog", help="collect Turkish open data, courses, and projects")
     sub.add_parser("scheduler", help="run the long-lived scheduler")
 
     args = parser.parse_args(argv)
@@ -115,6 +116,13 @@ def main(argv: list[str] | None = None) -> int:
         with session_scope() as db:
             n = backfill_people_on_events(db)
         print(f"entity links: {n}")
+        _bust_api_cache()
+        return 0
+
+    if args.cmd == "catalog":
+        from planetai_ingest.catalog import harvest_catalogs
+
+        print(harvest_catalogs())
         _bust_api_cache()
         return 0
 

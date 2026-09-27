@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye, Flame, MessageCircle, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import { Cover } from "@/components/Cover";
 import { relativeTime } from "@/lib/format";
 import type { DictT, Locale } from "@/lib/i18n";
@@ -43,40 +43,35 @@ export function RankedNewsList({
   if (rows.length === 0) return null;
 
   return (
-    <div className="card p-4">
-      <div className="mb-2.5 flex items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-[14px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
-          {metric === "views" ? (
-            <Eye className="h-3.5 w-3.5 text-accent" strokeWidth={2.2} />
-          ) : (
-            <MessageCircle className="h-3.5 w-3.5 text-accent" strokeWidth={2.2} />
-          )}
+    <div className="card px-4 pb-1 pt-3.5">
+      <div className="mb-1 flex items-baseline justify-between gap-3 border-b border-line pb-2.5 dark:border-d-line">
+        <h3 className="text-[12px] font-extrabold uppercase tracking-[0.14em] text-ink dark:text-d-ink">
           {title}
         </h3>
         <Link
           href={href}
-          className="shrink-0 text-[11px] font-semibold text-accent hover:text-accent-ink"
+          className="shrink-0 text-[11px] font-semibold text-muted transition-colors hover:text-ink dark:hover:text-d-ink"
         >
           {seeAll}
         </Link>
       </div>
-      <ol className="divide-y divide-line dark:divide-d-line">
+      <ol>
         {rows.map((e, i) => {
           const count =
             metric === "views" ? (e.view_count ?? 0) : (e.comment_count ?? 0);
           return (
-            <li key={e.slug}>
-              <Link href={`/news/${e.slug}`} className="group flex gap-2.5 py-2.5 first:pt-0 last:pb-0">
-                <span className="w-4 shrink-0 pt-2 text-[12px] font-extrabold tabular-nums text-muted">
+            <li key={e.slug} className="border-b border-line last:border-0 dark:border-d-line">
+              <Link href={`/news/${e.slug}`} className="group flex items-start gap-2.5 py-3">
+                <span className="w-5 shrink-0 pt-1 text-[11px] font-semibold tabular-nums tracking-wide text-muted">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <RailThumb src={e.image_url} category={e.category} />
-                <span className="min-w-0">
-                  <span className="line-clamp-2 text-[12.5px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
+                <span className="min-w-0 pt-px">
+                  <span className="line-clamp-3 text-[13px] font-semibold leading-[1.35] tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
                     {e.title}
                   </span>
                   {count > 0 && (
-                    <span className="mt-0.5 block text-[10.5px] tabular-nums text-muted">
+                    <span className="mt-1 block text-[11px] tabular-nums tracking-tight text-muted">
                       {metric === "views"
                         ? locale === "tr"
                           ? `${formatCount(count, locale)} okuma`
@@ -98,25 +93,26 @@ export function RankedNewsList({
 
 export function TrendsCard({ trends, t }: { trends: TopicTrend[]; t: DictT }) {
   return (
-    <div className="card p-4">
-      <h3 className="mb-3 flex items-center gap-2 text-[14px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
-        <Flame className="h-3.5 w-3.5 text-live" strokeWidth={2.2} />
+    <div className="card px-4 pb-2 pt-3.5">
+      <h3 className="border-b border-line pb-2.5 text-[12px] font-extrabold uppercase tracking-[0.14em] text-ink dark:border-d-line dark:text-d-ink">
         {t.section.trends}
       </h3>
-      <ol className="space-y-2.5">
+      <ol>
         {trends.slice(0, 5).map((tr, i) => {
           const lead = tr.sample_events[0];
           return (
-            <li key={tr.topic.slug}>
-              <Link href={`/trends/${tr.topic.slug}`} className="group flex gap-2.5">
-                <span className="w-4 shrink-0 pt-2 text-[13px] font-extrabold text-muted">{i + 1}</span>
+            <li key={tr.topic.slug} className="border-b border-line last:border-0 dark:border-d-line">
+              <Link href={`/trends/${tr.topic.slug}`} className="group flex items-start gap-2.5 py-2.5">
+                <span className="w-5 shrink-0 pt-1.5 text-[11px] font-semibold tabular-nums text-muted">
+                  {i + 1}
+                </span>
                 <RailThumb src={lead?.image_url ?? null} category={lead?.category ?? "genel"} />
-                <span className="min-w-0">
-                  <span className="block text-[13px] font-bold leading-snug tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
+                <span className="min-w-0 pt-px">
+                  <span className="block text-[13px] font-semibold leading-[1.35] tracking-tight2 text-ink transition-colors group-hover:text-accent dark:text-d-ink">
                     {tr.topic.name}
                   </span>
                   {lead?.primary_entity && (
-                    <span className="block text-[11.5px] text-ink-2 dark:text-d-ink-2">
+                    <span className="mt-0.5 block text-[12px] leading-snug text-muted">
                       {lead.primary_entity.name}
                     </span>
                   )}

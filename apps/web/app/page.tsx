@@ -117,7 +117,7 @@ export default async function HomePage() {
       (s) => s.video.youtube_id,
     ),
   );
-  const moreVideos = home.videos.filter((v) => !sideVideoIds.has(v.youtube_id)).slice(0, 4);
+  const moreVideos = home.videos.filter((v) => !sideVideoIds.has(v.youtube_id)).slice(0, 3);
 
   const showRail =
     home.trending.length > 0 ||
@@ -175,7 +175,7 @@ export default async function HomePage() {
                 locale={locale}
                 metric="views"
                 seeAll={seeAll}
-                limit={4}
+                limit={5}
               />
               <RankedNewsList
                 title={locale === "tr" ? "En çok yorumlanan" : "Most discussed"}
@@ -184,7 +184,7 @@ export default async function HomePage() {
                 locale={locale}
                 metric="comments"
                 seeAll={seeAll}
-                limit={4}
+                limit={5}
               />
             </aside>
           )}

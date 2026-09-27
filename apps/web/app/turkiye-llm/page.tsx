@@ -84,7 +84,7 @@ function NewsLead({ event, locale, readMore }: { event: EventCard; locale: "tr" 
           className="aspect-[16/10]"
           rounded="rounded-card"
           zoom
-          minWidth={480}
+          minWidth={96}
         />
         <Meta
           summary={event.summary}
@@ -120,7 +120,7 @@ function NewsTile({ event, locale }: { event: EventCard; locale: "tr" | "en" }) 
             className="h-[88px] w-[118px] shrink-0 sm:h-[96px] sm:w-[128px]"
             rounded="rounded-xl"
             zoom
-            minWidth={160}
+            minWidth={96}
           />
         ) : (
           <span

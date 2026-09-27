@@ -29,9 +29,11 @@ def extract_og_image(html: str, base_url: str = "") -> str | None:
         node = tree.css_first(sel)
         if node and node.attributes.get(attr):
             return urljoin(base_url, node.attributes[attr].strip())
-    article = tree.css_first("article img, main img, figure img")
+    article = tree.css_first("article img, main img, figure img, img")
     if article and article.attributes.get("src"):
-        return urljoin(base_url, article.attributes["src"].strip())
+        src = article.attributes["src"].strip()
+        if src and not src.startswith("data:"):
+            return urljoin(base_url, src)
     return None
 
 

@@ -6,6 +6,7 @@ import logging
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
+from planetai_ingest.catalog import harvest_catalogs
 from planetai_ingest.pipeline.ingest import run_all
 from planetai_ingest.pipeline.trends import compute_snapshots, refresh_top_signals
 from planetai_ingest.seed import run as seed_run
@@ -39,6 +40,7 @@ def run_scheduler() -> None:
     sched.add_job(_trends_job, "interval", minutes=30, id="trends")
     sched.add_job(_top_signals_job, "interval", minutes=15, id="top-signals")
     sched.add_job(seed_run, "interval", hours=24, id="seed-sync")
+    sched.add_job(harvest_catalogs, "interval", hours=6, id="catalogs")
 
     log.info("scheduler started")
     try:
