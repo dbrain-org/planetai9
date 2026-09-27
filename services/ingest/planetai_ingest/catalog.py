@@ -55,7 +55,9 @@ def _kind_for_dataset(row: dict) -> str:
 
 def _edu_kind(text: str) -> str:
     blob = text.lower()
-    if any(word in blob for word in ("101", "giriş", "giris", "intro", "beginner", "temel", "herkes")):
+    if any(
+        word in blob for word in ("101", "giriş", "giris", "intro", "beginner", "temel", "herkes")
+    ):
         return "herkes"
     if any(word in blob for word in ("meslek", "kariyer", "bootcamp", "career", "iş", "is hayati")):
         return "meslek"
@@ -146,7 +148,9 @@ def _harvest_datasets(client: httpx.Client, db: Session) -> int:
             seen.add(dataset_id)
             downloads = int(row.get("downloads") or 0)
             description = (row.get("description") or "").strip().split("\n", 1)[0][:180]
-            note_tr = description or f"Türkçe açık veri seti. {downloads:,} indirme.".replace(",", ".")
+            note_tr = description or f"Türkçe açık veri seti. {downloads:,} indirme.".replace(
+                ",", "."
+            )
             note_en = description or f"Turkish open dataset. {downloads:,} downloads."
             order = _add_link(
                 db,

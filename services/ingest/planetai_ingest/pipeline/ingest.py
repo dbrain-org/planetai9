@@ -98,17 +98,21 @@ def _reddit_image(url: str) -> str | None:
 
 def fill_missing_covers(db: Session, source_id: uuid.UUID, limit: int = 5) -> int:
     """Give recent stories from this source a cover if they were stored without one."""
-    events = db.scalars(
-        select(models.Event)
-        .join(models.Article, models.Article.event_id == models.Event.id)
-        .where(
-            models.Article.source_id == source_id,
-            models.Event.status == "active",
-            models.Event.image_url.is_(None),
+    events = (
+        db.scalars(
+            select(models.Event)
+            .join(models.Article, models.Article.event_id == models.Event.id)
+            .where(
+                models.Article.source_id == source_id,
+                models.Event.status == "active",
+                models.Event.image_url.is_(None),
+            )
+            .order_by(models.Event.last_activity_at.desc())
+            .limit(limit)
         )
-        .order_by(models.Event.last_activity_at.desc())
-        .limit(limit)
-    ).unique().all()
+        .unique()
+        .all()
+    )
     filled = 0
     for event in events:
         article = db.scalar(
