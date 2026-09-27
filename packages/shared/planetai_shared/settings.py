@@ -40,7 +40,7 @@ class Settings(BaseSettings):
 
     # api
     cors_origins: list[str] = ["http://localhost:3010"]
-    cache_ttl_home_sec: int = 60
+    cache_ttl_home_sec: int = 6 * 3600
     cache_ttl_list_sec: int = 90
     rate_limit_default: str = "120/minute"
     rate_limit_submit: str = "8/hour"

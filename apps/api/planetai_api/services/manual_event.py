@@ -262,6 +262,9 @@ def create_event_from_submission(db: Session, submission: models.NewsSubmission)
 
     db.commit()
     db.refresh(event)
+    from planetai_api import cache
+
+    cache.invalidate("home:", "events:")
     return event
 
 

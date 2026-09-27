@@ -11,7 +11,7 @@ import feedparser
 from planetai_shared.settings import get_settings
 
 from planetai_ingest.collectors.base import BaseCollector, FetchResult, RawItem, http_client
-from planetai_ingest.text import clean_url, normalize_ws, strip_html
+from planetai_ingest.text import clean_url, extract_og_image, normalize_ws, strip_html
 
 log = logging.getLogger(__name__)
 
@@ -82,7 +82,11 @@ def _entry_image(entry) -> str | None:
             if href:
                 candidates.append((_media_width(link), href))
     if not candidates:
-        return None
+        html = entry.get("summary") or entry.get("description") or ""
+        if entry.get("content"):
+            html = f"{html}\n{entry['content'][0].get('value') or ''}"
+        found = extract_og_image(html)
+        return _upgrade_image_url(found) if found else None
     candidates.sort(key=lambda c: c[0], reverse=True)
     return _upgrade_image_url(candidates[0][1])
 

@@ -8,7 +8,7 @@ from planetai_shared.db import models
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from planetai_api import schemas, serializers
+from planetai_api import cache, schemas, serializers
 from planetai_api.db import get_db, get_lang
 from planetai_api.regions import tr_event_ids_subquery
 
@@ -68,6 +68,18 @@ def list_events(
     limit: int = Query(20, ge=1, le=50),
     lang: str | None = Depends(get_lang),
 ) -> schemas.Page:
+    cache_key = None
+    if cursor is None:
+        cache_key = (
+            "events:v1:"
+            f"{lang or 'tr'}:{category or ''}:{bucket or ''}:{topic or ''}:"
+            f"{region or ''}:{window or ''}:{entity or ''}:{source or ''}:"
+            f"{origin or ''}:{importance_min}:{impact or ''}:{sort}:{limit}"
+        )
+        cached = cache.get(cache_key)
+        if cached:
+            return schemas.Page.model_validate(cached)
+
     stmt = select(models.Event).where(models.Event.status == "active")
 
     if bucket and bucket in CATEGORY_BUCKET:
@@ -157,11 +169,14 @@ def list_events(
         if has_more and sort == "recent"
         else None
     )
-    return schemas.Page(
+    page = schemas.Page(
         data=[serializers.event_card(db, e, lang) for e in rows],
         next_cursor=next_cursor,
         count=len(rows),
     )
+    if cache_key is not None:
+        cache.set(cache_key, page.model_dump(mode="json"), 6 * 3600)
+    return page
 
 
 @router.get("/events/{slug}", response_model=schemas.EventDetail)

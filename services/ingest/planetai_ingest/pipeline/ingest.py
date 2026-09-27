@@ -54,6 +54,79 @@ _AI_TERMS = re.compile(
 # does not by itself make a story "about AI".
 _AMBIGUOUS_ENTITIES = {"amazon", "microsoft", "google", "meta", "apple"}
 _BODY_MIN = 1400  # below this we fetch the article page for fuller text
+_REDDIT_POST = re.compile(r"reddit\.com(/r/[^/]+/comments/[^/?#]+)", re.IGNORECASE)
+
+
+def _drop_news_cache() -> None:
+    """Drop list caches so the next read rebuilds them. Holds until the next new story."""
+    try:
+        import redis
+
+        client = redis.from_url(_settings.redis_url, decode_responses=True)
+        for prefix in ("home:", "events:"):
+            for key in client.scan_iter(match=f"{prefix}*"):
+                client.delete(key)
+    except Exception:  # noqa: BLE001
+        log.debug("news cache flush skipped", exc_info=True)
+
+
+def _reddit_image(url: str) -> str | None:
+    match = _REDDIT_POST.search(url)
+    if not match:
+        return None
+    try:
+        with httpx.Client(
+            headers={"User-Agent": _settings.user_agent},
+            timeout=httpx.Timeout(8.0, connect=4.0),
+            follow_redirects=True,
+        ) as client:
+            resp = client.get(f"https://www.reddit.com{match.group(1)}.json")
+            if resp.status_code >= 400:
+                return None
+            post = resp.json()[0]["data"]["children"][0]["data"]
+    except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError):
+        return None
+    preview = ((post.get("preview") or {}).get("images") or [{}])[0]
+    source = (preview.get("source") or {}).get("url")
+    if isinstance(source, str) and source:
+        return source.replace("&amp;", "&")
+    thumb = post.get("thumbnail") or ""
+    if isinstance(thumb, str) and thumb.startswith("http"):
+        return thumb
+    return None
+
+
+def fill_missing_covers(db: Session, source_id: uuid.UUID, limit: int = 5) -> int:
+    """Give recent stories from this source a cover if they were stored without one."""
+    events = db.scalars(
+        select(models.Event)
+        .join(models.Article, models.Article.event_id == models.Event.id)
+        .where(
+            models.Article.source_id == source_id,
+            models.Event.status == "active",
+            models.Event.image_url.is_(None),
+        )
+        .order_by(models.Event.last_activity_at.desc())
+        .limit(limit)
+    ).unique().all()
+    filled = 0
+    for event in events:
+        article = db.scalar(
+            select(models.Article)
+            .where(models.Article.event_id == event.id, models.Article.canonical_url.isnot(None))
+            .limit(1)
+        )
+        if article is None or not article.canonical_url:
+            continue
+        image, _html = _fetch_page(article.canonical_url)
+        image = image or _reddit_image(article.canonical_url)
+        if not image:
+            continue
+        event.image_url = image
+        if not article.image_url:
+            article.image_url = image
+        filled += 1
+    return filled
 
 
 def collect_source(source_id: uuid.UUID) -> dict:
@@ -115,6 +188,9 @@ def collect_source(source_id: uuid.UUID) -> dict:
             stats["seen"] += 1
             if _ingest_item(db, source, item, index, topics, pages.get(item.url)):
                 stats["written"] += 1
+        filled = fill_missing_covers(db, source.id)
+        if stats["written"] or filled:
+            _drop_news_cache()
     return stats
 
 
@@ -189,7 +265,7 @@ def _ingest_item(
     # article body: prefer the feed's own syndicated content, else the fetched page
     feed_html = item.extra.get("content_html", "")
     body_text = extract_article_paragraphs(feed_html) if feed_html else ""
-    image_url = item.image_url
+    image_url = item.image_url or (extract_og_image(feed_html) if feed_html else None)
 
     if source.kind == "arxiv":
         body_text = summary_src  # abstracts are already the full text
@@ -200,6 +276,8 @@ def _ingest_item(
             page_body = extract_article_paragraphs(page_html)
             if len(page_body) > len(body_text):
                 body_text = page_body
+    if not image_url:
+        image_url = _reddit_image(url)
     body_text = body_text or None
 
     article = models.Article(

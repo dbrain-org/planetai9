@@ -2,27 +2,16 @@
 
 import { useState } from "react";
 
-/** Hosts that block hot-linking — route through /img. Everyone else loads direct. */
-function needsProxy(src: string): boolean {
-  try {
-    const host = new URL(src).hostname.toLowerCase();
-    return (
-      host === "redd.it" ||
-      host.endsWith(".redd.it") ||
-      host.endsWith("redditmedia.com") ||
-      host.endsWith("redditstatic.com") ||
-      host === "reddit.com" ||
-      host.endsWith(".reddit.com")
-    );
-  } catch {
-    return false;
-  }
-}
-
+/** Remote covers go through /img so we cache them and publishers can't block the browser. */
 function resolveSrc(src: string): string {
   if (src.startsWith("/") || src.startsWith("data:")) return src;
-  if (needsProxy(src)) return `/img?u=${encodeURIComponent(src)}`;
-  return src;
+  try {
+    const url = new URL(src);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return src;
+  } catch {
+    return src;
+  }
+  return `/img?u=${encodeURIComponent(src)}`;
 }
 
 /** <img> that removes itself on load failure / tiny sources so the gradient placeholder shows. */
