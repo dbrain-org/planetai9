@@ -125,6 +125,7 @@ export default async function UniversitePage() {
                     href={d.url}
                     name={d.name}
                     note={note(d)}
+                    siteFallback
                     image={
                       d.image_url?.includes("gstatic.com")
                         ? courseCover(d.url) || d.image_url

@@ -1,7 +1,33 @@
 import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
-import { Cover } from "@/components/Cover";
+import { CoverImg } from "@/components/CoverImg";
+import { SiteLogo } from "@/components/SiteLogo";
 import { courseCover } from "@/lib/courseCover";
+
+function siteHost(href: string): string {
+  try {
+    return new URL(href).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+/** Branded cover from the site's own logo, shown when the page has no usable image. */
+function SiteCover({ href }: { href: string }) {
+  const host = siteHost(href);
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink dark:bg-d-wash">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.16),transparent_60%)]"
+      />
+      <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-raise">
+        <SiteLogo host={host} />
+      </div>
+      <span className="relative text-[12px] font-semibold tracking-wide text-white/75">{host}</span>
+    </div>
+  );
+}
 
 /** Split "Provider · Title" / "Provider - Title" into meta + headline when present. */
 export function splitResourceTitle(name: string): { meta?: string; title: string } {
@@ -20,6 +46,7 @@ export function ResourceLinkCard({
   meta,
   footer,
   image,
+  siteFallback = false,
 }: {
   href: string;
   name: string;
@@ -30,6 +57,8 @@ export function ResourceLinkCard({
   meta?: ReactNode;
   footer?: ReactNode;
   image?: string | null;
+  /** Show the site's logo cover behind the image, so the card never looks empty. */
+  siteFallback?: boolean;
 }) {
   const split = splitResourceTitle(name);
   const eyebrow = badge ?? split.meta;
@@ -44,9 +73,12 @@ export function ResourceLinkCard({
       className="group relative flex h-full flex-col overflow-hidden rounded-card border border-line/90 bg-gradient-to-b from-paper to-[#F6F8FB] shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-accent/35 hover:shadow-raise dark:border-d-line dark:from-d-paper dark:to-[#12161c]"
       data-catalog-item=""
     >
-      {cover ? (
-        <Cover src={cover} category="genel" className="aspect-[16/10]" rounded="rounded-none" />
-      ) : null}
+      {(cover || siteFallback) && (
+        <div className="relative aspect-[16/10] overflow-hidden bg-wash dark:bg-d-wash">
+          {siteFallback && <SiteCover href={href} />}
+          {cover && <CoverImg src={cover} />}
+        </div>
+      )}
       <div className="flex flex-1 flex-col p-5">
       <span
         aria-hidden
