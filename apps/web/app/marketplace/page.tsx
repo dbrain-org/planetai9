@@ -1,3 +1,4 @@
+import { CatalogSearch } from "@/components/CatalogSearch";
 import Link from "next/link";
 import { ArrowDown } from "lucide-react";
 import { MarketplaceCard } from "@/components/MarketplaceCard";
@@ -59,6 +60,13 @@ export default async function MarketplacePage({
         </div>
       </header>
 
+      <div className="mb-6">
+        <CatalogSearch
+          placeholder={tr ? "Proje, model veya araç ara" : "Search a project, model, or tool"}
+          empty={tr ? "Bu aramaya uygun proje yok." : "No project matches that search."}
+        />
+      </div>
+
       <div className="mb-8 flex flex-wrap gap-1.5">
         {Object.entries(CATS).map(([slug, label]) => (
           <Link
@@ -75,7 +83,7 @@ export default async function MarketplacePage({
         ))}
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div id="catalog" className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {apps.map((a) => (
           <MarketplaceCard key={a.slug} app={a} locale={locale} />
         ))}

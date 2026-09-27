@@ -25,7 +25,7 @@ def home(
     region: str | None = None,
 ) -> schemas.HomePayload:
     region = region.upper() if region and region.upper() in {"TR", "WORLD"} else None
-    cache_key = f"home:v7:{lang or 'tr'}:{region or 'all'}"
+    cache_key = f"home:v8:{lang or 'tr'}:{region or 'all'}"
     cached = cache.get(cache_key)
     if cached:
         return schemas.HomePayload.model_validate(cached)
@@ -38,8 +38,14 @@ def home(
             models.Event.id.in_(tr_ids) if region == "TR" else models.Event.id.not_in(tr_ids)
         )
 
+    def cover(stmt):
+        return stmt.where(models.Event.image_url.isnot(None), models.Event.image_url != "")
+
+    def shown(stmt):
+        return cover(region_filter(stmt))
+
     top_signals = db.scalars(
-        region_filter(
+        shown(
             select(models.Event).where(
                 models.Event.is_top_signal.is_(True), models.Event.status == "active"
             )
@@ -54,7 +60,7 @@ def home(
         .where(models.Source.kind == "arxiv", models.Article.event_id.isnot(None))
     )
     latest = db.scalars(
-        region_filter(
+        shown(
             select(models.Event).where(
                 models.Event.status == "active",
                 models.Event.category != Category.RESEARCH.value,
@@ -71,7 +77,7 @@ def home(
 
     week = datetime.now(UTC) - timedelta(days=7)
     popular = db.scalars(
-        region_filter(
+        shown(
             select(models.Event).where(
                 models.Event.status == "active",
                 models.Event.category != Category.RESEARCH.value,
@@ -84,7 +90,7 @@ def home(
     ).all()
 
     most_read = db.scalars(
-        region_filter(
+        shown(
             select(models.Event).where(
                 models.Event.status == "active",
                 models.Event.category != Category.RESEARCH.value,
@@ -97,7 +103,7 @@ def home(
     ).all()
 
     most_commented = db.scalars(
-        region_filter(
+        shown(
             select(models.Event).where(
                 models.Event.status == "active",
                 models.Event.category != Category.RESEARCH.value,
@@ -119,7 +125,7 @@ def home(
 
     def section(cat: str, limit: int = 4) -> list:
         return db.scalars(
-            region_filter(
+            shown(
                 select(models.Event).where(
                     models.Event.status == "active",
                     models.Event.category == cat,
@@ -139,7 +145,7 @@ def home(
 
     since = datetime.now(UTC) - timedelta(hours=24)
     timeline_events = db.scalars(
-        region_filter(
+        shown(
             select(models.Event).where(
                 models.Event.last_activity_at >= since,
                 models.Event.status == "active",

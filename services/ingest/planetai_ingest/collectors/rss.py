@@ -41,29 +41,8 @@ def _media_width(item: dict) -> int:
 
 
 def _upgrade_image_url(url: str) -> str:
-    """Bump common CDN size params so we keep a usable cover, not a 140px thumb."""
-    from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
-
-    try:
-        parsed = urlparse(url)
-    except ValueError:
-        return url
-    host = (parsed.hostname or "").lower()
-    if not (
-        host.endswith("redd.it")
-        or host.endswith("redditmedia.com")
-        or "preview.redd.it" in host
-        or host.endswith("external-preview.redd.it")
-    ):
-        return url
-    qs = dict(parse_qsl(parsed.query, keep_blank_values=True))
-    try:
-        width = int(qs.get("width") or "0")
-    except ValueError:
-        width = 0
-    if width < 960:
-        qs["width"] = "1080"
-    return urlunparse(parsed._replace(query=urlencode(qs)))
+    """Keep the publisher's own size. The card scales it with CSS."""
+    return url
 
 
 def _entry_image(entry) -> str | None:

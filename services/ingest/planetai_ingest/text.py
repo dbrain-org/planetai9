@@ -46,6 +46,22 @@ _BOILER = re.compile(
 _DROP_SELECTORS = "figure,figcaption,aside,nav,footer,header,form,script,style,.ad,.advertisement,.newsletter,.related,.share,.social,.promo"
 
 
+def first_outbound_url(html: str) -> str | None:
+    """First link in a post that is not Reddit itself (link previews, cited articles)."""
+    if not html:
+        return None
+    tree = HTMLParser(html)
+    for node in tree.css("a"):
+        href = (node.attributes.get("href") or "").strip()
+        if not href.startswith("http"):
+            continue
+        host = (urlparse(href).hostname or "").lower()
+        if not host or "reddit.com" in host or host.endswith("redd.it"):
+            continue
+        return href
+    return None
+
+
 def extract_article_paragraphs(html: str, *, max_chars: int = 4800, max_paras: int = 14) -> str:
     """Pull the main article prose out of a page. Excerpt, not full reproduction."""
     if not html:

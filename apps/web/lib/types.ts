@@ -321,6 +321,7 @@ export interface CuratedLink {
   kind: string;
   note_tr: string | null;
   note_en: string | null;
+  image_url?: string | null;
   sort_order: number;
   enabled: boolean;
 }

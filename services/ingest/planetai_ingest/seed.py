@@ -258,9 +258,17 @@ def seed_curated_links(db: Session) -> None:
         next_order = max_order + 1
         for i, row in enumerate(rows):
             name = row["name"]
+            old_name = row.get("was")
+            if name not in existing and old_name and existing.get(old_name) is not None:
+                existing[name] = existing.pop(old_name)
+                existing[name].name = name
             if name in existing:
                 if name in managed or collection in yaml_synced:
                     link = existing[name]
+                    if link.url != row["url"]:
+                        link.image_url = None
+                    if row.get("image_url"):
+                        link.image_url = row["image_url"]
                     link.url = row["url"]
                     link.kind = row.get("kind", link.kind)
                     link.note_tr = row.get("note_tr")
@@ -273,6 +281,7 @@ def seed_curated_links(db: Session) -> None:
                     collection=collection,
                     name=name,
                     url=row["url"],
+                    image_url=row.get("image_url"),
                     kind=row.get("kind", ""),
                     note_tr=row.get("note_tr"),
                     note_en=row.get("note_en"),

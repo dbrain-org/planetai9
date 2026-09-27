@@ -1,3 +1,4 @@
+import { CatalogSearch } from "@/components/CatalogSearch";
 import { DataShareForm } from "@/components/DataShareForm";
 import { ResourceLinkCard } from "@/components/ResourceLinkCard";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -65,13 +66,19 @@ export default async function TurkiyePage() {
         </p>
       </header>
 
+      <CatalogSearch
+        placeholder={tr ? "Veri seti, kurum veya alan ara" : "Search a dataset, institution, or field"}
+        empty={tr ? "Bu aramaya uygun veri yok." : "No dataset matches that search."}
+      />
+
+      <div id="catalog" className="space-y-16">
       {DATA_CATEGORIES.map((cat) => {
         const curated = curatedBy(cat.key);
         const open = openBy(cat.key);
         const total = curated.length + open.length;
         if (total === 0) return null;
         return (
-          <section key={cat.key} id={cat.key}>
+          <section key={cat.key} id={cat.key} data-catalog-section="">
             <SectionHeader
               index={nextIndex()}
               kicker={tr ? "Sınıf" : "Class"}
@@ -114,7 +121,7 @@ export default async function TurkiyePage() {
       })}
 
       {(otherCurated.length > 0 || otherOpen.length > 0) && (
-        <section>
+        <section data-catalog-section="">
           <SectionHeader
             index={nextIndex()}
             kicker={tr ? "Sınıf" : "Class"}
@@ -148,6 +155,28 @@ export default async function TurkiyePage() {
         </section>
       )}
 
+      {trShare.length > 0 && (
+        <section data-catalog-section="">
+          <SectionHeader
+            index={nextIndex()}
+            kicker={tr ? "Topluluk" : "Community"}
+            title={tr ? "Paylaşılan veriler" : "Shared datasets"}
+          />
+          <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            {trShare.map((o) => (
+              <ResourceLinkCard
+                key={o.id}
+                href={o.url}
+                name={o.name}
+                note={note(o)}
+                badge={kindLabel(DATA_KIND_LABEL, o.kind, locale)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+      </div>
+
       <section>
         <SectionHeader
           index={nextIndex()}
@@ -159,20 +188,6 @@ export default async function TurkiyePage() {
             ? "Türkçe veri seti ve corpus paylaşımlarını sen de öner. Sınıf seçip gönder; editörlerimiz inceledikten sonra burada yayınlanır."
             : "Suggest Turkish datasets and corpora. Pick a class; they appear here after editors review."}
         </p>
-
-        {trShare.length > 0 && (
-          <div className="mb-10 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-            {trShare.map((o) => (
-              <ResourceLinkCard
-                key={o.id}
-                href={o.url}
-                name={o.name}
-                note={note(o)}
-                badge={kindLabel(DATA_KIND_LABEL, o.kind, locale)}
-              />
-            ))}
-          </div>
-        )}
 
         <DataShareForm locale={locale} />
       </section>

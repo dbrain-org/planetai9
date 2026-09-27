@@ -32,6 +32,7 @@ from planetai_ingest.text import (
     content_hash,
     extract_article_paragraphs,
     extract_og_image,
+    first_outbound_url,
     simhash64,
     strip_html,
     summarize_excerpt,
@@ -54,6 +55,7 @@ _AI_TERMS = re.compile(
 # does not by itself make a story "about AI".
 _AMBIGUOUS_ENTITIES = {"amazon", "microsoft", "google", "meta", "apple"}
 _BODY_MIN = 1400  # below this we fetch the article page for fuller text
+_REDDIT_UA = "PlanetAI9/1.0 (+https://planetai9.com)"
 _REDDIT_POST = re.compile(r"reddit\.com(/r/[^/]+/comments/[^/?#]+)", re.IGNORECASE)
 
 
@@ -76,7 +78,7 @@ def _reddit_image(url: str) -> str | None:
         return None
     try:
         with httpx.Client(
-            headers={"User-Agent": _settings.user_agent},
+            headers={"User-Agent": _REDDIT_UA},
             timeout=httpx.Timeout(8.0, connect=4.0),
             follow_redirects=True,
         ) as client:
@@ -94,6 +96,50 @@ def _reddit_image(url: str) -> str | None:
     if isinstance(thumb, str) and thumb.startswith("http"):
         return thumb
     return None
+
+
+def _tiny_preview(url: str) -> bool:
+    """Reddit thumbs around 140px blow up into a blur on the card."""
+    from urllib.parse import parse_qsl, urlparse
+
+    host = (urlparse(url).hostname or "").lower()
+    if "redd.it" not in host:
+        return False
+    try:
+        qs = dict(parse_qsl(urlparse(url).query))
+        width = int(qs.get("width") or 0)
+        height = int(str(qs.get("height") or "0").split("&")[0] or 0)
+    except ValueError:
+        return False
+    return (0 < width < 400) or (0 < height < 280)
+
+
+def _reddit_feed_html(url: str) -> str:
+    match = _REDDIT_POST.search(url)
+    if not match:
+        return ""
+    try:
+        with httpx.Client(
+            headers={"User-Agent": _REDDIT_UA},
+            timeout=httpx.Timeout(8.0, connect=4.0),
+            follow_redirects=True,
+        ) as client:
+            resp = client.get(f"https://www.reddit.com{match.group(1)}.rss")
+            if resp.status_code >= 400:
+                return ""
+            return resp.text
+    except httpx.HTTPError:
+        return ""
+
+
+def _better_than_tiny(current: str | None, html: str, page_url: str = "") -> str | None:
+    if current and not _tiny_preview(current):
+        return current
+    outbound = first_outbound_url(html) or first_outbound_url(_reddit_feed_html(page_url))
+    if not outbound:
+        return current
+    image, _html = _fetch_page(outbound)
+    return image or current
 
 
 def fill_missing_covers(db: Session, source_id: uuid.UUID, limit: int = 5) -> int:
@@ -122,8 +168,14 @@ def fill_missing_covers(db: Session, source_id: uuid.UUID, limit: int = 5) -> in
         )
         if article is None or not article.canonical_url:
             continue
-        image, _html = _fetch_page(article.canonical_url)
+        image, page_html = _fetch_page(article.canonical_url)
         image = image or _reddit_image(article.canonical_url)
+        if not image and page_html:
+            outbound = first_outbound_url(page_html)
+            if outbound:
+                image, _html = _fetch_page(outbound)
+        if image and page_html and _tiny_preview(image):
+            image = _better_than_tiny(image, page_html, article.canonical_url)
         if not image:
             continue
         event.image_url = image
@@ -270,6 +322,7 @@ def _ingest_item(
     feed_html = item.extra.get("content_html", "")
     body_text = extract_article_paragraphs(feed_html) if feed_html else ""
     image_url = item.image_url or (extract_og_image(feed_html) if feed_html else None)
+    page_html = ""
 
     if source.kind == "arxiv":
         body_text = summary_src  # abstracts are already the full text
@@ -282,6 +335,12 @@ def _ingest_item(
                 body_text = page_body
     if not image_url:
         image_url = _reddit_image(url)
+    if not image_url:
+        outbound = first_outbound_url(feed_html or page_html)
+        if outbound:
+            image_url, _html = _fetch_page(outbound)
+    if image_url and _tiny_preview(image_url):
+        image_url = _better_than_tiny(image_url, feed_html or page_html, url)
     body_text = body_text or None
 
     article = models.Article(
@@ -442,7 +501,7 @@ def _fetch_page(url: str) -> tuple[str | None, str]:
     """Fetch a page once; return (og_image, full_html). Never raises."""
     try:
         with httpx.Client(
-            headers={"User-Agent": _settings.user_agent},
+            headers={"User-Agent": _REDDIT_UA},
             timeout=httpx.Timeout(8.0, connect=4.0),
             follow_redirects=True,
         ) as client:

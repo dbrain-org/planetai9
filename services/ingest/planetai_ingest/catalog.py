@@ -7,6 +7,7 @@ are inserted. The scheduler runs this a few times a day.
 
 from __future__ import annotations
 
+import html
 import logging
 import re
 from urllib.parse import quote
@@ -98,6 +99,7 @@ def _add_link(
     urls: set[str],
     names: set[str],
     order: int,
+    image_url: str | None = None,
 ) -> int:
     url = url.rstrip("/")
     if not name or not url or url in urls:
@@ -117,6 +119,7 @@ def _add_link(
             kind=kind,
             note_tr=note_tr[:500],
             note_en=note_en[:500],
+            image_url=image_url,
             sort_order=order,
             enabled=True,
         )
@@ -167,44 +170,234 @@ def _harvest_datasets(client: httpx.Client, db: Session) -> int:
     return len(urls) - before
 
 
+_VIDEO_QUERIES: dict[str, tuple[str, ...]] = {
+    "herkes": (
+        "yapay zeka nedir",
+        "yapay zeka dersleri başlangıç",
+        "chatgpt nasıl kullanılır",
+        "üretken yapay zeka giriş",
+        "prompt mühendisliği nedir",
+        "gemini nasıl kullanılır",
+        "yapay zeka araçları günlük hayat",
+        "yapay zeka etiği",
+        "yapay zekanın tarihi nasıl gelişti",
+        "what is artificial intelligence explained",
+        "generative ai for beginners",
+        "how chatgpt works",
+    ),
+    "derin": (
+        "makine öğrenmesi dersleri",
+        "derin öğrenme ders",
+        "büyük dil modelleri nasıl çalışır",
+        "yapay sinir ağları ders",
+        "python ile makine öğrenmesi",
+        "doğal dil işleme ders",
+        "bilgisayarlı görü ders",
+        "LLM fine tuning türkçe",
+        "yapay zeka ajanları nasıl yapılır",
+        "transformer neural network explained",
+        "RAG LLM tutorial",
+        "neural networks from scratch",
+        "reinforcement learning explained",
+        "diffusion models explained",
+        "AI agents tutorial",
+        "stanford machine learning lecture",
+    ),
+    "meslek": (
+        "yapay zeka sağlıkta",
+        "yapay zeka tıp doktor",
+        "yapay zeka hukuk",
+        "yapay zeka avukatlık",
+        "yapay zeka finans",
+        "yapay zeka bankacılık",
+        "yapay zeka eğitimde öğretmen",
+        "yapay zeka iş hayatı meslekler",
+        "yapay zeka kariyer geleceğin meslekleri",
+        "AI in healthcare",
+        "AI in law",
+        "AI in finance",
+        "AI in education teachers",
+        "AI jobs future of work",
+    ),
+}
+_JOB_TOPIC = re.compile(
+    r"sağlık|saglik|tıp|tip\b|doktor|hekim|hastane|hukuk|avukat|yargı|finans|banka|ekonomi|"
+    r"eğitim|egitim|öğretmen|ogretmen|okul|meslek|iş\s|işler|kariyer|çalışan|health|medic|law|"
+    r"legal|lawyer|financ|bank|teach|educat|school|jobs?\b|work|career",
+    re.IGNORECASE,
+)
+_NOT_LESSON = re.compile(
+    r"inceleme|review|kullanıcı deneyimi|unboxing|reklam|sponsor|yok edecek|kıyamet|#shorts|"
+    r"tanıtıldı|bilgilendirme|masterclass|finansal terapi|fırsatı kaçır|"
+    r"canlandır|canlandir|\b4k\b|ultra\s*hd|peygamber|sultan|fetih|fethedil|savaş|hikaye|masal|"
+    r"şarkı|sarki|müzik|muzik|\bsong\b|music|klip|trailer|fragman|gameplay|oyun|film|dizi|"
+    r"korku|horror|asmr|prank|tiktok|reels|para kazan|make money|passive income|zengin ol|"
+    r"şaka gibi|bayılacaksın|solla|gezdik|ürkütücü|kurşun|saldırdı|useless",
+    re.IGNORECASE,
+)
+_LESSON = re.compile(
+    r"nedir|nasıl|nasil|neden|ders|eğitim|egitim|giriş|giris|öğren|ogren|anlat|rehber|temel|"
+    r"serisi|hafta|bölüm|bolum|seminer|konferans|konuşma|söyleşi|panel|kullan|çalışır|calisir|"
+    r"gelecek|geleceğ|meslek|kariyer|dönüş|etki|sağlık|hukuk|finans|öğretmen|"
+    r"\bwhat\b|\bhow\b|\bwhy\b|explain|lecture|course|tutorial|guide|beginner|basics|intro|"
+    r"learn|lesson|series|talk|\bted|future|impact|changing|transform|from scratch|crash course|"
+    r"full course|clearly|in \d+ minutes|"
+    r"başla|basla|adım|history|tarihi|sinir ağ|neural|diffusion|\brag\b|fine.?tun|"
+    r"yerini alabilir|\bvs\b|tools?\b|araçları|economist|yolculu|\bmit\b|stanford|ways to|"
+    r"every feature",
+    re.IGNORECASE,
+)
+_AI_TITLE = re.compile(
+    r"yapay\s*zek|\bai\b|\ba\.i\.|makine\s*öğren|derin\s*öğren|machine\s*learning|deep\s*learning|"
+    r"\bllm|gpt|chatgpt|gemini|claude|neural|sinir\s*ağ|transformer|prompt|üretken|generative|\brag\b",
+    re.IGNORECASE,
+)
+_MIN_SECONDS = 4 * 60
+_MIN_VIEWS = 10_000
+_PER_QUERY = 6
+
+
+def _seconds(label: str) -> int:
+    total = 0
+    for part in label.split(":"):
+        if not part.isdigit():
+            return 0
+        total = total * 60 + int(part)
+    return total
+
+
+def _views(label: str) -> int:
+    digits = re.sub(r"\D", "", label)
+    return int(digits) if digits else 0
+
+
+def _text(node: dict | None) -> str:
+    if not node:
+        return ""
+    if "simpleText" in node:
+        return node["simpleText"]
+    return "".join(run.get("text", "") for run in node.get("runs") or [])
+
+
+def _video_renderers(node):
+    if isinstance(node, dict):
+        if "videoRenderer" in node:
+            yield node["videoRenderer"]
+        for value in node.values():
+            yield from _video_renderers(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from _video_renderers(value)
+
+
+def _youtube_search(client: httpx.Client, query: str) -> list[dict]:
+    """Video results from YouTube search (no API key). Empty list if YouTube changes its page."""
+    import json
+
+    try:
+        resp = client.get(
+            "https://www.youtube.com/results",
+            params={"search_query": query, "sp": "EgIQAQ=="},
+            headers={
+                "User-Agent": "Mozilla/5.0",
+                "Accept-Language": "tr,en;q=0.8",
+                "Cookie": "CONSENT=YES+1",
+            },
+        )
+    except httpx.HTTPError:
+        return []
+    match = re.search(r"var ytInitialData = (\{.*?\});</script>", resp.text, re.DOTALL)
+    if not match:
+        return []
+    try:
+        data = json.loads(match.group(1))
+    except ValueError:
+        return []
+    videos = []
+    for video in _video_renderers(data):
+        video_id = video.get("videoId")
+        title = _text(video.get("title"))
+        if not video_id or not title:
+            continue
+        videos.append(
+            {
+                "id": video_id,
+                "title": title,
+                "channel": _text(video.get("ownerText")),
+                "seconds": _seconds(_text(video.get("lengthText"))),
+                "views": _views(_text(video.get("viewCountText"))),
+                "length": _text(video.get("lengthText")),
+            }
+        )
+    return videos
+
+
 def _harvest_education(client: httpx.Client, db: Session) -> int:
+    """Add popular AI videos (with their YouTube thumbnails) to each Üniversite track."""
     urls, names, order = _load_links(db, "education")
     before = len(urls)
-    queries = (
-        "turkish machine learning tutorial OR course",
-        "yapay zeka eğitim OR tutorial",
-        "topic:deep-learning turkish",
-    )
-    for query in queries:
-        payload = _get_json(
-            client,
-            "https://api.github.com/search/repositories?q="
-            + quote(query)
-            + "&sort=stars&per_page=20",
-        )
-        if not isinstance(payload, dict):
-            continue
-        for row in payload.get("items") or []:
-            if row.get("fork") or row.get("archived"):
-                continue
-            full = row.get("full_name") or row.get("name") or ""
-            html = row.get("html_url") or ""
-            text = f"{full} {row.get('description') or ''}"
-            desc = (row.get("description") or "Açık eğitim deposu.").strip()[:180]
-            stars = int(row.get("stargazers_count") or 0)
-            order = _add_link(
-                db,
-                "education",
-                full,
-                html,
-                _edu_kind(text),
-                f"{desc} {stars} yıldız.".strip(),
-                f"{desc} {stars} stars.".strip(),
-                urls,
-                names,
-                order,
-            )
+    for kind, queries in _VIDEO_QUERIES.items():
+        for query in queries:
+            added = 0
+            for video in _youtube_search(client, query):
+                if added >= _PER_QUERY:
+                    break
+                if video["seconds"] < _MIN_SECONDS or video["views"] < _MIN_VIEWS:
+                    continue
+                title = video["title"]
+                if not _AI_TITLE.search(title) or _NOT_LESSON.search(title):
+                    continue
+                if not _LESSON.search(title):
+                    continue
+                if kind == "meslek" and not _JOB_TOPIC.search(title):
+                    continue
+                url = f"https://www.youtube.com/watch?v={video['id']}"
+                if url in urls:
+                    continue
+                channel = video["channel"] or "YouTube"
+                order = _add_link(
+                    db,
+                    "education",
+                    f"{channel} · {video['title']}",
+                    url,
+                    kind,
+                    f"Video · {video['length']}. {channel} kanalından.",
+                    f"Video · {video['length']}. From {channel}.",
+                    urls,
+                    names,
+                    order,
+                    image_url=f"https://i.ytimg.com/vi/{video['id']}/hqdefault.jpg",
+                )
+                added += 1
     return len(urls) - before
+
+
+def _retire_repo_courses(db: Session) -> int:
+    """Hide repo projects filed as courses and videos that don't teach anything."""
+    rows = db.scalars(
+        select(models.CuratedLink).where(
+            models.CuratedLink.collection == "education",
+            models.CuratedLink.enabled.is_(True),
+            models.CuratedLink.url.contains("github.com/"),
+            models.CuratedLink.note_tr.endswith("yıldız."),
+        )
+    ).all()
+    for row in rows:
+        row.enabled = False
+    videos = db.scalars(
+        select(models.CuratedLink).where(
+            models.CuratedLink.collection == "education",
+            models.CuratedLink.enabled.is_(True),
+            models.CuratedLink.note_tr.startswith("Video ·"),
+        )
+    ).all()
+    hidden = 0
+    for row in videos:
+        title = row.name.split(" · ", 1)[-1]
+        if _NOT_LESSON.search(title) or not _LESSON.search(title):
+            row.enabled = False
+            hidden += 1
+    return len(rows) + hidden
 
 
 def _existing_app_keys(db: Session) -> tuple[set[str], set[str]]:
@@ -323,12 +516,138 @@ def _harvest_projects(client: httpx.Client, db: Session) -> int:
     return added
 
 
+_OG_IMAGE = re.compile(
+    r'(?:property="og:image"[^>]*content="([^"]+)"|content="([^"]+)"[^>]*property="og:image")',
+    re.IGNORECASE,
+)
+_BTK_IMAGE = re.compile(
+    r'"imageUrl"\s*:\s*"(https:[^"]+\.(?:png|jpe?g|webp)[^"]*)"',
+    re.IGNORECASE,
+)
+
+
+def _known_cover(url: str) -> str | None:
+    try:
+        parsed = httpx.URL(url)
+    except httpx.InvalidURL:
+        return None
+    host = (parsed.host or "").lower().removeprefix("www.")
+    if host == "github.com":
+        parts = [p for p in parsed.path.split("/") if p]
+        if len(parts) >= 2:
+            return (
+                f"https://opengraph.githubassets.com/1/{parts[0]}/{parts[1].removesuffix('.git')}"
+            )
+    if host in {"cloudskillsboost.google", "grow.google", "ai.google.dev"} or host.endswith(
+        ".google"
+    ):
+        return "/covers/google.png"
+    if host in {"youtube.com", "m.youtube.com", "youtu.be"}:
+        if host == "youtu.be":
+            video = parsed.path.strip("/").split("/")[0]
+        else:
+            video = parsed.params.get("v") or ""
+        if video and video not in {"playlist", "channel", "c", "user"}:
+            return f"https://i.ytimg.com/vi/{video}/hqdefault.jpg"
+    return None
+
+
+def _cover_from_page(client: httpx.Client, url: str) -> str | None:
+    known = _known_cover(url)
+    if known:
+        return known
+    if "youtube.com/playlist" in url:
+        try:
+            resp = client.get(
+                "https://www.youtube.com/oembed", params={"format": "json", "url": url}
+            )
+            return resp.json().get("thumbnail_url") if resp.status_code == 200 else None
+        except (httpx.HTTPError, ValueError):
+            return None
+    try:
+        resp = client.get(url, headers={**_UA, "accept": "text/html"})
+    except httpx.HTTPError:
+        return None
+    if resp.status_code >= 400:
+        return None
+    if "btkakademi.gov.tr" in url:
+        match = _BTK_IMAGE.search(resp.text)
+        if match:
+            return match.group(1).replace("\\u0026", "&")
+    match = _OG_IMAGE.search(resp.text)
+    if not match:
+        return None
+    image = html.unescape(match.group(1) or match.group(2) or "")
+    if not image or image.startswith("data:"):
+        return None
+    return str(resp.url.join(image))
+
+
+def _image_loads(client: httpx.Client, url: str) -> bool:
+    if url.startswith("/"):
+        return True
+    try:
+        with client.stream("GET", url, headers=_UA) as resp:
+            return resp.status_code < 400 and resp.headers.get("content-type", "image/").startswith(
+                "image/"
+            )
+    except httpx.HTTPError:
+        return False
+
+
+def _working_cover(client: httpx.Client, url: str) -> str | None:
+    image = _cover_from_page(client, url)
+    return image if image and _image_loads(client, image) else None
+
+
+def fill_education_covers(client: httpx.Client, db: Session, limit: int = 400) -> int:
+    """Attach a cover to education cards that don't have one yet."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    for row in db.scalars(
+        select(models.CuratedLink).where(
+            models.CuratedLink.collection == "education",
+            models.CuratedLink.image_url.contains("&amp;"),
+        )
+    ):
+        row.image_url = html.unescape(row.image_url)
+
+    rows = db.scalars(
+        select(models.CuratedLink)
+        .where(
+            models.CuratedLink.collection == "education",
+            models.CuratedLink.enabled.is_(True),
+            models.CuratedLink.image_url.is_(None),
+        )
+        .limit(limit)
+    ).all()
+    if not rows:
+        return 0
+    found: dict[str, str] = {}
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        jobs = {pool.submit(_working_cover, client, row.url): row.url for row in rows}
+        for job in jobs:
+            image = job.result()
+            if image:
+                found[jobs[job]] = image
+    filled = 0
+    for row in rows:
+        image = found.get(row.url)
+        if not image:
+            continue
+        row.image_url = image
+        filled += 1
+    return filled
+
+
 def harvest_catalogs() -> dict[str, int]:
-    """Insert new open data, courses, and projects. Does not edit existing cards."""
-    stats = {"datasets": 0, "education": 0, "projects": 0}
+    """Insert new open data, courses, and projects. Only hides repo cards filed as courses."""
+    stats = {"datasets": 0, "education": 0, "projects": 0, "covers": 0, "retired": 0}
     with httpx.Client(timeout=_TIMEOUT, follow_redirects=True) as client, session_scope() as db:
+        stats["retired"] = _retire_repo_courses(db)
         stats["datasets"] = _harvest_datasets(client, db)
         stats["education"] = _harvest_education(client, db)
         stats["projects"] = _harvest_projects(client, db)
+        stats["covers"] = fill_education_covers(client, db)
     log.info("catalog harvest %s", stats)
     return stats
