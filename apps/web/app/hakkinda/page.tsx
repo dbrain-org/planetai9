@@ -8,7 +8,7 @@ export const revalidate = 86400;
 export const metadata = {
   title: "Biz Kimiz",
   description:
-    "PlanetAI9. Türkiye'nin yapay zekâ medya platformu. Haberler, model takibi, açık kaynak ve teknoloji politikaları.",
+    "PlanetAI9, Türkiye’nin Yapay Zeka’sı vizyonuyla kurulan, özgün yapay zeka gelişmeleri sunan bir medya platformudur.",
 };
 
 const FOCUS = [
@@ -34,74 +34,71 @@ export default async function AboutPage() {
             {tr ? "Biz Kimiz?" : "Who are we?"}
           </h1>
           <div className="mt-5 max-w-xl space-y-4 text-[16px] leading-relaxed text-ink-2 dark:text-d-ink-2">
-            <p>
-              {tr
-                ? "PlanetAI9, Türkiye ve dünyadaki yapay zekâ gelişmelerini takip eden, özgün içerikler üreten ve yapay zekâ ekosistemindeki bilgi paylaşımını güçlendirmeyi amaçlayan bir yayın platformudur."
-                : "PlanetAI9 is a media platform that follows AI developments in Türkiye and the world, produces original work, and aims to strengthen how knowledge is shared across the AI ecosystem."}
-            </p>
-            <p>
-              {tr
-                ? "Türkiye’nin yapay zekâya giden yolunda; özgün Türkiye ve dünya gündem haberlerini, Türkçe açık kaynak verileri ve yapay zekâ uygulamalarını bir araya getiriyoruz."
-                : "On Türkiye’s path in AI, we bring together original news from Türkiye and the world, Turkish open data, and AI applications."}
-            </p>
-            <p>
-              {tr ? (
-                <>
-                  <Link href="/" className={a}>Gündem</Link> bölümümüzde Türkiye’den,{" "}
-                  <Link href="/news?region=world" className={a}>Dünya</Link> bölümümüzde ise uluslararası yapay zekâ haberlerini takip edebilirsiniz. Açık verileri{" "}
-                  <Link href="/turkiye" className={a}>VeriVatan</Link>’da, açık kaynak yapay zekâ uygulamalarını{" "}
-                  <Link href="/marketplace" className={a}>TAKYAP</Link>’ta, eğitim kaynaklarını{" "}
-                  <Link href="/universite" className={a}>Üniversite</Link> bölümünde bulabilirsiniz.
-                </>
-              ) : (
-                <>
-                  In <Link href="/" className={a}>News</Link> you can follow AI stories from Türkiye, and in{" "}
-                  <Link href="/news?region=world" className={a}>World</Link> the international ones. Open data is on{" "}
-                  <Link href="/turkiye" className={a}>VeriVatan</Link>, open-source AI apps on{" "}
-                  <Link href="/marketplace" className={a}>TAKYAP</Link>, and learning resources in{" "}
-                  <Link href="/universite" className={a}>University</Link>.
-                </>
-              )}
-            </p>
-            <p>
-              {tr ? (
-                <>
-                  Türkiye’de geliştirilen yapay zekâ modellerini{" "}
-                  <Link href="/turkiye-llm" className={a}>Türkiye LLM</Link> sayfasında, farklı LLM modellerini tek bir merkezden takip etmek için ise{" "}
-                  <a href="https://llmradar.planetai9.com" target="_blank" rel="noopener noreferrer" className={a}>LLM Radar</a>’ı sunuyoruz.{" "}
-                  <Link href="/yazarlar" className={a}>Yazarlar</Link> bölümümüzde farklı bakış açılarına yer veriyor,{" "}
-                  <Link href="/videos" className={a}>PlanetAI9 Kanalı</Link>’nda ise yapay zekâ gündemini konuklarımızla birlikte konuşuyoruz.
-                </>
-              ) : (
-                <>
-                  Models built in Türkiye are on <Link href="/turkiye-llm" className={a}>Türkiye LLM</Link>. To follow different LLMs from one place, we offer{" "}
-                  <a href="https://llmradar.planetai9.com" target="_blank" rel="noopener noreferrer" className={a}>LLM Radar</a>. In{" "}
-                  <Link href="/yazarlar" className={a}>Authors</Link> we make room for different points of view, and on the{" "}
-                  <Link href="/videos" className={a}>PlanetAI9 channel</Link> we talk through the AI agenda with our guests.
-                </>
-              )}
-            </p>
-            <p>
-              {tr
-                ? "Amacımız, Türkiye’nin yapay zekâ yolculuğunda iletişimi ve bilgi paylaşımını artırmak, birbirimizden haberdar olmak ve güçlü bir yapay zekâ ekosisteminin oluşmasına katkı sağlamak."
-                : "Our aim is to increase communication and knowledge sharing on Türkiye’s AI path, to stay aware of one another, and to help a stronger AI ecosystem take shape."}
-            </p>
-            <p>
-              {tr ? (
-                <>
-                  Siz de <Link href="/haber-giris" className={a}>Haber Gönder</Link> üzerinden kendi özgün haberlerinizi paylaşabilir; açık verilerinizi ve yapay zekâ uygulamalarınızı bizimle paylaşabilirsiniz.
-                </>
-              ) : (
-                <>
-                  You can share your own original stories through <Link href="/haber-giris" className={a}>Submit news</Link>, and send us your open data and AI applications as well.
-                </>
-              )}
-            </p>
-            <p>
-              {tr
-                ? "Önce birbirimizden haberdar olalım. Paylaşımlarınızı, fikirlerinizi ve önerilerinizi bekliyoruz."
-                : "First, let’s know what each other is doing. We are waiting for what you share, what you think, and what you suggest."}
-            </p>
+            {tr ? (
+              <>
+                <p>
+                  PlanetAI9, Türkiye’nin Yapay Zeka’sı vizyonuyla kurulan, bu alanda emek veren insanlarımızı, kurumlarımızı gündeme taşıyacak, fark yaratan yeteneklerimizi farkettirecek, birbirimizden haberdar olmamızı sağlayacak özgün yapay zeka gelişmeleri sunan bir medya platformudur.
+                </p>
+                <p>
+                  PlanetAI9’da Türkiye’nin{" "}
+                  <Link href="/" className={a}>yapay zeka gündemi</Link>,{" "}
+                  <Link href="/news?region=world" className={a}>Dünya</Link>’dan en güncel gelişmeler, Türkiye’de ilk defa derlenmiş, sınıflandırılmış tüm{" "}
+                  <Link href="/turkiye" className={a}>Türkçe açık verilerin</Link> listesi, Türk geliştiriciler tarafından açık kaynak olarak paylaşılan{" "}
+                  <Link href="/marketplace" className={a}>uygulamalar</Link>, farklı yapay zeka olgunluklarına göre ayrıştırılmış{" "}
+                  <Link href="/universite" className={a}>yapay zeka eğitim</Link> bilgilerini bulabilirsiniz. Siz de bu alanlarda yaptığınız çalışmaları, veri veya uygulamalarınızı her sayfanın altındaki linkleri kullanarak bize iletebilirsiniz.
+                </p>
+                <p>
+                  <Link href="/turkiye-llm" className={a}>Türkiye LLM</Link> altında bugüne kadar yayınlanan tüm Türkçe büyük dil modellerinin bir listesini, geliştiricilerini görebilir, geliştiricilere özel sayfalardan onlara sorular sorabilirsiniz.
+                </p>
+                <p>
+                  Bütün sayfaların altında yorum alanlarıyla sorularınızı, yorumlarınızı iletebilirsiniz.
+                </p>
+                <p>
+                  <Link href="/haber-giris" className={a}>Haber Gönder</Link> linki ile de herkesi yapay zeka alanında kendi özgün haberlerini paylaşmaya, yayınlamaya davet ediyoruz. Gittiğiniz bir etkinlik, geliştirdiğiniz bir uygulama, incelediğiniz bir makale, katıldığınız bir proje yarışması özgün bir haberiniz olabilir.
+                </p>
+                <p>
+                  PlanetAI9’ı{" "}
+                  <a href="https://www.youtube.com/@planetai9" target="_blank" rel="noopener noreferrer" className={a}>YouTube</a> kanalımızda yayınlanacak röportaj ve özel içerikli videolarla,{" "}
+                  <a href="https://www.instagram.com/planetai9media" target="_blank" rel="noopener noreferrer" className={a}>Instagram</a>’da,{" "}
+                  <a href="https://www.linkedin.com/showcase/planetai9media" target="_blank" rel="noopener noreferrer" className={a}>LinkedIn</a> hesaplarımızda izleyebilirsiniz.
+                </p>
+                <p>
+                  Dünyanın en önemli gündemi yapay zekayı Türkiye’nin en önemli gündemi yapmak için PlanetAI9 yola çıktı, desteklerinizi bekliyoruz.
+                </p>
+              </>
+            ) : (
+              <>
+                <p>
+                  PlanetAI9 is a media platform founded with the vision of Türkiye’s AI. It brings the people and institutions working in this field onto the agenda, makes distinctive talent visible, helps us stay aware of one another, and publishes original AI developments.
+                </p>
+                <p>
+                  On PlanetAI9 you can find Türkiye’s{" "}
+                  <Link href="/" className={a}>AI agenda</Link>, the latest developments from the{" "}
+                  <Link href="/news?region=world" className={a}>world</Link>, the first compiled and classified list of{" "}
+                  <Link href="/turkiye" className={a}>Turkish open data</Link>,{" "}
+                  <Link href="/marketplace" className={a}>applications</Link> shared as open source by Turkish developers, and{" "}
+                  <Link href="/universite" className={a}>AI learning</Link> organized by different levels of AI maturity. You can send us your work, data, or applications through the links at the bottom of each page.
+                </p>
+                <p>
+                  Under <Link href="/turkiye-llm" className={a}>Türkiye LLM</Link> you can see a list of every Turkish large language model published so far, meet the developers, and ask them questions on their own pages.
+                </p>
+                <p>
+                  Comment areas under every page are there for your questions and remarks.
+                </p>
+                <p>
+                  Through <Link href="/haber-giris" className={a}>Submit news</Link> we invite everyone to share and publish their own original AI stories. An event you attended, an application you built, a paper you read, or a project competition you joined can be an original story.
+                </p>
+                <p>
+                  You can follow PlanetAI9 through interviews and original videos on our{" "}
+                  <a href="https://www.youtube.com/@planetai9" target="_blank" rel="noopener noreferrer" className={a}>YouTube</a> channel, and on our{" "}
+                  <a href="https://www.instagram.com/planetai9media" target="_blank" rel="noopener noreferrer" className={a}>Instagram</a> and{" "}
+                  <a href="https://www.linkedin.com/showcase/planetai9media" target="_blank" rel="noopener noreferrer" className={a}>LinkedIn</a> accounts.
+                </p>
+                <p>
+                  PlanetAI9 set out to make artificial intelligence, the world’s most important agenda, Türkiye’s most important agenda. We are waiting for your support.
+                </p>
+              </>
+            )}
           </div>
         </div>
         <figure className="mx-auto w-full max-w-[340px] lg:max-w-none lg:justify-self-end">

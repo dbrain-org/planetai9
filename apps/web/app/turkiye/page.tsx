@@ -8,6 +8,13 @@ import type { CuratedLink, OpenDatasetCard } from "@/lib/types";
 
 export const revalidate = 60;
 
+export const metadata = {
+  title: "VeriVatan",
+  description:
+    "Türkiye açık kaynak veriler. Türkiye’de derlenmiş ve sınıflandırılmış Türkçe açık veri setlerinin listesi.",
+  keywords: ["Türkiye açık kaynak veriler", "Türkçe açık veri", "VeriVatan", "PlanetAI9"],
+};
+
 /** Map legacy curated kinds onto current VeriVatan sections. */
 function normalizeKind(kind: string): string {
   if (kind === "siber_hukuk") return "hukuk";

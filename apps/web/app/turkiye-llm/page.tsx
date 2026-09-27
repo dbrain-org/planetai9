@@ -14,10 +14,13 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Türkiye LLM",
-  description: "Türkiye’de üretilen ve Türkçe için eğitilmiş dil modelleri.",
+  description:
+    "Türkçe açık kaynak LLM ve büyük dil modelleri. Türkiye’de üretilen ve Türkçe için eğitilmiş modeller, geliştiricileriyle birlikte.",
+  keywords: ["Türkçe açık kaynak LLM", "büyük dil modelleri", "Türkiye LLM", "PlanetAI9"],
   openGraph: {
     title: "Türkiye LLM | PlanetAI9",
-    description: "Türkiye’de üretilen ve Türkçe için eğitilmiş dil modelleri.",
+    description:
+      "Türkçe açık kaynak LLM ve büyük dil modelleri. Türkiye’de üretilen ve Türkçe için eğitilmiş modeller.",
     url: "/turkiye-llm",
   },
 };

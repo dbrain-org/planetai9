@@ -9,7 +9,9 @@ export const revalidate = 30;
 
 export const metadata = {
   title: "Üniversite",
-  description: "Açık Türkçe yapay zekâ eğitimleri. Herkes İçin AI, derin eğitimler, meslekler.",
+  description:
+    "Türkçe yapay zeka eğitimleri. Herkes İçin AI, derin eğitimler ve meslekler için açık kaynak izlenceler.",
+  keywords: ["Türkçe yapay zeka eğitimleri", "yapay zeka eğitimi", "PlanetAI9"],
 };
 
 const TRACKS = [
