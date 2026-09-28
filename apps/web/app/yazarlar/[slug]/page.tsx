@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, Heart } from "lucide-react";
 import { VideosCard } from "@/components/HomeRail";
 import { api, apiSafe } from "@/lib/api";
 import { dateLabel } from "@/lib/format";
@@ -125,7 +125,17 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                     {c.dek && (
                       <p className="mt-1.5 text-[14px] text-ink-2 dark:text-d-ink-2">{c.dek}</p>
                     )}
-                    <p className="mt-2 text-[11px] text-muted">{dateLabel(c.published_at, locale)}</p>
+                    <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
+                      <span>{dateLabel(c.published_at, locale)}</span>
+                      <span className="inline-flex items-center gap-1">
+                        <Eye className="h-3.5 w-3.5" />
+                        <span className="tabular-nums">{c.view_count ?? 0}</span> {tr ? "okuma" : "views"}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Heart className="h-3.5 w-3.5" />
+                        <span className="tabular-nums">{c.like_count ?? 0}</span> {tr ? "beğeni" : "likes"}
+                      </span>
+                    </p>
                   </Link>
                 </li>
               ))}

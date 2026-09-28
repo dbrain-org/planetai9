@@ -8,7 +8,8 @@ type Engagement = {
   slug: string;
   view_count: number;
   like_count: number;
-  comment_count: number;
+  comment_count?: number;
+  share_count?: number;
   liked_by_me: boolean;
   share_url: string;
 };
@@ -23,11 +24,18 @@ function formatCount(n: number, locale: "tr" | "en"): string {
 export function ArticleEngagement({
   slug,
   locale = "tr",
+  kind = "news",
 }: {
   slug: string;
   locale?: "tr" | "en";
+  kind?: "news" | "column";
 }) {
   const tr = locale === "tr";
+  const isColumn = kind === "column";
+  const endpoint = isColumn
+    ? `/api/engagement/columns/${encodeURIComponent(slug)}`
+    : `/api/engagement/${encodeURIComponent(slug)}`;
+  const pagePath = isColumn ? `/kose/${encodeURIComponent(slug)}` : `/news/${encodeURIComponent(slug)}`;
   const [data, setData] = useState<Engagement | null>(null);
   const [liked, setLiked] = useState(false);
   const [likeBusy, setLikeBusy] = useState(false);
@@ -38,9 +46,7 @@ export function ArticleEngagement({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/engagement/${encodeURIComponent(slug)}?action=view`, {
-          method: "POST",
-        });
+        const res = await fetch(`${endpoint}?action=view`, { method: "POST" });
         if (!res.ok || cancelled) return;
         const json = (await res.json()) as Engagement;
         setData(json);
@@ -52,16 +58,14 @@ export function ArticleEngagement({
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [endpoint]);
 
   async function toggleLike() {
     if (likeBusy) return;
     setLikeBusy(true);
     setNeedAuth(false);
     try {
-      const res = await fetch(`/api/engagement/${encodeURIComponent(slug)}?action=like`, {
-        method: "POST",
-      });
+      const res = await fetch(`${endpoint}?action=like`, { method: "POST" });
       if (res.status === 401) {
         setNeedAuth(true);
         return;
@@ -83,11 +87,22 @@ export function ArticleEngagement({
     }
   }
 
+  async function recordShare() {
+    if (!isColumn) return;
+    try {
+      const res = await fetch(`${endpoint}?action=share`, { method: "POST" });
+      if (res.ok) setData((await res.json()) as Engagement);
+    } catch {
+      /* ignore */
+    }
+  }
+
   async function share() {
     const url = data?.share_url || (typeof window !== "undefined" ? window.location.href : "");
     try {
       if (navigator.share) {
         await navigator.share({ url, title: document.title });
+        void recordShare();
         return;
       }
     } catch {
@@ -97,6 +112,7 @@ export function ArticleEngagement({
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      void recordShare();
     } catch {
       /* ignore */
     }
@@ -105,6 +121,7 @@ export function ArticleEngagement({
   const views = data?.view_count ?? 0;
   const likes = data?.like_count ?? 0;
   const comments = data?.comment_count ?? 0;
+  const shares = data?.share_count ?? 0;
 
   const chip =
     "inline-flex items-center gap-2 rounded-xl border border-line bg-paper px-3 py-2 text-[13px] font-semibold text-ink-2 transition-colors dark:border-d-line dark:bg-d-canvas dark:text-d-ink-2";
@@ -139,13 +156,15 @@ export function ArticleEngagement({
           </span>
         </button>
 
-        <a href="#yorumlar" className={`${chip} hover:border-accent hover:bg-wash dark:hover:bg-d-wash`}>
-          <MessageCircle className="h-4 w-4 text-accent" />
-          <span className="tabular-nums text-ink dark:text-d-ink">{formatCount(comments, locale)}</span>
-          <span className="hidden text-[11px] font-medium text-muted sm:inline">
-            {tr ? "yorum" : "comments"}
-          </span>
-        </a>
+        {!isColumn && (
+          <a href="#yorumlar" className={`${chip} hover:border-accent hover:bg-wash dark:hover:bg-d-wash`}>
+            <MessageCircle className="h-4 w-4 text-accent" />
+            <span className="tabular-nums text-ink dark:text-d-ink">{formatCount(comments, locale)}</span>
+            <span className="hidden text-[11px] font-medium text-muted sm:inline">
+              {tr ? "yorum" : "comments"}
+            </span>
+          </a>
+        )}
 
         <button
           type="button"
@@ -156,13 +175,16 @@ export function ArticleEngagement({
           <span className="text-ink dark:text-d-ink">
             {copied ? (tr ? "Kopyalandı" : "Copied") : tr ? "Paylaş" : "Share"}
           </span>
+          {isColumn && shares > 0 && (
+            <span className="tabular-nums text-[11px] font-medium text-muted">{formatCount(shares, locale)}</span>
+          )}
         </button>
       </div>
 
       {needAuth && (
         <p className="mt-2.5 text-[13px] text-ink-2 dark:text-d-ink-2">
           {tr ? "Beğenmek için " : "To like, please "}
-          <Link href={`/giris?next=/news/${encodeURIComponent(slug)}`} className="link-accent">
+          <Link href={`/giris?next=${pagePath}`} className="link-accent">
             {tr ? "giriş yapın" : "sign in"}
           </Link>
           .

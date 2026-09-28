@@ -2,7 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { ArrowLeft, ExternalLink, FileText, LogOut, PenLine, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  Eye,
+  FileText,
+  Heart,
+  LogOut,
+  PenLine,
+  Plus,
+  Share2,
+} from "lucide-react";
 import type { Studio, StudioColumn } from "@/lib/author";
 
 const SERIF = "'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif";
@@ -302,6 +312,14 @@ export function AuthorStudio({
   const { author, columns } = studio;
   const published = columns.filter((c) => c.status === "published").length;
   const drafts = columns.length - published;
+  const totals = columns.reduce(
+    (acc, c) => ({
+      views: acc.views + (c.view_count ?? 0),
+      likes: acc.likes + (c.like_count ?? 0),
+      shares: acc.shares + (c.share_count ?? 0),
+    }),
+    { views: 0, likes: 0, shares: 0 },
+  );
 
   return (
     <div className="space-y-7">
@@ -321,6 +339,13 @@ export function AuthorStudio({
           <p className="text-[12.5px] text-ink-2 dark:text-d-ink-2">
             {author.role} · {published} yayında · {drafts} taslak
           </p>
+          {published > 0 && (
+            <p className="mt-1 text-[12.5px] text-ink-2 dark:text-d-ink-2">
+              Toplam <b className="tabular-nums text-ink dark:text-d-ink">{totals.views}</b> okuma ·{" "}
+              <b className="tabular-nums text-ink dark:text-d-ink">{totals.likes}</b> beğeni ·{" "}
+              <b className="tabular-nums text-ink dark:text-d-ink">{totals.shares}</b> paylaşım
+            </p>
+          )}
         </div>
         <button
           onClick={logout}
@@ -375,6 +400,31 @@ export function AuthorStudio({
                   {c.dek && (
                     <span className="mt-0.5 block truncate text-[12.5px] text-ink-2 dark:text-d-ink-2">
                       {c.dek}
+                    </span>
+                  )}
+                  {c.status === "published" && (
+                    <span className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-muted">
+                      <span className="inline-flex items-center gap-1">
+                        <Eye className="h-3.5 w-3.5" />
+                        <span className="tabular-nums font-semibold text-ink-2 dark:text-d-ink-2">
+                          {c.view_count ?? 0}
+                        </span>
+                        okuma
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Heart className="h-3.5 w-3.5" />
+                        <span className="tabular-nums font-semibold text-ink-2 dark:text-d-ink-2">
+                          {c.like_count ?? 0}
+                        </span>
+                        beğeni
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Share2 className="h-3.5 w-3.5" />
+                        <span className="tabular-nums font-semibold text-ink-2 dark:text-d-ink-2">
+                          {c.share_count ?? 0}
+                        </span>
+                        paylaşım
+                      </span>
                     </span>
                   )}
                 </span>

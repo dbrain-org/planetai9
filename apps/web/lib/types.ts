@@ -227,6 +227,8 @@ export interface ColumnCard {
   hero_image_url: string | null;
   published_at: string;
   author: AuthorRef;
+  view_count?: number;
+  like_count?: number;
 }
 
 export interface ColumnDetail extends ColumnCard {

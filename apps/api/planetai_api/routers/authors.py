@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import secrets
 import uuid
 from datetime import UTC, datetime
@@ -13,8 +14,10 @@ from slugify import slugify
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from planetai_api import cache
 from planetai_api.db import get_db
 from planetai_api.ratelimit import limiter
+from planetai_api.reader_auth import client_ip, get_optional_user, require_user
 from planetai_api.routers.marketplace import require_admin
 
 router = APIRouter()
@@ -74,6 +77,8 @@ class ColumnCard(BaseModel):
     hero_image_url: str | None
     published_at: datetime
     author: AuthorRef
+    view_count: int = 0
+    like_count: int = 0
 
 
 class ColumnDetail(ColumnCard):
@@ -106,6 +111,8 @@ def _card(p: models.OpinionPost) -> ColumnCard:
         hero_image_url=p.hero_image_url,
         published_at=p.published_at,
         author=_author_ref(p.author),
+        view_count=int(p.view_count or 0),
+        like_count=int(p.like_count or 0),
     )
 
 
@@ -260,6 +267,120 @@ def get_column(slug: str, db: Session = Depends(get_db)) -> ColumnDetail:
     return ColumnDetail(**_card(p).model_dump(), body=p.body)
 
 
+class ColumnEngagementOut(BaseModel):
+    slug: str
+    view_count: int
+    like_count: int
+    share_count: int
+    liked_by_me: bool = False
+    share_url: str
+
+
+class ColumnLikeOut(BaseModel):
+    liked: bool
+    like_count: int
+
+
+def _published_column_or_404(db: Session, slug: str) -> models.OpinionPost:
+    p = db.scalar(select(models.OpinionPost).where(models.OpinionPost.slug == slug))
+    if p is None or p.status != "published":
+        raise HTTPException(404, "column not found")
+    return p
+
+
+def _column_engagement(
+    db: Session, p: models.OpinionPost, user: models.User | None
+) -> ColumnEngagementOut:
+    liked = user is not None and db.get(models.ColumnLike, (user.id, p.id)) is not None
+    return ColumnEngagementOut(
+        slug=p.slug,
+        view_count=int(p.view_count or 0),
+        like_count=int(p.like_count or 0),
+        share_count=int(p.share_count or 0),
+        liked_by_me=liked,
+        share_url=f"{_settings.site_url.rstrip('/')}/kose/{p.slug}",
+    )
+
+
+def _first_time(key: str, ttl: int) -> bool:
+    """True the first time a visitor hits `key` within `ttl` seconds. Fails open without redis."""
+    try:
+        if cache.get(key) is not None:
+            return False
+        cache.set(key, "1", ttl)
+    except Exception:  # noqa: BLE001
+        pass
+    return True
+
+
+def _visitor(request: Request) -> str:
+    return hashlib.sha1((client_ip(request) or "unknown").encode()).hexdigest()[:16]
+
+
+@router.get("/columns/{slug}/engagement", response_model=ColumnEngagementOut)
+def get_column_engagement(
+    slug: str,
+    db: Session = Depends(get_db),
+    user: models.User | None = Depends(get_optional_user),
+) -> ColumnEngagementOut:
+    return _column_engagement(db, _published_column_or_404(db, slug), user)
+
+
+@router.post("/columns/{slug}/view", response_model=ColumnEngagementOut)
+@limiter.limit("60/minute")
+def record_column_view(
+    request: Request,
+    slug: str,
+    db: Session = Depends(get_db),
+    user: models.User | None = Depends(get_optional_user),
+) -> ColumnEngagementOut:
+    p = _published_column_or_404(db, slug)
+    if _first_time(f"colview:{p.id}:{_visitor(request)}", 30 * 60):
+        p.view_count = int(p.view_count or 0) + 1
+        db.commit()
+        db.refresh(p)
+    return _column_engagement(db, p, user)
+
+
+@router.post("/columns/{slug}/share", response_model=ColumnEngagementOut)
+@limiter.limit("30/minute")
+def record_column_share(
+    request: Request,
+    slug: str,
+    db: Session = Depends(get_db),
+    user: models.User | None = Depends(get_optional_user),
+) -> ColumnEngagementOut:
+    p = _published_column_or_404(db, slug)
+    if _first_time(f"colshare:{p.id}:{_visitor(request)}", 10 * 60):
+        p.share_count = int(p.share_count or 0) + 1
+        db.commit()
+        db.refresh(p)
+    return _column_engagement(db, p, user)
+
+
+@router.post("/columns/{slug}/like", response_model=ColumnLikeOut)
+@limiter.limit("60/minute")
+def toggle_column_like(
+    request: Request,
+    slug: str,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_user),
+) -> ColumnLikeOut:
+    p = _published_column_or_404(db, slug)
+    existing = db.get(models.ColumnLike, (user.id, p.id))
+    if existing is not None:
+        db.delete(existing)
+        p.like_count = max(0, int(p.like_count or 0) - 1)
+        liked = False
+    else:
+        db.add(models.ColumnLike(user_id=user.id, post_id=p.id))
+        p.like_count = int(p.like_count or 0) + 1
+        liked = True
+    db.commit()
+    db.refresh(p)
+    return ColumnLikeOut(liked=liked, like_count=int(p.like_count or 0))
+
+
 # --- author studio (X-Author-Key: "<slug>:<secret>") --------------------------
 
 
@@ -272,6 +393,9 @@ class MyColumn(BaseModel):
     status: str
     published_at: datetime
     updated_at: datetime
+    view_count: int = 0
+    like_count: int = 0
+    share_count: int = 0
 
 
 class StudioPayload(BaseModel):
@@ -332,6 +456,9 @@ def _my_column(p: models.OpinionPost) -> MyColumn:
         status=p.status,
         published_at=p.published_at,
         updated_at=p.updated_at,
+        view_count=int(p.view_count or 0),
+        like_count=int(p.like_count or 0),
+        share_count=int(p.share_count or 0),
     )
 
 

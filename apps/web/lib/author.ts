@@ -14,6 +14,9 @@ export interface StudioColumn {
   status: "draft" | "published";
   published_at: string;
   updated_at: string;
+  view_count?: number;
+  like_count?: number;
+  share_count?: number;
 }
 
 export interface StudioAuthor {

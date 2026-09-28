@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArticleEngagement } from "@/components/ArticleEngagement";
 import { api } from "@/lib/api";
 import { dateLabel } from "@/lib/format";
 import { getDict, getLocale } from "@/lib/i18n";
@@ -32,6 +33,7 @@ export default async function ColumnPage({ params }: { params: Promise<{ slug: s
         {post.author.role && <span className="text-muted">{post.author.role}</span>}
         <span className="ml-auto text-muted">{dateLabel(post.published_at, locale)}</span>
       </div>
+      <ArticleEngagement slug={post.slug} locale={locale} kind="column" />
 
       {post.hero_image_url && (
         // eslint-disable-next-line @next/next/no-img-element
