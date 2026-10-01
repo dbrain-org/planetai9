@@ -12,15 +12,16 @@ import { api, apiSafe } from "@/lib/api";
 import { relativeTime } from "@/lib/format";
 import { getDict, getLocale } from "@/lib/i18n";
 import { linkifyEntities } from "@/lib/linkify";
-import type { EventDetail, ImportanceFactors, Page as PageT } from "@/lib/types";
+import { entityHref } from "@/lib/entity";
+import type { EntityDetail, EventDetail, ImportanceFactors, Page as PageT } from "@/lib/types";
 
 export const revalidate = 120;
 
 const SITE_HOSTS = new Set(["planetai9.com", "www.planetai9.com", "localhost"]);
 const YOUTUBE_CHANNEL = "https://www.youtube.com/@planetai9";
 
-/** Our own submissions fall back to this site's URL; send PlanetAI9 links to YouTube instead. */
-function outboundUrl(url: string, sourceSlug: string): string | null {
+/** Submissions without a URL fall back to their own page here; null means "points back at us". */
+function outboundUrl(url: string): string | null {
   let u: URL;
   try {
     u = new URL(url);
@@ -29,8 +30,7 @@ function outboundUrl(url: string, sourceSlug: string): string | null {
   }
   if (!SITE_HOSTS.has(u.hostname)) return url;
   const video = u.pathname.match(/^\/videos\/([\w-]+)/);
-  if (video) return `https://www.youtube.com/watch?v=${video[1]}`;
-  return sourceSlug === "planetai9-editorial" ? YOUTUBE_CHANNEL : null;
+  return video ? `https://www.youtube.com/watch?v=${video[1]}` : null;
 }
 
 function SourceLink({ href, children }: { href: string | null; children: React.ReactNode }) {
@@ -54,7 +54,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   }
   const tr = locale === "tr";
   const primary = event.sources.find((s) => s.is_primary) ?? event.sources[0];
-  const primaryHref = primary ? outboundUrl(primary.url, primary.source.slug) : null;
+  let primaryHref = primary ? outboundUrl(primary.url) : null;
+  if (primary && !primaryHref) {
+    if (event.primary_entity) {
+      const ent = await apiSafe<EntityDetail | null>(`/entities/${event.primary_entity.slug}`, null, {
+        revalidate: 600,
+      });
+      primaryHref = ent?.website_url || entityHref(event.primary_entity);
+    } else if (primary.source.slug === "planetai9-editorial") {
+      primaryHref = YOUTUBE_CHANNEL;
+    }
+  }
   const factorKeys = Object.keys(t.event.factors) as (keyof Omit<ImportanceFactors, "total">)[];
 
   const submitted = await apiSafe<PageT>("/events?origin=submitted&limit=6&sort=recent", {
@@ -197,7 +207,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {event.sources.map((s) => (
                 <a
                   key={s.url}
-                  href={outboundUrl(s.url, s.source.slug) ?? s.source.homepage_url}
+                  href={outboundUrl(s.url) ?? primaryHref ?? s.source.homepage_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 py-3 text-sm text-ink-2 hover:text-accent dark:text-d-ink-2"
