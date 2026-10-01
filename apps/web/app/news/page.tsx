@@ -159,7 +159,9 @@ export default async function NewsPage({
             <div className="mt-3 border-t border-line pt-3 dark:border-d-line">{filters}</div>
           </details>
           {/* desktop: sticky sidebar */}
-          <div className="hidden lg:block lg:sticky lg:top-24">{filters}</div>
+          <div className="hidden lg:block lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pb-4 lg:pr-1 [scrollbar-width:thin]">
+            {filters}
+          </div>
         </aside>
 
         <div>
