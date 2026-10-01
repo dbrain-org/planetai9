@@ -16,6 +16,32 @@ import type { EventDetail, ImportanceFactors, Page as PageT } from "@/lib/types"
 
 export const revalidate = 120;
 
+const SITE_HOSTS = new Set(["planetai9.com", "www.planetai9.com", "localhost"]);
+const YOUTUBE_CHANNEL = "https://www.youtube.com/@planetai9";
+
+/** Our own submissions fall back to this site's URL; send PlanetAI9 links to YouTube instead. */
+function outboundUrl(url: string, sourceSlug: string): string | null {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return url;
+  }
+  if (!SITE_HOSTS.has(u.hostname)) return url;
+  const video = u.pathname.match(/^\/videos\/([\w-]+)/);
+  if (video) return `https://www.youtube.com/watch?v=${video[1]}`;
+  return sourceSlug === "planetai9-editorial" ? YOUTUBE_CHANNEL : null;
+}
+
+function SourceLink({ href, children }: { href: string | null; children: React.ReactNode }) {
+  if (!href) return <span className="font-medium text-ink dark:text-d-ink">{children}</span>;
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="link-accent">
+      {children}
+    </a>
+  );
+}
+
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const locale = await getLocale();
@@ -28,6 +54,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   }
   const tr = locale === "tr";
   const primary = event.sources.find((s) => s.is_primary) ?? event.sources[0];
+  const primaryHref = primary ? outboundUrl(primary.url, primary.source.slug) : null;
   const factorKeys = Object.keys(t.event.factors) as (keyof Omit<ImportanceFactors, "total">)[];
 
   const submitted = await apiSafe<PageT>("/events?origin=submitted&limit=6&sort=recent", {
@@ -94,27 +121,15 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 {primary.source.source_type === "official_announcement" ? (
                   <>
                     {tr ? "İncelemek isterseniz " : "If you'd like to take a look, "}
-                    <a
-                      href={primary.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="link-accent"
-                    >
+                    <SourceLink href={primaryHref}>
                       {event.primary_entity?.name ?? primary.source.name}
-                    </a>
+                    </SourceLink>
                     {tr ? "'ı inceleyebilirsiniz." : "."}
                   </>
                 ) : (
                   <>
                     {tr ? "Bu haber " : "This story is based on reporting by "}
-                    <a
-                      href={primary.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="link-accent"
-                    >
-                      {primary.source.name}
-                    </a>
+                    <SourceLink href={primaryHref}>{primary.source.name}</SourceLink>
                     {tr ? " kaynağından derlenmiştir." : "."}
                   </>
                 )}
@@ -134,9 +149,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           </div>
         )}
 
-        {primary && (
+        {primary && primaryHref && (
           <a
-            href={primary.url}
+            href={primaryHref}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-8 flex items-center justify-between rounded-card border border-line bg-paper p-5 transition-colors hover:border-accent dark:border-d-line dark:bg-d-canvas"
@@ -182,7 +197,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {event.sources.map((s) => (
                 <a
                   key={s.url}
-                  href={s.url}
+                  href={outboundUrl(s.url, s.source.slug) ?? s.source.homepage_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 py-3 text-sm text-ink-2 hover:text-accent dark:text-d-ink-2"
