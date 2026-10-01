@@ -26,7 +26,7 @@ export function HomeAuthors({
   for (const c of columns) if (!latest.has(c.author_slug)) latest.set(c.author_slug, c);
 
   return (
-    <section>
+    <section className="pb-6 sm:pb-10">
       <div className="mb-4 flex items-end justify-between gap-3">
         <h2 className="sec-title">{tr ? "Yazarlar" : "Columnists"}</h2>
         <Link
