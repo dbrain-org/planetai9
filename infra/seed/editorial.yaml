@@ -8,24 +8,31 @@ authors:
   - slug: ayhan-demirci
     name: Ayhan Demirci
     role: Kurucu · PlanetAI9
+    avatar_url: /authors/ayhan-demirci.jpg
     email: ayhan.demirci@dbrain.tech
     is_moderator: true
     api_key_hash: 9c72191d2a6c8b90d8321aff7e9eae99599d4e53fdac10ece61625ed26f43533
-    bio: >
-      Yapay zekâ dünyasındaki gelişmeleri takip ediyor, PlanetAI9 ve LLMRadar
-      projelerini yürütüyor. Köşesinde sektördeki kırılma noktalarını ve
-      Türkiye'nin yapay zekâ ekosistemini değerlendiriyor.
-    links:
-      youtube: https://www.youtube.com/@planetai9
-      site: https://llmradar.planetai9.com
+    bio: |
+      Passionate about Technology, AI, Data & Analytics, strong experience in creating data-driven companies, scouting&building&developing great AI teams and creating value with the Customers.
+
+      Co-founded 2 start up companies, developed innovative Data & AI Products. Combined 25+ years of Data & AI experience in large corporations, passionated about Innovation from ideas to Spin-off companies, new revenue service models like AI as a Service and AI academy.
+
+      MIT CISR Data Research Advisory Board (the "Data Board") is a community of data and analytics leaders who participate in and inform MIT CISR research. I’m responsible for leading my company Koç Holding's membership in the community.
+    links: {}
   - slug: hakan-saribiyik
     name: Hakan Sarıbıyık
     role: Yazar · PlanetAI9
+    avatar_url: /authors/hakan-saribiyik.jpg
     is_moderator: false
     api_key_hash: ecb4db9b655ea47fa63017c9727aa8098a3f068891fda78607a0e1bd79926c8f
-    bio: >
-      Yapay zekâ dünyasındaki gelişmeleri PlanetAI9 için köşesinde
-      değerlendiriyor.
+    bio: |
+      I have over 25 years of experience designing, developing, and deploying large-scale data and analytics solutions. With deep expertise in distributed data processing, MLOps, and big data infrastructure, I have led data engineering and analytics architecture efforts at major institutions. My expertise has been leveraged by cross-functional teams to drive business outcomes.
+
+      As a seasoned team manager, I’ve successfully managed agile projects and tasks using industry-standard tools like Jira, Confluence, and Trello. I’ve collaborated with data scientists, engineers, and stakeholders to prioritize and deliver high-impact initiatives on time and within budget.
+
+      I specialize in end-to-end solutions from streaming and batch data processing to AI model deployment on-premise systems. My toolset spans Hadoop, Spark, Kafka, Trino, Airflow and advanced data quality and analytics platforms. Recent focus areas include developing agentic AI systems for improved decision-making and driving business value through data-driven insights.
+
+      Throughout my career, I’ve demonstrated a passion for empowering teams to deliver exceptional results while fostering a culture of innovation, collaboration, and continuous learning.
     links: {}
 
 # Add columns here, then run `uv run planetai-ingest seed` (idempotent by slug).

@@ -85,7 +85,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                 <p className="mt-0.5 text-[14px] font-semibold text-accent">{author.role}</p>
               )}
               {author.bio && (
-                <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
+                <p className="mt-3 max-w-2xl whitespace-pre-line text-[15px] leading-relaxed text-ink-2 dark:text-d-ink-2">
                   {author.bio}
                 </p>
               )}
@@ -162,7 +162,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                 ? "Türkiye'nin yapay zekâ medya platformu. Haberler, köşe yazıları, videolar ve topluluk araçları."
                 : "Türkiye's AI media platform. News, columns, videos and community tools."}
             </p>
-            <Link href="/hakkinda" className="mt-3 inline-block text-[12px] font-bold text-accent">
+            <Link href="/hakkinda" className="mt-3 inline-block text-[12px] font-bold text-ink hover:text-ink-2 dark:text-d-ink dark:hover:text-d-ink-2">
               {tr ? "Biz kimiz →" : "About us →"}
             </Link>
           </div>

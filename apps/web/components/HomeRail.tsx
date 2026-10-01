@@ -148,7 +148,7 @@ export function VideosCard({
         <h3 className="flex items-center gap-2 text-[15px] font-extrabold tracking-tight3 text-ink dark:text-d-ink">
           <Play className="h-3.5 w-3.5 fill-current" /> {title ?? t.section.video}
         </h3>
-        <Link href="/videos" className="text-[11px] font-semibold text-accent hover:text-accent-ink">
+        <Link href="/videos" className="text-[11px] font-semibold text-ink transition-colors hover:text-ink-2 dark:text-d-ink dark:hover:text-d-ink-2">
           {t.common.seeAll}
         </Link>
       </div>
@@ -178,7 +178,7 @@ export function VideosCard({
         href="https://www.youtube.com/@planetai9?sub_confirmation=1"
         target="_blank"
         rel="noopener noreferrer"
-        className="block border-t border-line px-5 py-3 text-center text-[12px] font-bold text-accent hover:bg-accent-soft dark:border-d-line dark:hover:bg-accent/10"
+        className="block border-t border-line px-5 py-3 text-center text-[12px] font-bold text-ink hover:bg-wash dark:border-d-line dark:text-d-ink dark:hover:bg-d-wash"
       >
         {locale === "tr" ? "PlanetAI9 kanalına abone ol" : "Subscribe to PlanetAI9"}
       </a>

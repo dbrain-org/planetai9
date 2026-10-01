@@ -10,7 +10,7 @@ function isActive(pathname: string, search: string, href: string): boolean {
   if (href.startsWith("http")) return false;
   const [path, qs] = href.split("?");
   if (path === "/") return pathname === "/";
-  if (!pathname.startsWith(path!)) return false;
+  if (pathname !== path && !pathname.startsWith(`${path}/`)) return false;
   if (!qs) {
     // Prefer exact section match; allow nested routes (e.g. /turkiye-llm/…)
     if (path === "/news") {

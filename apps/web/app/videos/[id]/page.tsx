@@ -175,7 +175,7 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
               </ul>
               <Link
                 href="/videos"
-                className="block border-t border-line px-5 py-3 text-center text-[12px] font-bold text-accent hover:bg-accent-soft dark:border-d-line dark:hover:bg-accent/10"
+                className="block border-t border-line px-5 py-3 text-center text-[12px] font-bold text-ink hover:bg-wash dark:border-d-line dark:text-d-ink dark:hover:bg-d-wash"
               >
                 {t.common.seeAll}
               </Link>

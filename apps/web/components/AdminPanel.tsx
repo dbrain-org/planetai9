@@ -484,17 +484,27 @@ function AuthorRow({
   return (
     <li className="card p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <span
-              className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${STATUS_STYLE[item.status] ?? STATUS_STYLE.pending}`}
-            >
-              {STATUS_LABEL[item.status] ?? item.status}
-            </span>
-            {item.has_key && <span className="text-[11px] text-muted">anahtar var</span>}
+        <div className="flex items-start gap-3">
+          <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-wash text-[15px] font-extrabold text-ink-2 dark:bg-d-wash dark:text-d-ink-2">
+            {item.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={item.avatar_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              item.name.slice(0, 1)
+            )}
+          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${STATUS_STYLE[item.status] ?? STATUS_STYLE.pending}`}
+              >
+                {STATUS_LABEL[item.status] ?? item.status}
+              </span>
+              {item.has_key && <span className="text-[11px] text-muted">anahtar var</span>}
+            </div>
+            <h3 className="mt-1.5 text-[15px] font-bold text-ink dark:text-d-ink">{item.name}</h3>
+            {item.role && <p className="text-[13px] text-ink-2 dark:text-d-ink-2">{item.role}</p>}
           </div>
-          <h3 className="mt-1.5 text-[15px] font-bold text-ink dark:text-d-ink">{item.name}</h3>
-          {item.role && <p className="text-[13px] text-ink-2 dark:text-d-ink-2">{item.role}</p>}
         </div>
         <span className="text-[11px] text-muted">{item.slug}</span>
       </div>

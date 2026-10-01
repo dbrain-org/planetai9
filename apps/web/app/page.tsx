@@ -2,12 +2,13 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { EventCard } from "@/components/EventCard";
 import { HeroBlock, type HeroSideEntry } from "@/components/HeroBlock";
+import { HomeAuthors } from "@/components/HomeAuthors";
 import { RankedNewsList, TrendsCard } from "@/components/HomeRail";
 import { OppyBanner } from "@/components/OppyAd";
 import { VideoCard } from "@/components/VideoCard";
 import { apiSafe } from "@/lib/api";
 import { getDict, getLocale } from "@/lib/i18n";
-import type { EventCard as EventCardT, HomePayload, Page as PageT } from "@/lib/types";
+import type { AuthorRef, EventCard as EventCardT, HomePayload, Page as PageT } from "@/lib/types";
 
 export const revalidate = 60;
 
@@ -36,7 +37,7 @@ function SectionHead({ title, href, seeAll }: { title: string; href?: string; se
       {href && (
         <Link
           href={href}
-          className="flex shrink-0 items-center gap-1 text-[13px] font-semibold text-accent hover:text-accent-ink"
+          className="flex shrink-0 items-center gap-1 text-[13px] font-semibold text-ink transition-colors hover:text-ink-2 dark:text-d-ink dark:hover:text-d-ink-2"
         >
           {seeAll} <ArrowRight className="h-3.5 w-3.5" />
         </Link>
@@ -51,7 +52,7 @@ export default async function HomePage() {
   // Home is Türkiye-only: clicking the PlanetAI9 logo always lands on
   // Türkiye news ("Gündem" in the navbar points here too). World news lives
   // under its own nav item ("Dünya" -> /news?region=world).
-  const [raw, submitted] = await Promise.all([
+  const [raw, submitted, authors] = await Promise.all([
     apiSafe<HomePayload>("/home?region=TR", EMPTY, {
       revalidate: 60,
       tags: ["home"],
@@ -62,6 +63,7 @@ export default async function HomePage() {
       next_cursor: null,
       count: 0,
     }),
+    apiSafe<AuthorRef[]>("/authors", [], { revalidate: 300 }),
   ]);
   const home: HomePayload = { ...EMPTY, ...raw };
 
@@ -203,6 +205,8 @@ export default async function HomePage() {
           )}
         </section>
       )}
+
+      <HomeAuthors authors={authors} columns={home.columns} locale={locale} />
 
       <OppyBanner locale={locale} />
     </div>

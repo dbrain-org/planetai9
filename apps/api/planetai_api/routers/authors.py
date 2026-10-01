@@ -47,6 +47,7 @@ class AuthorApplicationOut(BaseModel):
     bio: str | None
     email: str | None
     application_note: str | None
+    avatar_url: str | None = None
     status: str
     has_key: bool
     created_at: datetime
@@ -58,6 +59,9 @@ class AuthorApplyIn(BaseModel):
     role: str | None = Field(default=None, max_length=160)
     bio: str | None = Field(default=None, max_length=4000)
     note: str | None = Field(default=None, max_length=2000)
+    avatar_url: str | None = Field(
+        default=None, max_length=300, pattern=r"^/uploads/authors/[A-Za-z0-9-]+/avatar\.[a-z]+$"
+    )
 
 
 class AuthorStatusChange(BaseModel):
@@ -97,6 +101,7 @@ def _application_out(a: models.Author) -> AuthorApplicationOut:
         bio=a.bio,
         email=a.email,
         application_note=a.application_note,
+        avatar_url=a.avatar_url,
         status=a.status,
         has_key=bool(a.api_key_hash),
         created_at=a.created_at,
@@ -147,6 +152,7 @@ def apply_as_author(
         bio=(payload.bio or "").strip() or None,
         email=email,
         application_note=(payload.note or "").strip() or None,
+        avatar_url=payload.avatar_url,
         status="pending",
         links={},
     )

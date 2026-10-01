@@ -19,7 +19,7 @@ COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
 COPY --from=build --chown=app:app /app/public ./public
 # Haber fotoğrafları buraya yazılır; prod'da web_uploads volume mount edilir.
-RUN mkdir -p /app/public/uploads/news && chown -R app:app /app/public/uploads
+RUN mkdir -p /app/public/uploads/news /app/public/uploads/authors && chown -R app:app /app/public/uploads
 USER app
 EXPOSE 3000
 CMD ["node", "server.js"]

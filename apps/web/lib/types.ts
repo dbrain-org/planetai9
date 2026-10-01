@@ -203,6 +203,7 @@ export interface AuthorApplication {
   bio: string | null;
   email: string | null;
   application_note: string | null;
+  avatar_url?: string | null;
   status: "pending" | "active" | "rejected";
   has_key: boolean;
   created_at: string;

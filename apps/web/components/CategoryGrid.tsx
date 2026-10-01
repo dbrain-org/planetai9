@@ -63,7 +63,7 @@ export function CategoryGrid({
     <section>
       <div className="mb-6 flex items-end justify-between">
         <h2 className="sec-title">{locale === "tr" ? "Kategoriler" : "Categories"}</h2>
-        <Link href="/news" className="flex items-center gap-1 text-[13px] font-semibold text-accent hover:text-accent-ink">
+        <Link href="/news" className="flex items-center gap-1 text-[13px] font-semibold text-ink transition-colors hover:text-ink-2 dark:text-d-ink dark:hover:text-d-ink-2">
           {seeAll} <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
