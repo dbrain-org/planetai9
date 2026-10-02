@@ -143,7 +143,7 @@ export default async function HomePage() {
         <section
           className={
             showRail
-              ? "grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start lg:gap-x-7 lg:gap-y-8"
+              ? "grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:grid-rows-[auto_auto_1fr] lg:items-start lg:gap-x-7 lg:gap-y-8"
               : "space-y-8"
           }
         >
@@ -164,7 +164,7 @@ export default async function HomePage() {
 
           {showRail && (
             <aside
-              className={`space-y-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 ${featured.length > 0 ? "lg:pt-11" : ""}`}
+              className={`space-y-4 lg:col-start-2 lg:row-span-3 lg:row-start-1 ${featured.length > 0 ? "lg:pt-11" : ""}`}
             >
               <p className="hidden text-[11px] font-bold uppercase tracking-[0.12em] text-muted lg:block">
                 {locale === "tr" ? "Gündemdekiler" : "Trending now"}
