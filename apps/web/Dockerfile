@@ -9,7 +9,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+# next/font downloads Inter from fonts.googleapis.com at build time; the server's
+# network intermittently breaks that fetch and the build dies with a null match.
+RUN set -e; for i in 1 2 3 4 5; do npm run build && exit 0; echo "build failed ($i), retrying"; sleep 15; done; exit 1
 
 FROM node:22-bookworm-slim AS runtime
 WORKDIR /app
