@@ -191,6 +191,13 @@ export default async function HomePage() {
             </aside>
           )}
 
+          <HomeAuthors
+            authors={authors}
+            columns={home.columns}
+            locale={locale}
+            className={showRail ? "lg:col-start-1" : undefined}
+          />
+
           {moreVideos.length > 0 && (
             <section className={showRail ? "lg:col-start-1" : undefined}>
               <SectionHead title={t.section.video} href="/videos" seeAll={seeAll} />
@@ -206,7 +213,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      <HomeAuthors authors={authors} columns={home.columns} locale={locale} />
+      {!showMain && <HomeAuthors authors={authors} columns={home.columns} locale={locale} />}
 
       <OppyBanner locale={locale} />
     </div>
