@@ -387,7 +387,6 @@ def _bust_reader_cache() -> None:
 
 
 def run() -> None:
-    linked = 0
     with session_scope() as db:
         seed_entities(db)
         seed_relations(db)
@@ -399,13 +398,14 @@ def run() -> None:
         seed_stories(db)
         seed_llm_developers(db)
         fix_llmradar_asset_paths(db)
-        try:
-            from planetai_shared.entity_discover import backfill_submitted_events
+    linked = 0
+    try:
+        from planetai_shared.entity_discover import backfill_submitted_events
 
-            linked = backfill_submitted_events(db)
-            log.info("discovered entity links on submitted articles: %s", linked)
-        except Exception:
-            log.exception("entity discovery backfill failed")
+        linked = backfill_submitted_events()
+        log.info("discovered entity links on submitted articles: %s", linked)
+    except Exception:
+        log.exception("entity discovery backfill failed")
     if linked:
         _bust_reader_cache()
     log.info("seed complete")

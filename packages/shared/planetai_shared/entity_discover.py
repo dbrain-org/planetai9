@@ -444,25 +444,44 @@ def discover_for_event(db: Session, event: models.Event) -> int:
     return made
 
 
-def backfill_submitted_events(db: Session, *, limit: int = 60) -> int:
-    """Re-scan PlanetAI9's own submitted articles. Safe to run on every seed."""
-    event_ids = db.scalars(
-        select(models.Article.event_id)
-        .where(
-            models.Article.event_id.is_not(None),
-            models.Article.external_id.like("reader:%"),
-        )
-        .order_by(models.Article.published_at.desc())
-        .limit(limit)
-    ).all()
+def backfill_submitted_events(*, limit: int = 60) -> int:
+    """Re-scan PlanetAI9's own articles. Each article is saved on its own.
+
+    One shared transaction hid every link until the whole Wikidata scan finished,
+    and a failure at the end threw the links away.
+    """
+    from planetai_shared.db.base import session_scope
+    from sqlalchemy import or_
+
+    with session_scope() as db:
+        event_ids = db.scalars(
+            select(models.Article.event_id)
+            .join(models.Source, models.Source.id == models.Article.source_id)
+            .where(
+                models.Article.event_id.is_not(None),
+                or_(
+                    models.Article.external_id.like("reader:%"),
+                    models.Source.slug == "planetai9-editorial",
+                ),
+            )
+            .order_by(models.Article.published_at.desc())
+            .limit(limit)
+        ).all()
     made = 0
     seen: set[uuid.UUID] = set()
     for event_id in event_ids:
-        if event_id in seen:
+        if event_id is None or event_id in seen:
             continue
         seen.add(event_id)
-        event = db.get(models.Event, event_id)
-        if event is None or event.status != "active":
-            continue
-        made += discover_for_event(db, event)
+        try:
+            with session_scope() as db:
+                event = db.get(models.Event, event_id)
+                if event is None or event.status != "active":
+                    continue
+                n = discover_for_event(db, event)
+                made += n
+                if n:
+                    log.info("linked %s names on %s", n, event.slug)
+        except Exception:
+            log.exception("entity discovery failed for event %s", event_id)
     return made
