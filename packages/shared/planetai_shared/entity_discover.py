@@ -18,14 +18,18 @@ import urllib.request
 import uuid
 from dataclasses import dataclass
 
-from planetai_shared.db import models
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from planetai_shared.db import models
+
 log = logging.getLogger(__name__)
 
-_MAX_LOOKUPS = 8
+_MAX_LOOKUPS = 14
 _MIN_SITELINKS = 5
+# A Turkish chamber or technopark often has two or three Wikipedia editions.
+# An exact label/alias match is enough; a fuzzy hit still needs the higher bar.
+_MIN_SITELINKS_EXACT = 2
 _UA = "PlanetAI9/1.0 (+https://planetai9.com)"
 
 _NAME = r"[A-ZÇĞİÖŞÜ][A-Za-zÇĞİÖŞÜçğıöşü'’\-]*"
@@ -37,14 +41,14 @@ _ROLES = (
 )
 # The role word is case-insensitive. The name stays case-sensitive, otherwise
 # "kurucusu Larry Ellison'ı koltuğa" swallows the lowercase word after the name.
-_ROLE_PERSON = re.compile(
-    rf"(?i:{_ROLES})\s+({_NAME}(?:\s+{_NAME}){{0,2}})"
-)
+_ROLE_PERSON = re.compile(rf"(?i:{_ROLES})[ \t]+({_NAME}(?:[ \t]+{_NAME}){{0,2}})")
 _ORG_PHRASE = re.compile(
-    rf"((?:{_NAME}\s+){{1,5}}(?:Üniversitesi|University|Teknokent|Bakanlığı|Bakanligi|Holding))"
+    rf"((?:{_NAME}[ \t]+){{1,5}}(?:Üniversitesi|University|Teknopark|Teknokent|"
+    rf"Bakanlığı|Bakanligi|Holding|Odası|Odasi|Bankası|Bankasi))"
 )
-_MULTI = re.compile(rf"({_NAME}(?:\s+{_NAME}){{1,2}})")
-_ACRONYM = re.compile(r"\b[A-ZÇĞİÖŞÜ]{2,6}\b")
+_MULTI = re.compile(rf"({_NAME}(?:[ \t]+{_NAME}){{1,2}})")
+_INITIAL_ORG = re.compile(rf"\b([A-ZÇĞİÖŞÜ][ \t]+{_NAME})")
+_ACRONYM = re.compile(r"\b[A-ZÇĞİÖŞÜ]{2,10}\b")
 _TOKEN = re.compile(rf"{_NAME}")
 _SUFFIX = re.compile(
     r"['’](?:nın|nin|nun|nün|ın|in|un|ün|da|de|ta|te|dan|den|a|e|ı|i|u|ü)$",
@@ -53,35 +57,143 @@ _SUFFIX = re.compile(
 
 _STOP = frozenset(
     {
-        "ancak", "bugün", "bugun", "peki", "bunun", "şirket", "sirket", "toplam",
-        "oysa", "ilk", "altı", "alti", "dört", "dort", "iş", "the", "this", "that",
-        "with", "from", "after", "today", "your", "and", "for", "bir", "için",
-        "icin", "gibi", "daha", "sonra", "önce", "once", "planetai9", "youtube",
-        "wall", "street", "jump", "start", "find", "your", "new", "york",
-        "silicon", "valley", "relational", "cloud", "data", "artificial",
-        "intelligence", "yapay", "zeka", "türkiye", "turkiye", "istanbul",
+        "ancak",
+        "bugün",
+        "bugun",
+        "peki",
+        "bunun",
+        "şirket",
+        "sirket",
+        "toplam",
+        "oysa",
+        "ilk",
+        "altı",
+        "alti",
+        "dört",
+        "dort",
+        "iş",
+        "the",
+        "this",
+        "that",
+        "with",
+        "from",
+        "after",
+        "today",
+        "your",
+        "and",
+        "for",
+        "bir",
+        "için",
+        "icin",
+        "gibi",
+        "daha",
+        "sonra",
+        "önce",
+        "once",
+        "planetai9",
+        "youtube",
+        "wall",
+        "street",
+        "jump",
+        "start",
+        "find",
+        "new",
+        "york",
+        "silicon",
+        "valley",
+        "relational",
+        "cloud",
+        "data",
+        "artificial",
+        "intelligence",
+        "yapay",
+        "zeka",
+        "türkiye",
+        "turkiye",
+        "istanbul",
+        "bu",
+    }
+)
+# Last word of a phrase that is a thing, not a surname.
+_JUNK_LAST = frozenset(
+    {
+        "merkezi",
+        "merkez",
+        "program",
+        "programı",
+        "programi",
+        "platform",
+        "platformu",
+        "çağrı",
+        "çağrısı",
+        "cagri",
+        "cagrisi",
+        "fabrika",
+        "fabrikası",
+        "fabrikasi",
+        "vadisi",
+        "yolu",
+        "etkinliği",
+        "etkinligi",
     }
 )
 _ACRONYM_SKIP = frozenset(
-    {"AI", "TR", "EN", "DB", "US", "EU", "OK", "TV", "IT", "HR", "VS", "VE", "DA", "DE", "LLM", "CEO", "CTO", "CFO"}
+    {
+        "AI",
+        "TR",
+        "EN",
+        "DB",
+        "US",
+        "EU",
+        "OK",
+        "TV",
+        "IT",
+        "HR",
+        "VS",
+        "VE",
+        "DA",
+        "DE",
+        "LLM",
+        "CEO",
+        "CTO",
+        "CFO",
+    }
 )
 
 # Wikidata "instance of" ids. Unknown types are checked one step up (subclass of).
 _PERSON_Q = frozenset({"Q5"})
 _INST_Q = frozenset(
     {
-        "Q3918", "Q38723", "Q875538", "Q902104", "Q31855", "Q1664720", "Q2385804",
-        "Q1371037", "Q189533", "Q1144993", "Q2659904", "Q327333", "Q4671277",
+        "Q3918",
+        "Q38723",
+        "Q875538",
+        "Q902104",
+        "Q31855",
+        "Q1664720",
+        "Q2385804",
+        "Q1371037",
+        "Q189533",
+        "Q1144993",
+        "Q2659904",
+        "Q327333",
+        "Q4671277",
+        "Q1976594",  # science park (İTÜ ARI Teknokent)
     }
 )
 _ORG_Q = frozenset(
     {
-        "Q43229", "Q4830453", "Q891723", "Q6881511", "Q783794", "Q163740",
-        "Q167037", "Q18388277",
+        "Q43229",
+        "Q4830453",
+        "Q891723",
+        "Q6881511",
+        "Q783794",
+        "Q163740",
+        "Q167037",
+        "Q18388277",
     }
 )
 
-_cache: dict[str, "Resolved | None"] = {}
+_cache: dict[str, Resolved | None] = {}
 _type_cache: dict[str, str | None] = {}
 
 
@@ -109,15 +221,23 @@ def _clean_name(raw: str) -> str:
     return " ".join(parts)
 
 
+def _strong_org(name: str) -> bool:
+    """Üniversitesi / Teknopark / Odası and the other suffixes, at least two words."""
+    return len(name.split()) >= 2 and _ORG_PHRASE.fullmatch(name) is not None
+
+
 def _person_ok(name: str) -> bool:
     parts = name.split()
     if len(parts) < 2 or len(parts) > 4:
         return False
     if not 5 <= len(name) <= 60:
         return False
+    last = parts[-1].casefold()
+    if last in _JUNK_LAST or last.endswith(("merkezi", "programı", "programi", "platformu")):
+        return False
     for p in parts:
         low = p.casefold()
-        if low in _STOP or len(low) < 2 or p[0] != p[0].upper():
+        if low in _STOP or low in _JUNK_LAST or len(low) < 3 or p[0] != p[0].upper():
             return False
         if len(p) > 3 and p.isupper():
             return False
@@ -163,8 +283,20 @@ def extract_mentions(title: str, body: str) -> list[Mention]:
         multi_counts[key] = (label, n + 1)
     title_l = title.casefold()
     for key, (label, n) in multi_counts.items():
-        if n >= 2 or key in title_l:
+        parts = label.split()
+        last, prev = parts[-1], parts[-2]
+        # "Ali Eren Aytekin" and later just "Aytekin" is a person, not a program name.
+        solo = re.findall(
+            rf"(?<!{re.escape(prev)}\s)(?<![A-Za-zÇĞİÖŞÜçğıöşü]){re.escape(last)}(?![A-Za-zÇĞİÖŞÜçğıöşü])",
+            text,
+        )
+        if solo:
+            add(label, "person", 0)
+        elif n >= 2 or key in title_l:
             add(label, "maybe", 3)
+
+    for m in _INITIAL_ORG.finditer(text):
+        add(m.group(1), "maybe", 3)
 
     for m in _ACRONYM.finditer(text):
         token = m.group(0)
@@ -289,11 +421,13 @@ def _lookup_uncached(name: str) -> Resolved | None:
     needle = name.casefold()
     for hit in search.get("search") or []:
         label = (hit.get("label") or "").strip()
-        if needle not in label.casefold() and label.casefold() not in needle:
-            # Acronyms often match a longer label ("İTÜ" → "İstanbul Teknik Üniversitesi")
-            # only through aliases; accept the top hit and verify on the entity.
-            if hit is not (search.get("search") or [None])[0]:
-                continue
+        label_fold = label.casefold()
+        label_hit = needle in label_fold or label_fold in needle
+        # Acronyms often match a longer label ("İTÜ" → "İstanbul Teknik Üniversitesi")
+        # only through aliases; accept the top hit and verify on the entity.
+        top = hit is (search.get("search") or [None])[0]
+        if not label_hit and not top:
+            continue
         qid = hit.get("id")
         if not qid:
             continue
@@ -311,17 +445,20 @@ def _lookup_uncached(name: str) -> Resolved | None:
             log.info("wikidata entity failed for %s: %s", qid, exc)
             continue
         entity = (data.get("entities") or {}).get(qid) or {}
-        if len(entity.get("sitelinks") or {}) < _MIN_SITELINKS:
-            continue
         labels = entity.get("labels") or {}
-        canonical = (labels.get("tr") or labels.get("en") or {}).get("value") or label or name
+        label_values = []
+        for lang in ("tr", "en"):
+            value = ((labels.get(lang) or {}).get("value") or "").strip()
+            if value:
+                label_values.append(value)
+        canonical = label_values[0] if label_values else label or name
         aliases = []
         for lang in ("tr", "en"):
             for row in (entity.get("aliases") or {}).get(lang) or []:
                 value = (row.get("value") or "").strip()
                 if value:
                     aliases.append(value)
-        bag = {canonical.casefold(), *(a.casefold() for a in aliases)}
+        bag = {v.casefold() for v in (*label_values, *aliases)}
         if not _covers(needle, bag):
             continue
         kinds = []
@@ -331,7 +468,18 @@ def _lookup_uncached(name: str) -> Resolved | None:
                 kinds.append(kind)
         if not kinds:
             continue
-        kind = "person" if "person" in kinds else "institution" if "institution" in kinds else "company"
+        kind = (
+            "person"
+            if "person" in kinds
+            else "institution"
+            if "institution" in kinds
+            else "company"
+        )
+        sitelinks = len(entity.get("sitelinks") or {})
+        # People keep the stricter bar so a two-article namesake is not linked.
+        minimum = _MIN_SITELINKS_EXACT if kind != "person" and needle in bag else _MIN_SITELINKS
+        if sitelinks < minimum:
+            continue
         extra = tuple(a for a in (name, *aliases) if a.casefold() != canonical.casefold())
         return Resolved(kind, canonical, extra)
     return None
@@ -369,9 +517,14 @@ def _ensure(
     ent = _find(rows, name, *aliases)
     if ent is not None:
         merged = list(ent.aliases or [])
+        seen = {a.casefold() for a in merged}
+        seen.add(ent.name.casefold())
         for alias in (name, *aliases):
-            if alias.casefold() != ent.name.casefold() and alias not in merged:
-                merged.append(alias)
+            key = alias.casefold()
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(alias)
         ent.aliases = merged
         return ent
     slug = _slug(name)
@@ -419,10 +572,21 @@ def discover_for_event(db: Session, event: models.Event) -> int:
             resolved = lookup_wikidata(mention.name)
             if resolved is not None:
                 ent = _ensure(
-                    db, rows, kind=resolved.kind, name=resolved.name, aliases=(mention.name, *resolved.aliases)
+                    db,
+                    rows,
+                    kind=resolved.kind,
+                    name=resolved.name,
+                    aliases=(mention.name, *resolved.aliases),
                 )
             elif mention.hint == "person" and _person_ok(mention.name):
                 ent = _ensure(db, rows, kind="person", name=mention.name, aliases=())
+            elif mention.hint == "org" and (
+                _strong_org(mention.name)
+                or (mention.name.casefold() in title_l and len(mention.name) >= 4)
+            ):
+                # A titled acronym (GİNOVA) or a Teknopark / Odası phrase with no
+                # Wikidata page is still the organization the article is about.
+                ent = _ensure(db, rows, kind="institution", name=mention.name, aliases=())
         if ent is None or ent.type not in {"person", "company", "institution"}:
             continue
         if str(ent.id) in linked:
@@ -450,8 +614,9 @@ def backfill_submitted_events(*, limit: int = 60) -> int:
     One shared transaction hid every link until the whole Wikidata scan finished,
     and a failure at the end threw the links away.
     """
-    from planetai_shared.db.base import session_scope
     from sqlalchemy import or_
+
+    from planetai_shared.db.base import session_scope
 
     with session_scope() as db:
         event_ids = db.scalars(

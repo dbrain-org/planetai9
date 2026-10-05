@@ -98,8 +98,9 @@ function phrasesFor(entities: EntityRef[]): PhraseHit[] {
 }
 
 /** Turn known person / company / institution names inside plain text into links.
- *  Each entity is linked at most once (first hit). Pass the same `linked` Set across
- *  paragraphs so an article doesn't re-link the same name 50 times. */
+ *  Each written form is linked once ("İTÜ" and "İstanbul Teknik Üniversitesi" both
+ *  count). Repeats of the same spelling stay plain. Pass the same `linked` Set
+ *  across paragraphs. */
 export function linkifyEntities(
   text: string,
   entities: EntityRef[],
@@ -125,8 +126,9 @@ export function linkifyEntities(
     const raw = match[0] ?? "";
     if (start > last) parts.push(text.slice(last, start));
     const ent = byLower.get(raw.toLowerCase());
-    if (ent && !used.has(ent.slug)) {
-      used.add(ent.slug);
+    const surface = `${ent?.slug ?? ""}\n${raw.toLocaleLowerCase("tr")}`;
+    if (ent && !used.has(surface)) {
+      used.add(surface);
       const isPerson = ent.type === "person";
       const isOrg = ent.type === "company" || ent.type === "institution";
       parts.push(

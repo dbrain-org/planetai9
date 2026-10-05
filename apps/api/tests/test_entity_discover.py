@@ -8,9 +8,13 @@ from unittest.mock import patch
 
 from planetai_shared.db import models
 from planetai_shared.db.base import session_scope
-from planetai_shared.entity_discover import Resolved, extract_mentions, discover_for_event
+from planetai_shared.entity_discover import (
+    Resolved,
+    discover_for_event,
+    extract_mentions,
+    lookup_wikidata,
+)
 from sqlalchemy import select
-
 
 ORACLE = (
     "900 Milyar Dolarlık Kurumsal Yazılım Devinin Son Dansı\n"
@@ -48,6 +52,121 @@ def test_extracts_director_and_university_not_program_names():
     assert "ortagini bul" not in names
     assert "ortağını bul" not in names
     assert "jump start" not in names
+    assert "ali eren aytekin" in {
+        m.name.casefold()
+        for m in extract_mentions(
+            "",
+            "örneklerinden biri Ali Eren Aytekin. Jump Start'ı tamamlayan Aytekin öğrencisiydi.",
+        )
+        if m.hint == "person"
+    }
+
+
+def test_exact_org_with_two_wikipedia_editions_is_kept():
+    search = {"search": [{"id": "Q1", "label": "İstanbul Ticaret Odası"}]}
+    entity = {
+        "entities": {
+            "Q1": {
+                "sitelinks": {"trwiki": {}, "enwiki": {}},
+                "labels": {
+                    "tr": {"value": "İstanbul Ticaret Odası"},
+                    "en": {"value": "Istanbul Chamber of Commerce"},
+                },
+                "aliases": {"tr": [{"value": "İTO"}]},
+                "claims": {"P31": [{"mainsnak": {"datavalue": {"value": {"id": "Q43229"}}}}]},
+            }
+        }
+    }
+
+    def fake(params):
+        if params["action"] == "wbsearchentities":
+            return search
+        return entity
+
+    from planetai_shared import entity_discover
+
+    entity_discover._cache.pop("istanbul ticaret odası".casefold(), None)
+    # Turkish İ casefold is not ASCII "istanbul".
+    entity_discover._cache.pop("İstanbul Ticaret Odası".casefold(), None)
+    with patch("planetai_shared.entity_discover._get_json", side_effect=fake):
+        resolved = lookup_wikidata("İstanbul Ticaret Odası")
+    assert resolved is not None
+    assert resolved.kind == "company"
+    assert resolved.name == "İstanbul Ticaret Odası"
+
+
+def test_person_with_two_sitelinks_is_dropped():
+    search = {"search": [{"id": "Q2", "label": "Ayşe Yılmaz"}]}
+    entity = {
+        "entities": {
+            "Q2": {
+                "sitelinks": {"trwiki": {}, "enwiki": {}},
+                "labels": {"tr": {"value": "Ayşe Yılmaz"}},
+                "aliases": {},
+                "claims": {"P31": [{"mainsnak": {"datavalue": {"value": {"id": "Q5"}}}}]},
+            }
+        }
+    }
+
+    def fake(params):
+        if params["action"] == "wbsearchentities":
+            return search
+        return entity
+
+    from planetai_shared import entity_discover
+
+    entity_discover._cache.pop("Ayşe Yılmaz".casefold(), None)
+    with patch("planetai_shared.entity_discover._get_json", side_effect=fake):
+        assert lookup_wikidata("Ayşe Yılmaz") is None
+
+
+def test_technopark_without_wikidata_still_links():
+    token = uuid.uuid4().hex[:8]
+    now = datetime.now(UTC)
+    with session_scope() as db:
+        event = models.Event(
+            slug=f"discover-park-{token}",
+            title="Kampüs haberi",
+            summary=None,
+            body_text="Ekip bu dönem İTÜ Teknopark içinde çalıştı.",
+            category="Models",
+            impact="low",
+            importance=1.0,
+            source_count=1,
+            first_seen_at=now,
+            last_activity_at=now,
+            status="active",
+            lang="tr",
+        )
+        db.add(event)
+        db.flush()
+        try:
+            with patch("planetai_shared.entity_discover.lookup_wikidata", return_value=None):
+                n = discover_for_event(db, event)
+            db.flush()
+            linked = db.scalars(
+                select(models.Entity)
+                .join(models.EventEntity, models.EventEntity.entity_id == models.Entity.id)
+                .where(models.EventEntity.event_id == event.id)
+            ).all()
+            kinds = {e.name: e.type for e in linked}
+            assert n >= 1
+            assert kinds.get("İTÜ Teknopark") == "institution"
+        finally:
+            db.query(models.EventEntity).filter_by(event_id=event.id).delete()
+            db.delete(event)
+            row = db.scalar(select(models.Entity).where(models.Entity.name == "İTÜ Teknopark"))
+            still_used = (
+                row is not None
+                and db.scalar(
+                    select(models.EventEntity.entity_id).where(
+                        models.EventEntity.entity_id == row.id
+                    )
+                )
+                is not None
+            )
+            if row is not None and not still_used:
+                db.delete(row)
 
 
 def test_discover_links_person_without_wikidata_and_org_from_wikidata():
@@ -98,7 +217,10 @@ def test_discover_links_person_without_wikidata_and_org_from_wikidata():
             for name in ("Larry Ellison", "Oracle"):
                 row = db.scalar(select(models.Entity).where(models.Entity.name == name))
                 # Only delete the row this test created (no older curated Oracle).
-                if row is not None and row.slug.startswith(("larry-ellison", "oracle")) and not row.description:
-                    # Keep a pre-existing curated Oracle if one ever appears.
-                    if row.tier == 0.55 or row.tier == 0.45:
-                        db.delete(row)
+                if (
+                    row is not None
+                    and row.slug.startswith(("larry-ellison", "oracle"))
+                    and not row.description
+                    and row.tier in (0.55, 0.45)
+                ):
+                    db.delete(row)

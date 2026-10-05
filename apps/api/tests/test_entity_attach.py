@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-
 from unittest.mock import patch
 
 from planetai_api.services.entity_attach import _mentions, attach_entities_to_event
