@@ -202,4 +202,7 @@ def attach_entities_to_event(db: Session, event: models.Event) -> int:
                 ee.role = "primary"
                 break
 
+    from planetai_shared.entity_discover import discover_for_event
+
+    made += discover_for_event(db, event)
     return made

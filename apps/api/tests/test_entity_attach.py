@@ -5,6 +5,8 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
+from unittest.mock import patch
+
 from planetai_api.services.entity_attach import _mentions, attach_entities_to_event
 from planetai_shared.db import models
 from planetai_shared.db.base import session_scope
@@ -62,7 +64,8 @@ def test_attach_entities_links_people_and_orgs():
         db.flush()
 
         try:
-            n = attach_entities_to_event(db, event)
+            with patch("planetai_shared.entity_discover.lookup_wikidata", return_value=None):
+                n = attach_entities_to_event(db, event)
             db.flush()
             assert n >= 2, f"expected >=2 links, got {n}"
 

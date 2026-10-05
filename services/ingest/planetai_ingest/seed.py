@@ -372,7 +372,22 @@ def seed_llm_developers(db: Session) -> None:
     db.flush()
 
 
+def _bust_reader_cache() -> None:
+    """Submitted-article links change event payloads the API caches."""
+    try:
+        import redis
+        from planetai_shared.settings import get_settings
+
+        client = redis.from_url(get_settings().redis_url)
+        for prefix in ("home", "news", "trending", "events"):
+            for key in client.scan_iter(match=f"{prefix}*"):
+                client.delete(key)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def run() -> None:
+    linked = 0
     with session_scope() as db:
         seed_entities(db)
         seed_relations(db)
@@ -384,6 +399,15 @@ def run() -> None:
         seed_stories(db)
         seed_llm_developers(db)
         fix_llmradar_asset_paths(db)
+        try:
+            from planetai_shared.entity_discover import backfill_submitted_events
+
+            linked = backfill_submitted_events(db)
+            log.info("discovered entity links on submitted articles: %s", linked)
+        except Exception:
+            log.exception("entity discovery backfill failed")
+    if linked:
+        _bust_reader_cache()
     log.info("seed complete")
 
 
