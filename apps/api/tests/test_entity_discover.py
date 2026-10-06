@@ -169,6 +169,52 @@ def test_technopark_without_wikidata_still_links():
                 db.delete(row)
 
 
+def test_known_cosmos_team_alias_links_without_catching_nvidia():
+    token = uuid.uuid4().hex[:8]
+    now = datetime.now(UTC)
+    with session_scope() as db:
+        team = models.Entity(
+            slug=f"ytu-ce-cosmos-{token}",
+            name="YTÜ CE Cosmos",
+            type="institution",
+            aliases=["Cosmos ekibi", "Cosmos ekibine"],
+            tier=0.55,
+        )
+        db.add(team)
+        event = models.Event(
+            slug=f"discover-cosmos-{token}",
+            title="YTÜ hocamız",
+            summary=None,
+            body_text="Ürettikleri modeller için Cosmos ekibine tebrikler. NVIDIA Cosmos 3 ayrı bir model.",
+            category="Models",
+            impact="low",
+            importance=1.0,
+            source_count=1,
+            first_seen_at=now,
+            last_activity_at=now,
+            status="active",
+            lang="tr",
+        )
+        db.add(event)
+        db.flush()
+        try:
+            with patch("planetai_shared.entity_discover.lookup_wikidata", return_value=None):
+                n = discover_for_event(db, event)
+            db.flush()
+            linked = db.scalars(
+                select(models.Entity)
+                .join(models.EventEntity, models.EventEntity.entity_id == models.Entity.id)
+                .where(models.EventEntity.event_id == event.id)
+            ).all()
+            names = {e.name for e in linked}
+            assert n >= 1
+            assert "YTÜ CE Cosmos" in names
+        finally:
+            db.query(models.EventEntity).filter_by(event_id=event.id).delete()
+            db.delete(event)
+            db.delete(team)
+
+
 def test_discover_links_person_without_wikidata_and_org_from_wikidata():
     token = uuid.uuid4().hex[:8]
 

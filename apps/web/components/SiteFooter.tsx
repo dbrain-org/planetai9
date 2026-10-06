@@ -46,17 +46,15 @@ export async function SiteFooter() {
               </span>
             </Link>
             <p className="mt-4 text-[14px] leading-relaxed text-ink-2 dark:text-d-ink-2">
-              {tr
-                ? "Türkiye'nin yapay zekâ medya platformu. Haberler, modeller ve ekosistem sinyalleri tek yerde."
-                : "Türkiye's AI media platform. News, models and ecosystem signals in one place."}
+              {tr ? "Türkiye'nin yapay zekâ medya platformu." : "Türkiye's AI media platform."}
             </p>
             <p className="mt-4 text-[12px] leading-relaxed text-muted">
               {tr
-                ? "PlanetAI9. Tek Gezegen. Her Yapay Zekâ Sinyali."
-                : "PlanetAI9. One Planet. Every AI Signal."}
+                ? "PlanetAI9. Güneş sisteminin 9. AI gezegeni."
+                : "PlanetAI9. The 9th AI planet in the solar system."}
             </p>
             <p className="mt-4 text-[13px] leading-relaxed text-ink-2 dark:text-d-ink-2">
-              {tr ? "Gizlilik soruları için " : "Privacy questions: "}
+              {tr ? "İletişim için: " : "Contact: "}
               <a href="mailto:info@dbrain.tech" className="font-semibold text-ink dark:text-d-ink">
                 info@dbrain.tech
               </a>

@@ -544,13 +544,66 @@ def _ensure(
     return ent
 
 
+_WORD = re.compile(r"[0-9A-Za-zÇĞİÖŞÜçğıöşü]")
+_LINKABLE = frozenset({"person", "company", "institution"})
+
+
+def _phrase_hit(haystack: str, phrase: str) -> bool:
+    """True when ``phrase`` sits on a word boundary. Casefold, no substring hits."""
+    needle = phrase.casefold()
+    if len(needle) < 3:
+        return False
+    start = 0
+    while True:
+        idx = haystack.find(needle, start)
+        if idx < 0:
+            return False
+        before = haystack[idx - 1] if idx else " "
+        after = haystack[idx + len(needle) : idx + len(needle) + 1] or " "
+        if _WORD.match(before) is None and _WORD.match(after) is None:
+            return True
+        start = idx + 1
+
+
+def _link_known_phrases(
+    db: Session,
+    event: models.Event,
+    rows: list[models.Entity],
+    linked: set[str],
+    haystack: str,
+    title_l: str,
+) -> int:
+    """Attach curated entities whose name or alias is written in the article.
+
+    "Cosmos ekibine" matches the YTÜ team. Bare "Cosmos" does not, so NVIDIA's
+    model family stays a different name.
+    """
+    made = 0
+    for ent in rows:
+        if ent.type not in _LINKABLE or str(ent.id) in linked:
+            continue
+        phrases = [ent.name, *(ent.aliases or [])]
+        if not any(_phrase_hit(haystack, p) for p in phrases if p):
+            continue
+        in_title = any(_phrase_hit(title_l, p) for p in phrases if p)
+        db.add(
+            models.EventEntity(
+                event_id=event.id,
+                entity_id=ent.id,
+                role="mentioned",
+                confidence=0.85 if in_title else 0.65,
+            )
+        )
+        linked.add(str(ent.id))
+        made += 1
+        if event.primary_entity_id is None and in_title and ent.type in {"company", "institution"}:
+            event.primary_entity_id = ent.id
+    return made
+
+
 def discover_for_event(db: Session, event: models.Event) -> int:
     """Link people and organizations named in ``event``. Idempotent."""
     body = " ".join(p for p in (event.summary, event.body_text) if p)
-    mentions = extract_mentions(event.title or "", body)
-    if not mentions:
-        return 0
-
     rows = _index(db)
     linked = {
         str(r.entity_id)
@@ -558,9 +611,19 @@ def discover_for_event(db: Session, event: models.Event) -> int:
             select(models.EventEntity).where(models.EventEntity.event_id == event.id)
         ).all()
     }
-    made = 0
+    # The dictionary pass may have added rows that are not flushed yet.
+    for obj in db.new:
+        if isinstance(obj, models.EventEntity) and obj.event_id == event.id:
+            linked.add(str(obj.entity_id))
+    haystack = f" {(event.title or '').casefold()}  {body.casefold()} "
+    title_l = f" {(event.title or '').casefold()} "
+    made = _link_known_phrases(db, event, rows, linked, haystack, title_l)
+
+    mentions = extract_mentions(event.title or "", body)
+    if not mentions:
+        return made
+
     lookups = 0
-    title_l = (event.title or "").casefold()
 
     for mention in mentions:
         ent = _find(rows, mention.name)

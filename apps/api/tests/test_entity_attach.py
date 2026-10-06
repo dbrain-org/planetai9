@@ -12,6 +12,13 @@ from planetai_shared.db.base import session_scope
 from sqlalchemy import select
 
 
+def test_cosmos_team_phrase_does_not_match_nvidia_cosmos():
+    assert _mentions(" cosmos ekibine tebrikler ", "Cosmos ekibine")
+    assert _mentions(" cosmos ekibi çalışıyor ", "Cosmos ekibi")
+    assert not _mentions(" nvidia cosmos 3 çıktı ", "Cosmos ekibi")
+    assert not _mentions(" nvidia cosmos 3 çıktı ", "Cosmos ekibine")
+
+
 def test_mentions_respects_word_boundaries():
     assert _mentions(" tubisad toplantisi ", "tubisad")
     assert _mentions(" openai announces ", "openai")
