@@ -50,8 +50,8 @@ export async function SiteFooter() {
             </p>
             <p className="mt-4 text-[12px] leading-relaxed text-muted">
               {tr
-                ? "PlanetAI9. Güneş sisteminin 9. AI gezegeni."
-                : "PlanetAI9. The 9th AI planet in the solar system."}
+                ? "PlanetAI9 Güneş sisteminin 9. AI gezegeni."
+                : "PlanetAI9 The 9th AI planet in the solar system."}
             </p>
             <p className="mt-4 text-[13px] leading-relaxed text-ink-2 dark:text-d-ink-2">
               {tr ? "İletişim için: " : "Contact: "}
