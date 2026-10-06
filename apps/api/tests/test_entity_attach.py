@@ -15,8 +15,11 @@ from sqlalchemy import select
 def test_cosmos_team_phrase_does_not_match_nvidia_cosmos():
     assert _mentions(" cosmos ekibine tebrikler ", "Cosmos ekibine")
     assert _mentions(" cosmos ekibi çalışıyor ", "Cosmos ekibi")
+    assert _mentions(" araştırma grubu cosmos'u, ürettikleri ", "Cosmos'u")
+    assert _mentions(" olan cosmos'un kurucusu ", "Cosmos'un")
     assert not _mentions(" nvidia cosmos 3 çıktı ", "Cosmos ekibi")
     assert not _mentions(" nvidia cosmos 3 çıktı ", "Cosmos ekibine")
+    assert not _mentions(" nvidia cosmos 3 çıktı ", "Cosmos'u")
 
 
 def test_mentions_respects_word_boundaries():

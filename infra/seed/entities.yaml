@@ -83,4 +83,4 @@ institutions:
   - { slug: sanayi-ve-teknoloji-bakanligi, name: Sanayi ve Teknoloji Bakanlığı, tier: 0.55, aliases: ["Sanayi ve Teknoloji Bakanligi", "Sanayi Bakanlığı", "Sanayi Bakanligi"] }
   - { slug: cumhurbaskanligi-yatirim-ofisi, name: Cumhurbaşkanlığı Yatırım ve Finans Ofisi, tier: 0.45, aliases: ["Cumhurbaşkanlığı Yatırım Ofisi", "Yatırım ve Finans Ofisi"] }
   # "Cosmos" alone is NVIDIA's model family. Only the team phrase links here.
-  - { slug: ytu-ce-cosmos, name: YTÜ CE Cosmos, tier: 0.55, aliases: ["Cosmos ekibi", "Cosmos ekibine", "Cosmos ekibinin", "Cosmos ekibinde", "Cosmos ekibinden"] }
+  - { slug: ytu-ce-cosmos, name: YTÜ CE Cosmos, tier: 0.55, aliases: ["Cosmos ekibi", "Cosmos ekibine", "Cosmos ekibinin", "Cosmos ekibinde", "Cosmos ekibinden", "Cosmos'u", "Cosmos'un", "Cosmos'a", "Cosmos'ta", "Cosmos'tan"] }
