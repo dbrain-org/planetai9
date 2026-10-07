@@ -46,10 +46,6 @@ const JUNK_ANY = new Set([
   "business",
   "pace",
   "car",
-  "çağrı",
-  "çağrısı",
-  "cagri",
-  "cagrisi",
 ]);
 
 function looksLikePersonName(name: string): boolean {

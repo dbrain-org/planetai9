@@ -70,10 +70,6 @@ _PERSON_STOP = frozenset(
         "business",
         "pace",
         "car",
-        "çağrı",
-        "çağrısı",
-        "cagri",
-        "cagrisi",
     }
 )
 

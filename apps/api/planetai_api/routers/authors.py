@@ -341,10 +341,10 @@ def record_column_view(
     user: models.User | None = Depends(get_optional_user),
 ) -> ColumnEngagementOut:
     p = _published_column_or_404(db, slug)
-    if _first_time(f"colview:{p.id}:{_visitor(request)}", 30 * 60):
-        p.view_count = int(p.view_count or 0) + 1
-        db.commit()
-        db.refresh(p)
+    # Every page load counts. No IP / cookie dedupe.
+    p.view_count = int(p.view_count or 0) + 1
+    db.commit()
+    db.refresh(p)
     return _column_engagement(db, p, user)
 
 

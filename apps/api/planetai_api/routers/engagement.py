@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import re
 from datetime import UTC, datetime
 
@@ -13,10 +12,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from planetai_api import cache
 from planetai_api.db import get_db
 from planetai_api.ratelimit import limiter
-from planetai_api.reader_auth import client_ip, get_optional_user, require_user
+from planetai_api.reader_auth import get_optional_user, require_user
 
 router = APIRouter()
 _settings = get_settings()
@@ -94,20 +92,11 @@ def record_view(
     db: Session = Depends(get_db),
     user: models.User | None = Depends(get_optional_user),
 ) -> EngagementOut:
+    # Every page load counts. No IP / cookie dedupe.
     ev = _event_or_404(db, slug)
-    ip = client_ip(request) or "unknown"
-    # Dedupe same visitor for 30 minutes (redis). Fail open if redis is down.
-    key = f"view:{ev.id}:{hashlib.sha1(ip.encode()).hexdigest()[:16]}"
-    try:
-        if cache.get(key) is None:
-            cache.set(key, "1", 30 * 60)
-            ev.view_count = int(ev.view_count or 0) + 1
-            db.commit()
-            db.refresh(ev)
-    except Exception:  # noqa: BLE001
-        ev.view_count = int(ev.view_count or 0) + 1
-        db.commit()
-        db.refresh(ev)
+    ev.view_count = int(ev.view_count or 0) + 1
+    db.commit()
+    db.refresh(ev)
 
     liked = False
     if user is not None:

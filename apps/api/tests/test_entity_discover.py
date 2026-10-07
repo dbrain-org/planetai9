@@ -62,6 +62,22 @@ def test_extracts_director_and_university_not_program_names():
     }
 
 
+def test_dr_title_links_cagri_toraman_not_fas_rabat():
+    body = (
+        "ODTÜ'de doktor öğretim üyesi Dr. Çağrı Toraman ile konuştuk. "
+        "Dr. Çağrı Toraman'ın ekibi. Türkbench Fas Rabat'ta sunuldu. Rabat'ta düzenlendi."
+    )
+    people = {m.name.casefold() for m in extract_mentions("GPU Yarışı", body) if m.hint == "person"}
+    assert "çağrı toraman" in people
+    assert "fas rabat" not in people
+    assert "türkbench fas rabat" not in people
+    assert "kuantum çağrısı" not in {
+        m.name.casefold()
+        for m in extract_mentions("", "Kuantum Çağrısı başladı.")
+        if m.hint == "person"
+    }
+
+
 def test_exact_org_with_two_wikipedia_editions_is_kept():
     search = {"search": [{"id": "Q1", "label": "İstanbul Ticaret Odası"}]}
     entity = {

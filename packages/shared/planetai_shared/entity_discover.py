@@ -42,6 +42,8 @@ _ROLES = (
 # The role word is case-insensitive. The name stays case-sensitive, otherwise
 # "kurucusu Larry Ellison'ı koltuğa" swallows the lowercase word after the name.
 _ROLE_PERSON = re.compile(rf"(?i:{_ROLES})[ \t]+({_NAME}(?:[ \t]+{_NAME}){{0,2}})")
+# "Dr. Çağrı Toraman", "Prof. Dr. Mehmet Fatih Amasyalı"
+_TITLE_PERSON = re.compile(rf"(?:(?:Prof|Doç|Doc|Dr)\.[ \t]*)+({_NAME}(?:[ \t]+{_NAME}){{0,2}})")
 _ORG_PHRASE = re.compile(
     rf"((?:{_NAME}[ \t]+){{1,5}}(?:Üniversitesi|University|Teknopark|Teknokent|"
     rf"Bakanlığı|Bakanligi|Holding|Odası|Odasi|Bankası|Bankasi))"
@@ -233,11 +235,13 @@ def _person_ok(name: str) -> bool:
     if not 5 <= len(name) <= 60:
         return False
     last = parts[-1].casefold()
+    # "çağrı" is a real first name (Çağrı Toraman). Only reject it as a surname /
+    # program word ("Kuantum Çağrısı"), not in every token.
     if last in _JUNK_LAST or last.endswith(("merkezi", "programı", "programi", "platformu")):
         return False
     for p in parts:
         low = p.casefold()
-        if low in _STOP or low in _JUNK_LAST or len(low) < 3 or p[0] != p[0].upper():
+        if low in _STOP or len(low) < 3 or p[0] != p[0].upper():
             return False
         if len(p) > 3 and p.isupper():
             return False
@@ -266,6 +270,7 @@ def extract_mentions(title: str, body: str) -> list[Mention]:
 
     masked = text
     for rx, hint, priority in (
+        (_TITLE_PERSON, "person", 0),
         (_ROLE_PERSON, "person", 0),
         (_ORG_PHRASE, "org", 1),
     ):
@@ -286,6 +291,13 @@ def extract_mentions(title: str, body: str) -> list[Mention]:
         parts = label.split()
         last, prev = parts[-1], parts[-2]
         # "Ali Eren Aytekin" and later just "Aytekin" is a person, not a program name.
+        # Skip place/product phrases that only look like names: "Fas Rabat",
+        # "Türkbench Fas Rabat".
+        given = parts[:-1]
+        if (len(parts) == 2 and len(given[0]) < 4) or any(len(p) > 8 for p in given):
+            if n >= 2 or key in title_l:
+                add(label, "maybe", 3)
+            continue
         solo = re.findall(
             rf"(?<!{re.escape(prev)}\s)(?<![A-Za-zÇĞİÖŞÜçğıöşü]){re.escape(last)}(?![A-Za-zÇĞİÖŞÜçğıöşü])",
             text,
