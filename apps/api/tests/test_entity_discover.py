@@ -71,6 +71,9 @@ def test_dr_title_links_cagri_toraman_not_fas_rabat():
     assert "çağrı toraman" in people
     assert "fas rabat" not in people
     assert "türkbench fas rabat" not in people
+    # Place phrases must not surface even as "maybe" (dictionary attach would link them).
+    all_names = {m.name.casefold() for m in extract_mentions("GPU Yarışı", body)}
+    assert "fas rabat" not in all_names
     assert "kuantum çağrısı" not in {
         m.name.casefold()
         for m in extract_mentions("", "Kuantum Çağrısı başladı.")

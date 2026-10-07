@@ -1,6 +1,7 @@
 /** Teams whose models live on the Türkiye LLM producer page, not a generic entity card. */
 const PRODUCER_PAGES: Record<string, string> = {
   "ytu-ce-cosmos": "/turkiye-llm/ureticiler/ytu-ce-cosmos",
+  toruk: "/turkiye-llm/ureticiler/ctoraman",
 };
 
 /** Resolve the public URL for an entity (people get /kisi hubs). */

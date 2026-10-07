@@ -30,6 +30,7 @@ const JUNK_LAST = new Set([
   "ads",
   "router",
   "karnesi",
+  "rabat",
 ]);
 
 const JUNK_ANY = new Set([
@@ -48,10 +49,25 @@ const JUNK_ANY = new Set([
   "car",
 ]);
 
+/** City/place phrases that look like "First Last" but must never link as people. */
+const PLACE_PERSON_DENY = new Set([
+  "fas rabat",
+  "new york",
+  "los angeles",
+  "san francisco",
+  "silicon valley",
+  "wall street",
+  "hong kong",
+  "abu dhabi",
+  "kuala lumpur",
+]);
+
 function looksLikePersonName(name: string): boolean {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length < 2 || parts.length > 4) return false;
   if (name.length < 5 || name.length > 60) return false;
+  const folded = parts.map((p) => p.toLowerCase().replace(/^[''`-]+|[''`-]+$/g, "")).join(" ");
+  if (PLACE_PERSON_DENY.has(folded)) return false;
   const last = parts[parts.length - 1]!.toLowerCase().replace(/^[''`-]+|[''`-]+$/g, "");
   if (JUNK_LAST.has(last)) return false;
   if (/(çağrısı|cagrisi|merkezi|platformu|programı|programi)$/i.test(last)) return false;

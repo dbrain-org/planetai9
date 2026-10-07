@@ -15,7 +15,9 @@ companies:
   - { slug: amazon,          name: Amazon,               tier: 0.70, aliases: ["AWS AI", "Amazon AGI"] }
   - { slug: alibaba,         name: Alibaba,              tier: 0.65, aliases: ["Alibaba Cloud", "Qwen Team"] }
   - { slug: moonshot,        name: Moonshot AI,          tier: 0.55, aliases: ["Moonshot"] }
-  - { slug: hugging-face,    name: Hugging Face,          tier: 0.60, aliases: ["HuggingFace"] }
+  - { slug: hugging-face,    name: Hugging Face,          tier: 0.60, aliases: ["HuggingFace", "huggingface", "Hugging face"] }
+  # ODTÜ NLP / Çağrı Toraman model ailesi — haber gövdesinde linklensin diye company.
+  - { slug: toruk,           name: Toruk,                 tier: 0.55, aliases: ["Toruk modeli", "Toruk model"] }
   - { slug: perplexity,      name: Perplexity,           tier: 0.55, aliases: ["Perplexity AI"] }
   - { slug: stability-ai,    name: Stability AI,          tier: 0.50, aliases: ["StabilityAI"] }
   - { slug: tesla,           name: Tesla,                tier: 0.70, aliases: [] }
@@ -74,6 +76,9 @@ people:
   - { slug: ahmet-avci,          name: Ahmet Avcı,          tier: 0.40, aliases: ["Ahmet Avci"] }
   - { slug: hasan-ozkapi,        name: Hasan Özkapı,        tier: 0.40, aliases: ["Hasan Ozkapi"] }
   - { slug: mehmet-fatih-kacir,  name: Mehmet Fatih Kacır,  tier: 0.50, aliases: ["Mehmet Fatih Kacir", "Fatih Kacır", "Fatih Kacir"] }
+  # PlanetAI9 röportaj / ODTÜ NLP
+  - { slug: cagri-toraman,       name: Çağrı Toraman,       tier: 0.55, aliases: ["Dr. Çağrı Toraman", "Dr Çağrı Toraman", "Cagri Toraman", "Dr. Cagri Toraman"] }
+  - { slug: kemal-oflazer,       name: Kemal Oflazer,       tier: 0.55, aliases: ["Prof. Dr. Kemal Oflazer", "Prof. Kemal Oflazer"] }
 
 institutions:
   - { slug: stanford,   name: Stanford,   aliases: ["Stanford University", "Stanford HAI"] }
@@ -84,3 +89,7 @@ institutions:
   - { slug: cumhurbaskanligi-yatirim-ofisi, name: Cumhurbaşkanlığı Yatırım ve Finans Ofisi, tier: 0.45, aliases: ["Cumhurbaşkanlığı Yatırım Ofisi", "Yatırım ve Finans Ofisi"] }
   # "Cosmos" alone is NVIDIA's model family. Only the team phrase links here.
   - { slug: ytu-ce-cosmos, name: YTÜ CE Cosmos, tier: 0.55, aliases: ["Cosmos ekibi", "Cosmos ekibine", "Cosmos ekibinin", "Cosmos ekibinde", "Cosmos ekibinden", "Cosmos'u", "Cosmos'un", "Cosmos'a", "Cosmos'ta", "Cosmos'tan"] }
+  - { slug: sigturk, name: Sigtürk, tier: 0.50, aliases: ["SIGTürk", "SigTurk", "Sigturk", "SIGTurk", "Sigtürk çalıştayı"] }
+  - { slug: turkbench, name: Türkbench, tier: 0.45, aliases: ["Turkbench", "TürkBench", "TurkBench"] }
+  - { slug: ocrturk, name: OCRTürk, tier: 0.40, aliases: ["OCRTurk", "OCR Türk"] }
+  - { slug: ragturk, name: RagTürk, tier: 0.40, aliases: ["RAGTürk", "RagTurk", "RAG Türk"] }

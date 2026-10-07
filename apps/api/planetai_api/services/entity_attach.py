@@ -53,6 +53,7 @@ _PERSON_JUNK_LAST = frozenset(
         "ads",
         "router",
         "karnesi",
+        "rabat",
     }
 )
 _PERSON_STOP = frozenset(
@@ -72,6 +73,19 @@ _PERSON_STOP = frozenset(
         "car",
     }
 )
+_PLACE_PERSON_DENY = frozenset(
+    {
+        "fas rabat",
+        "new york",
+        "los angeles",
+        "san francisco",
+        "silicon valley",
+        "wall street",
+        "hong kong",
+        "abu dhabi",
+        "kuala lumpur",
+    }
+)
 
 
 def _looks_like_person_name(name: str) -> bool:
@@ -79,6 +93,8 @@ def _looks_like_person_name(name: str) -> bool:
     if len(parts) < 2 or len(parts) > 4:
         return False
     if len(name) < 5 or len(name) > 60:
+        return False
+    if " ".join(p.lower().strip("'-") for p in parts) in _PLACE_PERSON_DENY:
         return False
     last = parts[-1].lower().strip("'-")
     if last in _PERSON_JUNK_LAST or last.endswith(

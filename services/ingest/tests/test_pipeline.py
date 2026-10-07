@@ -105,6 +105,17 @@ def test_person_extract_rejects_program_phrases_and_finds_minister():
     assert _looks_like_person_name("Sam Altman")
     assert _looks_like_person_name("Fei-Fei Li")
     assert _looks_like_person_name("FeiFei Li")
+    assert _looks_like_person_name("Çağrı Toraman")
+    assert not _looks_like_person_name("Fas Rabat")
+    assert _looks_like_person_name("Kemal Oflazer")
+
+    voices = (
+        "PlanetAI9 Voices: Dr. Öğr. Üyesi Çağrı Toraman | Türkçe YZ, TürkBench, ve YZ Bağımsızlığı"
+    )
+    assert "Çağrı Toraman" in extract_person_candidates(voices, source="video")
+    assert "Çağrı Toraman" in extract_person_candidates(
+        "Dr. Çağrı Toraman ile sohbet", source="video"
+    )
 
     assert "Fei-Fei Li" in extract_person_candidates(
         "Fei-Fei Li announces a new AI initiative", source="news"

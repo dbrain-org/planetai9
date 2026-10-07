@@ -137,6 +137,21 @@ _JUNK_LAST = frozenset(
         "yolu",
         "etkinliği",
         "etkinligi",
+        "rabat",
+    }
+)
+# "Fas Rabat", "New York" — look like names, are places.
+_PLACE_PERSON_DENY = frozenset(
+    {
+        "fas rabat",
+        "new york",
+        "los angeles",
+        "san francisco",
+        "silicon valley",
+        "wall street",
+        "hong kong",
+        "abu dhabi",
+        "kuala lumpur",
     }
 )
 _ACRONYM_SKIP = frozenset(
@@ -234,6 +249,8 @@ def _person_ok(name: str) -> bool:
         return False
     if not 5 <= len(name) <= 60:
         return False
+    if " ".join(p.casefold() for p in parts) in _PLACE_PERSON_DENY:
+        return False
     last = parts[-1].casefold()
     # "çağrı" is a real first name (Çağrı Toraman). Only reject it as a surname /
     # program word ("Kuantum Çağrısı"), not in every token.
@@ -293,6 +310,8 @@ def extract_mentions(title: str, body: str) -> list[Mention]:
         # "Ali Eren Aytekin" and later just "Aytekin" is a person, not a program name.
         # Skip place/product phrases that only look like names: "Fas Rabat",
         # "Türkbench Fas Rabat".
+        if key in _PLACE_PERSON_DENY:
+            continue
         given = parts[:-1]
         if (len(parts) == 2 and len(given[0]) < 4) or any(len(p) > 8 for p in given):
             if n >= 2 or key in title_l:

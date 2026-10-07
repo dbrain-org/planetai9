@@ -22,6 +22,14 @@ def test_cosmos_team_phrase_does_not_match_nvidia_cosmos():
     assert not _mentions(" nvidia cosmos 3 çıktı ", "Cosmos'u")
 
 
+def test_fas_rabat_is_not_a_linkable_person():
+    from planetai_api.services.entity_attach import _looks_like_person_name
+
+    assert not _looks_like_person_name("Fas Rabat")
+    assert _looks_like_person_name("Kemal Oflazer")
+    assert _looks_like_person_name("Çağrı Toraman")
+
+
 def test_mentions_respects_word_boundaries():
     assert _mentions(" tubisad toplantisi ", "tubisad")
     assert _mentions(" openai announces ", "openai")

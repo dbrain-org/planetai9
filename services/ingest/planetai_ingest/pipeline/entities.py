@@ -36,6 +36,11 @@ _NAME_PHRASE = rf"({_NAME_TOKEN}(?:\s+{_NAME_TOKEN})+)"
 _GUEST_ILE = re.compile(rf"(?<![A-Za-zÇĞİÖŞÜçğıöşü]){_NAME_PHRASE}\s+ile\b")
 # Video title guest: "Susan Wojcicki: …" (name at start, then colon)
 _VIDEO_TITLE_GUEST = re.compile(rf"^{_NAME_PHRASE}\s*:")
+# "Dr. Çağrı Toraman", "Prof. Dr. Mehmet …", "Dr. Öğr. Üyesi Çağrı Toraman"
+_VIDEO_ACADEMIC_GUEST = re.compile(
+    rf"(?:(?:Prof|Doç|Doc)\.?\s*)*(?:Dr\.?\s*)+(?:Öğr\.?\s*Üyesi\s+)?"
+    rf"({_NAME_TOKEN}(?:\s+{_NAME_TOKEN}){{1,2}})"
+)
 # News headline verbs: "Sam Altman apologizes …" / "Dario Amodei warns …"
 _NEWS_VERB_PERSON = re.compile(
     rf"(?:^|[\s\"“«]){_NAME_PHRASE}"
@@ -110,11 +115,8 @@ _STOP_TOKENS = frozenset(
         "llm",
         "gpt",
         "api",
-        # Program / product / generic title-case junk (was auto-tagged as "people")
-        "çağrı",
-        "çağrısı",
-        "cagri",
-        "cagrisi",
+        # Program / product junk. "çağrı" as a first name is fine; only the last
+        # token check below rejects "Kuantum Çağrısı".
         "veri",
         "merkezi",
         "merkez",
@@ -289,12 +291,30 @@ def choose_primary(hits: list[EntityHit]) -> EntityHit | None:
     )
 
 
+# Place / city phrases that look like "First Last" but are not people.
+_PLACE_PERSON_DENY = frozenset(
+    {
+        "fas rabat",
+        "new york",
+        "los angeles",
+        "san francisco",
+        "silicon valley",
+        "wall street",
+        "hong kong",
+        "abu dhabi",
+        "kuala lumpur",
+    }
+)
+
+
 def _looks_like_person_name(name: str) -> bool:
     """True only for plausible human names — reject title-case program phrases."""
     parts = [p for p in re.split(r"\s+", name.strip()) if p]
     if len(parts) < 2 or len(parts) > 4:
         return False
     if len(name) < 5 or len(name) > 60:
+        return False
+    if " ".join(p.lower().strip("'-") for p in parts) in _PLACE_PERSON_DENY:
         return False
     # Last token ending in common TR noun suffixes is almost never a surname.
     last = parts[-1].lower().strip("'-")
@@ -323,6 +343,7 @@ def _looks_like_person_name(name: str) -> bool:
         "ads",
         "router",
         "karnesi",
+        "rabat",
     }:
         return False
     for p in parts:
@@ -366,6 +387,10 @@ def extract_person_candidates(text: str, *, source: str = "news") -> list[str]:
         first = text.split("\n", 1)[0].strip()
         m = _VIDEO_TITLE_GUEST.match(first)
         if m:
+            add(m.group(1))
+        for m in _VIDEO_ACADEMIC_GUEST.finditer(text):
+            add(m.group(1))
+        for m in _TR_ROLE_PERSON.finditer(text):
             add(m.group(1))
     else:
         # News: no "X ile" scan over the full body — that tagged "Kuantum Çağrısı ile".
