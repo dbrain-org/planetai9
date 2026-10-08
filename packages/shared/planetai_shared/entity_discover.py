@@ -579,6 +579,30 @@ _WORD = re.compile(r"[0-9A-Za-zÇĞİÖŞÜçğıöşü]")
 _LINKABLE = frozenset({"person", "company", "institution"})
 
 
+def _attach_event_entity(
+    db: Session,
+    *,
+    event_id: uuid.UUID,
+    entity_id: uuid.UUID,
+    role: str,
+    confidence: float,
+) -> bool:
+    """Insert event↔entity. Idempotent under concurrent seed/discover races."""
+    from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+    stmt = (
+        pg_insert(models.EventEntity)
+        .values(
+            event_id=event_id,
+            entity_id=entity_id,
+            role=role,
+            confidence=confidence,
+        )
+        .on_conflict_do_nothing(index_elements=["event_id", "entity_id"])
+    )
+    return bool(db.execute(stmt).rowcount)
+
+
 def _phrase_hit(haystack: str, phrase: str) -> bool:
     """True when ``phrase`` sits on a word boundary. Casefold, no substring hits."""
     needle = phrase.casefold()
@@ -617,16 +641,15 @@ def _link_known_phrases(
         if not any(_phrase_hit(haystack, p) for p in phrases if p):
             continue
         in_title = any(_phrase_hit(title_l, p) for p in phrases if p)
-        db.add(
-            models.EventEntity(
-                event_id=event.id,
-                entity_id=ent.id,
-                role="mentioned",
-                confidence=0.85 if in_title else 0.65,
-            )
-        )
+        if _attach_event_entity(
+            db,
+            event_id=event.id,
+            entity_id=ent.id,
+            role="mentioned",
+            confidence=0.85 if in_title else 0.65,
+        ):
+            made += 1
         linked.add(str(ent.id))
-        made += 1
         if event.primary_entity_id is None and in_title and ent.type in {"company", "institution"}:
             event.primary_entity_id = ent.id
     return made
@@ -686,16 +709,15 @@ def discover_for_event(db: Session, event: models.Event) -> int:
         if str(ent.id) in linked:
             continue
         in_title = mention.name.casefold() in title_l or ent.name.casefold() in title_l
-        db.add(
-            models.EventEntity(
-                event_id=event.id,
-                entity_id=ent.id,
-                role="mentioned",
-                confidence=0.8 if in_title else 0.6,
-            )
-        )
+        if _attach_event_entity(
+            db,
+            event_id=event.id,
+            entity_id=ent.id,
+            role="mentioned",
+            confidence=0.8 if in_title else 0.6,
+        ):
+            made += 1
         linked.add(str(ent.id))
-        made += 1
         if event.primary_entity_id is None and in_title and ent.type in {"company", "institution"}:
             event.primary_entity_id = ent.id
 
